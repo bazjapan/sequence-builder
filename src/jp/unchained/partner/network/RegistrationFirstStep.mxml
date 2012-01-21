@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+
+
+			import jp.unchained.partner.PartnerSiteConstants;
+			
+			import mx.rpc.events.ResultEvent;
+			private function register():void
+			{
+			/* 	new UC_ValidationController(PartnerSiteConstants.SERVICE_BASE_URL).check_email_has_registered_partner_event(ti_user_email.text,
+					function(result:ResultEvent):void
+					{
+						trace(result.result.toString());
+						lb_login_status_text.text = result.result.toString();
+					}); */
+			}
+		]]>
+	</fx:Script>
+	<s:VGroup  width="100%" height="100%"  horizontalAlign="center">
+		<s:VGroup  horizontalAlign="center" verticalAlign="middle">
+			
+			<s:Label text="User Name" fontWeight="bold"/>
+			<s:TextInput id="ti_user_login" text="admin"/>
+			<s:Label text="Password" fontWeight="bold"/>
+			<s:TextInput id="ti_user_pass" displayAsPassword="true" text="1234567"/>
+			<s:TextInput id="ti_user_pass2" displayAsPassword="true" text="1234567"/>
+			<s:Label text="Email" fontWeight="bold"/>
+			<s:TextInput id="ti_user_email" />
+			<s:HGroup width="100%" horizontalAlign="center" verticalAlign="top" height="57" paddingTop="20">
+				<s:Label id="lb_login_status_text" fontWeight="bold" />
+			</s:HGroup>
+			
+		</s:VGroup>
+		<s:HGroup>
+			<s:Button label="Register" click="register()"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

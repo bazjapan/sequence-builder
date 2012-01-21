@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" creationComplete="cc()" xmlns:screens="com.pbsmediatech.sequenceBuilder.views.components.screens.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.dto.ControllerSequence;
+			import com.pbsmediatech.json.controllers.DomainController;
+			import com.pbsmediatech.json.utils.DomainResultHelper;
+			import com.pbsmediatech.json.utils.JSONResultHelper2;
+			import com.pbsmediatech.json.utils.extractResult;
+			
+			import db.MySQLRow;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.loadSequenceToModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.sequences.loadSavedSequncesForDomainToModel;
+			
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.ResultEvent;
+
+			protected function get_saved_sequences_clickHandler(event:MouseEvent):void
+			{
+				loadSavedSequncesForDomainToModel(String(save_sequence_domain_chooser.selectedItem["domain_label"]));
+			}
+			protected function load_selected_sequence_clickHandler(event:MouseEvent):void
+			{
+				loadSequence(dg_saved.selectedItem as ControllerSequence);
+			}
+			private function loadSequence(seq:ControllerSequence):void
+			{
+				var loaded_sequence:ControllerSequence = loadSequenceToModel(seq);
+				
+			}
+			
+			private function cc():void
+			{
+				AppModel.getInstance().view_maker_version = 0.1;
+				
+				AppModel.getInstance().datastore.fields = new ArrayCollection;
+				
+				new DomainController(AppModel.getInstance().service_base_url).get_all_domains(function(evt:ResultEvent):void
+				{
+					var results:Array = new DomainResultHelper().resultToArray(extractResult(evt));
+					AppModel.getInstance().domains.source = results;
+				});
+				
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	
+	<s:NavigatorContent label="" width="100%" height="100%">
+    					<s:VGroup width="100%" height="100%">
+    						<s:TabBar dataProvider="{vs_}"/>
+    						<mx:ViewStack  id="vs_" width="100%" height="100%">
+								<s:NavigatorContent width="100%" height="100%" label="Saved">
+									<s:VGroup width="100%" height="100%">
+										<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+											<s:HGroup width="100%" horizontalAlign="left">
+												<s:Button visible="{dg_saved.selectedItem != null}" id="load_selected_sequence" label="load_selected_sequence"  click="load_selected_sequence_clickHandler(event)"/>
+											</s:HGroup>	
+											<s:HGroup width="100%" horizontalAlign="right">
+<!--												<s:Button visible="{dg_saved.selectedItem != null}"  id="remove_saved_sequence" label="remove_saved_sequence" click="remove_saved_sequence_clickHandler(event)"/>-->
+												<s:DropDownList width="250" requireSelection="true" dataProvider="{AppModel.getInstance().domains}" labelField="domain_label" id="save_sequence_domain_chooser"/>
+												<s:Button enabled="{save_sequence_domain_chooser.selectedItem != null}" id="get_saved_sequences" label="get_saved_sequences" click="get_saved_sequences_clickHandler(event)"/>
+											</s:HGroup>	
+										</s:HGroup>	
+										
+										<mx:DataGrid width="100%" height="100%" id="dg_saved" dataProvider="{AppModel.getInstance().saved_sequences}">
+											<mx:columns>
+												<mx:DataGridColumn dataField="sequence_date_added" width="150"/>
+												<mx:DataGridColumn dataField="sequence_ID" width="50"/>
+												<mx:DataGridColumn dataField="sequence_version" width="50"/>
+												<mx:DataGridColumn dataField="sequence_controller_name" width="200"/>
+												<mx:DataGridColumn dataField="sequence_last_modified" width="150"/>
+												<mx:DataGridColumn dataField="sequence_notes"/>
+											</mx:columns>
+										</mx:DataGrid>
+										
+									</s:VGroup>
+								</s:NavigatorContent>
+								<s:NavigatorContent width="100%" height="100%" label="Entity Add">
+									<screens:SequenceItemAdderScreen enabled="{AppModel.getInstance().loaded_sequence != null}" loaded_sequence="{AppModel.getInstance().loaded_sequence}" width="100%" height="100%">
+										
+									</screens:SequenceItemAdderScreen>
+								</s:NavigatorContent>
+    						</mx:ViewStack>
+    					</s:VGroup>
+    				</s:NavigatorContent>
+    
+</s:Application>

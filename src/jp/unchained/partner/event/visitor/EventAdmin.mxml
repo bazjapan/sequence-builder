@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="1000" height="100%" xmlns:visitor="jp.unchained.partner.event.visitor.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:HGroup height="50" width="100%" verticalAlign="middle" horizontalAlign="center">
+		<s:Label text="Header" fontSize="18" fontWeight="bold"/>
+	</s:HGroup>
+	<s:HGroup width="100%" height="100%">
+		<s:VGroup width="100%" height="100%">
+		<s:ButtonBar dataProvider="{vs1}"/>
+		<mx:ViewStack id="vs1" width="100%" height="100%">
+			<s:NavigatorContent label="Diary">
+			<visitor:EventDiary width="100%" height="100%">
+			</visitor:EventDiary>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Appointments">
+			<visitor:EventDiary width="100%" height="100%">
+			</visitor:EventDiary>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Search">
+			</s:NavigatorContent>
+		</mx:ViewStack>
+		</s:VGroup>
+		
+		<s:VGroup width="100%" height="100%">
+			<s:ButtonBar dataProvider="{vs2}"/>
+		<mx:ViewStack id="vs2" width="100%" height="100%">
+			<s:NavigatorContent label="Messages">
+				<visitor:EventDiary width="100%" height="100%">
+					
+				</visitor:EventDiary>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Profile">
+				<visitor:EventDiary width="100%" height="100%">
+					
+				</visitor:EventDiary>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="MarketPlace">
+				
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Visitors">
+				
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Exhibitors">
+				
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Contacts">
+				
+			</s:NavigatorContent>
+		</mx:ViewStack>
+		</s:VGroup>
+	</s:HGroup>
+	<s:VGroup width="100%" height="100%">
+		<s:ButtonBar dataProvider="{vs3}"/>
+		<mx:ViewStack id="vs3" width="100%" height="100%">
+			<s:NavigatorContent label="Floorplan">
+				<visitor:EventDiary width="100%" height="100%">
+					
+				</visitor:EventDiary>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Catering">
+				<visitor:EventDiary width="100%" height="100%">
+					
+				</visitor:EventDiary>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Info etc">
+				
+			</s:NavigatorContent>
+		
+		</mx:ViewStack>
+	</s:VGroup>
+	
+</s:Group>

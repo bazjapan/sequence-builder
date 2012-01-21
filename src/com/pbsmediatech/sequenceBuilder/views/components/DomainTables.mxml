@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:components="jp.unchained.views.components.*" xmlns:image="image.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="3" paddingTop="3" paddingBottom="3"/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.code.method_builders.sql.makeDropTableScript;
+			import com.pbsmediatech.code.method_builders.sql.makeSQLRenameTableScript;
+			import com.pbsmediatech.dto.Domain;
+			import com.pbsmediatech.json.utils.JSONResultHelper2;
+			import com.pbsmediatech.json.utils.extractResult;
+			import com.pbsmediatech.json.utils.extractResultMessage;
+			
+			import database.mySQL.getMySQLIllegalCharacters;
+			
+			import db.MySQLRow;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.object.listParams;
+			import utils.string.constants;
+			import utils.validation.findIllegalCharacters;
+			[Bindable]private var selected_domain:Domain;
+			protected function domains_changeHandler(event:IndexChangeEvent):void
+			{
+				selected_domain = ddlt_domains.selectedItem;
+				get_tables_for_domain();
+			}
+			protected function get_tables_for_domain():void
+			{
+				getTablesForDomain();
+			}
+			[Bindable]private var tables:ArrayCollection = new ArrayCollection;
+			[Bindable]private var store_name:String;
+			private function getTablesForDomain():void
+			{
+				tables.removeAll();
+				getDataStoreServiceController(selected_domain.domain_label, AppModel.getInstance().dev).get_table_names(function(evt:ResultEvent):void
+				{
+					store_name = extractResultMessage(evt);
+					var results:Array = new JSONResultHelper2().resultToArray(extractResult(evt));
+					for each (var obj:Object in results)
+					{
+						tables.addItem(listParams(obj)[0]);
+						status_text = results.length+" tables loaded";
+					}
+				});
+									
+			}
+			[Bindable]public var selected_table_name:String;
+			protected function ddlt_tables_changeHandler(event:IndexChangeEvent):void
+			{
+				selected_table_name = ddlt_tables.selectedItem as String;
+				num_records = '?';
+				table_version_value = 0;
+			}
+			[Bindable]public var rows:ArrayCollection = new ArrayCollection;
+			protected function get_table_info_clickHandler(event:MouseEvent = null):void
+			{
+				rows.removeAll();
+				getDataStoreServiceController(selected_domain.domain_label, AppModel.getInstance().dev).get_table_info({table_name:selected_table_name},function(evt:ResultEvent):void
+				{
+					var results:Array = new JSONResultHelper2().resultToArray(extractResult(evt));
+					for each (var obj:Object in results)
+					{
+						rows.addItem(new MySQLRow(obj));
+						status_text = results.length+" rows loaded";
+					}
+					
+				}); 
+			}
+			[Bindable]private var num_records:String = "?";
+			protected function get_num_records_clickHandler(event:MouseEvent):void
+			{
+				if(selected_table_name == null)return;
+				getDataStoreServiceController(selected_domain.domain_label, 
+					AppModel.getInstance().dev).get_number_records_in_table({table_name:selected_table_name},function(evt:ResultEvent):void
+					{
+						if(new JSONResultHelper2().resultIsGood(extractResult(evt)))
+						{
+							var resultObj:Object = JSON.decode(extractResult(evt));
+							num_records = resultObj["result"];
+						}
+					});
+			}
+			[Bindable]private var table_version_value:Number = 0;
+			protected function get_table_version_clickHandler(event:MouseEvent = null):void
+			{
+				getDataStoreServiceController(selected_domain.domain_label, AppModel.getInstance().dev).get_table_version({table_name:selected_table_name}, function(evt:ResultEvent):void
+				{
+					if(new JSONResultHelper2().resultIsGood(extractResult(evt)))
+					{
+						var resultObj:Object = JSON.decode(extractResult(evt));
+						table_version_value = resultObj["result"];
+					}
+					
+				});
+			}
+			
+			
+			protected function set_table_version_clickHandler(event:MouseEvent):void
+			{
+				getDataStoreServiceController(selected_domain.domain_label, AppModel.getInstance().dev).set_table_version({table_name:selected_table_name, table_version:table_version.value}, function(evt:ResultEvent):void
+				{
+					if(new JSONResultHelper2().resultIsGood(extractResult(evt)))
+					{
+						var resultObj:Object = JSON.decode(extractResult(evt));
+						status_text = resultObj["message"];
+						table_version_value = table_version.value;
+					}
+				});
+			}
+			//table updates
+			protected function remove_column_from_store_clickHandler(event:MouseEvent):void
+			{
+				showAlert("Are you positive you want to remove "+selected_row.Field+" from remote store???", function():void{
+					
+					var sql_Text:String = makeSQLRemoveColumnFromTableScript(selected_table_name,
+						selected_row.Field);
+					commit_command_to_store(sql_Text, true);
+				});
+			}
+			protected function rename_column_in_store_clickHandler(event:MouseEvent):void
+			{
+				var namePop:EnterNamePop= new EnterNamePop;
+				PopUpManager.addPopUp(namePop, this, true);
+				PopUpManager.centerPopUp(namePop);
+				namePop.title = "Enter New Column Name for "+selected_row.Field;
+				namePop.minLength = AppModel.getInstance().MIN_COL_NAME_LENGTH;;
+				namePop.happy = function(field_name:String):void
+				{
+					if(field_name.indexOf(" ")>-1){Alert.show("Illegal Characters, please try again"); return}
+					var old_field_name:String = selected_row.Field;
+					var converted:Field = convertMySQLRowToField(selected_row);
+					var sql:String = makeSQLUpdateColumnScript(selected_table_name,old_field_name,field_name,converted.field_type,converted.field_size, converted.is_last_mod);
+					commit_command_to_store(sql);
+					PopUpManager.removePopUp(namePop);
+					
+				}
+				namePop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					PopUpManager.removePopUp(namePop);
+				});
+			}
+			
+			[Bindable]private var allow_create_table:Boolean = true;
+			protected function create_table_clickHandler(event:MouseEvent):void
+			{
+				var namePop:AddNewTable= new AddNewTable;
+				PopUpManager.addPopUp(namePop, this, true);
+				PopUpManager.centerPopUp(namePop);
+				namePop.title = "Enter Key Name.";
+				namePop.minTableKeyLength = AppModel.getInstance().MIN_TABLE_KEY_LENGTH;;
+				namePop.minTableNameLength = AppModel.getInstance().MIN_TABLE_NAME_LENGTH;;
+				namePop.happy = function(table_name:String, key_name:String):void
+				{
+					if(table_name.indexOf(" ")>-1 || key_name.indexOf(" ")>-1)
+					{
+						Alert.show("Illegal Characters in table or key name, please try again.");
+						return;
+					}
+					var sql:String = makeCreateTableScript(table_name, key_name);
+					getDataStoreServiceController(selected_domain.domain_label, AppModel.getInstance().dev).apply_command({command:sql}, function(evt:ResultEvent):void
+					{
+						if(new JSONResultHelper2().resultIsGood(extractResult(evt)))
+						{
+							status_text = "Table Added.";
+							sql_command.text += dateToTimestamp(now())+newLine();
+							sql_command.text += sql;
+							selected_table_name = "";
+							ddlt_tables.selectedItem = null;
+							get_tables_for_domain();
+						}
+						else
+						{
+							status_text = "Unable to add table.";
+						}
+					});
+					
+					PopUpManager.removePopUp(namePop);
+					allow_create_table = false;
+				}
+				namePop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					PopUpManager.removePopUp(namePop);
+				});
+			}
+			
+			[Bindable]private var allow_drop_table:Boolean = true;
+			protected function drop_table_clickHandler(event:MouseEvent):void
+			{
+				Alert.show("Are you sure you want to drop table "+selected_table_name+" on "+selected_domain.domain_label+"?", "Remove Table?", Alert.NO|Alert.YES,null,
+					function(ce:CloseEvent):void
+					{
+						if(ce.detail == Alert.YES)
+						{
+							
+							Alert.show("Are you absolutely positive you want to drop table "+selected_table_name+" on "+selected_domain.domain_label+"?", "Remove Table?", Alert.NO|Alert.YES,null,
+								function(ce:CloseEvent):void
+								{
+									if(ce.detail == Alert.YES)
+									{
+										
+										var sql:String = makeDropTableScript(selected_table_name);
+										getDataStoreServiceController(selected_domain.domain_label, AppModel.getInstance().dev).apply_command({command:sql}, function(evt:ResultEvent):void
+										{
+											if(new JSONResultHelper2().resultIsGood(extractResult(evt)))
+											{
+												status_text = "Table Removed/Dropped.";
+												sql_command.text += dateToTimestamp(now())+newLine();
+												sql_command.text += sql;
+												tables.removeItemAt(tables.getItemIndex(selected_table_name));
+												selected_table_name = null;
+												ddlt_tables.selectedItem = null;
+												rows.removeAll();
+											}
+											else
+											{
+												status_text = "Unable to remove table.";
+											}
+										});
+										
+									}
+								});
+							
+						}
+					});
+			}
+			
+			[Bindable]private var allow_add_field_to_store:Boolean;
+			protected function sequence_fields_changeHandler(event:IndexChangeEvent):void
+			{
+				selected_field = sequence_fields.selectedItem as Field;
+				allow_add_field_to_store = !doesTableHaveRow(selected_field.field_name);
+			}
+			
+			private function doesTableHaveRow(row_name:String):Boolean
+			{
+				for each (var obj:MySQLRow in rows)
+				{
+					if(row_name == obj.Field)
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+			protected function add_to_store_clickHandler(event:MouseEvent):void
+			{
+				if(selected_field == null)return;
+				showAlert("Are you sure you want to add "+selected_field.field_name+" to remote store?", function():void{
+					
+					var sql_Text:String = makeSQLAddColumnToTable(selected_table_name,
+						selected_field.field_name,selected_field.field_type, selected_field.field_size, selected_field.is_last_mod); 
+					
+					commit_command_to_store(sql_Text, true);
+					allow_add_field_to_store = false;
+				});
+				
+			}
+
+			
+			
+			
+			//-------------------
+			protected function commit_command_to_store(commandText:String, reload_table_info:Boolean = false):void
+			{
+				getDataStoreServiceController(selected_domain.domain_label, AppModel.getInstance().dev).apply_command({command:commandText}, function(evt:ResultEvent):void
+				{
+					if(new JSONResultHelper2().resultIsGood(extractResult(evt)))
+					{
+						status_text = "Table updated.";
+						sql_command.text += dateToTimestamp(now())+newLine();
+						sql_command.text += commandText;
+					}
+					else
+					{
+						status_text = "Unable to update table.";
+					}
+					if(reload_table_info)
+					{
+						get_table_info_clickHandler();
+					}
+				});
+			}
+			
+			[Bindable]private var controllers:ArrayCollection = new ArrayCollection;
+			protected function get_active_controllers_for_table_clickHandler(event:MouseEvent):void
+			{
+				if(!selected_domain)return;
+				getDataStoreServiceController(selected_domain.domain_label,AppModel.getInstance().dev).get_active_controller_by_store_name({store_name:selected_table_name},function(evt:ResultEvent):void
+				{
+					var results:Array = new JSONResultHelper2().resultToArray(extractResult(evt));
+					controllers.source = results;
+				});
+			}
+
+
+			protected function rename_table_in_store_clickHandler(event:MouseEvent):void
+			{
+				if(store_name.length<1){Alert.show("Currently unable to rename tables in this store"); return};
+				var namePop:EnterNamePop= new EnterNamePop;
+				PopUpManager.addPopUp(namePop, this, true);
+				PopUpManager.centerPopUp(namePop);
+				namePop.title = "Enter New Table Name for "+selected_table_name;
+				namePop.minLength = AppModel.getInstance().MIN_TABLE_NAME_LENGTH;;
+				namePop.happy = function(new_table_name:String):void
+				{
+					var illegal_chars:Array = findIllegalCharacters(new_table_name,getMySQLIllegalCharacters());
+					if(illegal_chars.length>0){Alert.show(illegal_chars.join(" , ")+" are illegal characters, please remove and try again"); return}
+					var old_table_name:String = selected_table_name; 
+					var sql:String = makeSQLRenameTableScript(store_name,old_table_name,new_table_name);
+					commit_command_to_store(sql,true);
+					PopUpManager.removePopUp(namePop);
+					
+				}
+				namePop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					PopUpManager.removePopUp(namePop);
+				});
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.views.components.table.AddNewTable;
+			import com.adobe.serialization.json.JSON;
+			import com.pbsmediatech.code.method_builders.sql.makeSQLAddColumnToTable;
+			import com.pbsmediatech.code.method_builders.sql.makeSQLRemoveColumnFromTableScript;
+			import com.pbsmediatech.code.method_builders.sql.makeSQLUpdateColumnScript;
+			import com.pbsmediatech.code.method_builders.sql.makeCreateTableScript;
+			import com.pbsmediatech.json.utils.JSONResultHelper2;
+			
+			import db.field.Field;
+			import db.MySQLRow;
+			import db.getMySQLFieldLength;
+			
+			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.compareFieldToMySQLRow;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.convertMySQLRowToField;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.findFieldByName;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.findMySQLRowByName;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.date.now;
+			import utils.text.newLine;
+			import utils.timestamp.dateToTimestamp;
+			
+			
+			[Bindable]private var status_text:String;
+			[Bindable]public var can_add_to_sequence:Boolean;//true if row is not in seqeunce;
+			[Bindable]public var can_update_sequence_field:Boolean;//true if field in sequence differs;
+			[Bindable]public var selected_row:MySQLRow;
+			[Bindable]public var selected_field:Field;
+			
+		
+			
+			
+			
+			
+			
+			
+		/* 	protected function update_store_clickHandler(event:MouseEvent):void
+			{
+				if(selected_field == null)return;
+				showAlert("Are you sure you want to update this column to remote store?", function():void{
+					
+					var sql_Text:String = makeSQLUpdateColumnScript(selected_table_name,
+						selected_field.field_name,selected_field.field_name,selected_field.field_type, selected_field.field_size, selected_field.is_last_mod); 
+					
+					commit_command_to_store(sql_Text);
+					allow_update_field_in_store = false;
+				});
+			}
+			
+			
+			protected function remove_from_store_clickHandler(event:MouseEvent):void
+			{
+				if(selected_field == null)return;
+				
+				showAlert("Are you positive you want to remove this column to remote store???", function():void{
+					
+					var sql_Text:String = makeSQLRemoveColumnFromTableScript(selected_table_name,
+						selected_field.field_name);
+					commit_command_to_store(sql_Text);
+					allow_remove_field_from_store = false;
+				});
+			} */
+			
+			private function showAlert(message:String, yesCallback:Function):void
+			{
+				Alert.show(message,"Data Store Change",
+					Alert.YES|Alert.NO,null,function(ce:CloseEvent):void
+					{
+						if(ce.detail == Alert.YES)
+						{
+							yesCallback();
+						}
+					});
+			}
+			
+			
+			
+			//------------------table updates
+			
+			/* protected function add_to_sequence_clickHandler(event:MouseEvent):void
+			{
+				if(selected_row == null){return};
+				var nf:Field = convertMySQLRowToField(selected_row);
+				dispatchEvent(new FieldEvent(FieldEvent.EVENT_ADD_FIELD_TO_SEQUENCE,nf, function():void{},true));
+				can_add_to_sequence = false;
+			} */
+			
+			 protected function dg_table_rows_changeHandler(event:ListEvent):void
+				{
+				can_add_to_sequence = false;
+				can_update_sequence_field = false;
+				selected_row = dg_table_rows.selectedItem as MySQLRow;
+				
+				}
+			 
+			
+			/* protected function update_sequence_field_clickHandler(event:MouseEvent):void
+			{
+				if(!selected_row)return;
+				var field:Field = findFieldByName(selected_row.Field);
+				if(field != null){
+					dispatchEvent(new FieldEvent(FieldEvent.EVENT_UPDATE_FIELD_IN_SEQUENCE,field,function():void{},true))
+					can_update_sequence_field = false;
+				}
+			} */
+			
+			
+			
+			
+			
+		
+			
+		
+			
+			
+			
+	
+	
+			
+			
+		
+			
+		
+			
+			
+		
+			
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%" >
+		<s:HGroup width="100%">
+			<s:DropDownList id="ddlt_domains" dataProvider="{AppModel.getInstance().domains}" labelField="domain_label" prompt="Select Domain" change="domains_changeHandler(event)" width="241"/>
+			<s:DropDownList id="ddlt_tables" dataProvider="{tables}" labelField="value" prompt="Select Table" change="ddlt_tables_changeHandler(event)" width="241"/>
+			<components1:FadedImage useHandCursor="true"  source="{IconLib.REFRESH_24}"  width="24" height="24" id="get_table_info"  toolTip="Get Rows for Table" click="get_table_info_clickHandler(event)" enabled="{ddlt_tables.selectedItem != null}"/>
+		</s:HGroup>
+		<s:HGroup width="100%">
+			<mx:VRule height="24"/>
+			<s:Button enabled="{ddlt_tables.selectedItem != null}" label="{num_records}" toolTip="Get Number of Records" id="get_num_records" click="get_num_records_clickHandler(event)" />
+		</s:HGroup>
+		<s:HGroup width="100%">
+			<s:NumericStepper value="{table_version_value}" id="table_version"  maximum="99" minimum="0" stepSize="0.01"/>
+			<components1:FadedImage useHandCursor="true"  source="{IconLib.REFRESH_24}" width="24" height="24" enabled="{ddlt_tables.selectedItem != null}" toolTip="Get Current Table Version" id="get_table_version" click="get_table_version_clickHandler(event)" />
+			<components1:FadedImage useHandCursor="true"  source="{IconLib.UPDATE_24}"  width="24" height="24"  enabled="{ddlt_tables.selectedItem != null}" toolTip="Set table to version" id="set_table_version" click="set_table_version_clickHandler(event)" />
+		</s:HGroup>
+		<s:HGroup width="100%">
+			<components1:FadedImage useHandCursor="true"  source="{IconLib.NEW_24}"  width="24" height="24"  visible="{selected_domain != null &amp;&amp; allow_create_table}" includeInLayout="{selected_domain != null &amp;&amp; allow_create_table}" toolTip="{'Create New Table on Domain '+selected_domain.domain_label}" id="create_table" click="create_table_clickHandler(event)" />
+		<mx:VRule height="24"/>
+			<components1:FadedImage useHandCursor="true"  source="{IconLib.REMOVE_22}"  width="24" height="24"  visible="{selected_domain != null &amp;&amp; ddlt_tables.selectedItem != null &amp;&amp; allow_drop_table}" includeInLayout="{selected_domain != null &amp;&amp; allow_drop_table}" toolTip="{'Drop '+selected_table_name+'on Domain '+selected_domain.domain_label}" id="drop_table" click="drop_table_clickHandler(event)" />
+			<components1:FadedImage useHandCursor="true" source="{IconLib.RENAME_24}" width="24" height="24"  id="rename_table_in_store" enabled="{ddlt_tables.selectedItem != null}" toolTip="Rename Table" click="rename_table_in_store_clickHandler(event)"/>
+		</s:HGroup>
+	</s:HGroup>
+	<mx:HRule width="100%"/>
+	
+	<s:NavigatorContent label="" width="100%" height="100%">
+    					<s:VGroup width="100%" height="100%">
+    						<s:TabBar dataProvider="{vs_main}"/>
+    						<mx:ViewStack  id="vs_main" width="100%" height="100%">
+    							<s:NavigatorContent width="100%" height="100%" label="Rows">
+									<s:VGroup width="100%" height="100%">
+										
+									<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+										<s:HGroup width="100%" horizontalAlign="left">
+											<components1:FadedImage useHandCursor="true" source="{IconLib.REMOVE_22}"  width="24" height="24"  id="remove_column_from_store" enabled="{dg_table_rows.selectedItem != null}" toolTip="Remove Column" click="remove_column_from_store_clickHandler(event)"/>
+											<components1:FadedImage useHandCursor="true" source="{IconLib.RENAME_24}" width="24" height="24"  id="rename_column_in_store" enabled="{dg_table_rows.selectedItem != null}" toolTip="Rename Column" click="rename_column_in_store_clickHandler(event)"/>
+										</s:HGroup>
+										<s:HGroup width="100%">
+										</s:HGroup>
+										
+									</s:HGroup>	
+									<mx:DataGrid width="100%" height="100%" change="dg_table_rows_changeHandler(event)" id="dg_table_rows" dataProvider="{rows}">
+										<mx:columns>
+											<mx:DataGridColumn dataField="Field" width="280"/>
+											<mx:DataGridColumn dataField="Type" width="100"/>
+											<mx:DataGridColumn dataField="Null" width="50"/>
+											<mx:DataGridColumn dataField="Key" width="50"/>
+											<mx:DataGridColumn dataField="Default" width="100"/>
+											<mx:DataGridColumn dataField="Extra" width="100"/>
+										</mx:columns>
+									</mx:DataGrid>
+									</s:VGroup>
+    							</s:NavigatorContent>
+    							<s:NavigatorContent width="100%" height="100%" label="Controllers">
+								<s:VGroup width="100%" height="100%">
+										<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+										<s:HGroup width="100%" horizontalAlign="left">
+											<components1:FadedImage useHandCursor="true" source="{IconLib.REFRESH_24}"  width="24" height="24"  id="get_active_controllers_for_table" enabled="{ddlt_tables.selectedItem != null}" toolTip="Get active controllers using Table" click="get_active_controllers_for_table_clickHandler(event)"/>
+											</s:HGroup>
+										<s:HGroup width="100%">
+										</s:HGroup>
+									</s:HGroup>	
+									<mx:DataGrid width="100%" height="100%"  id="dg_controllers" dataProvider="{controllers}">
+										
+									</mx:DataGrid>
+									</s:VGroup>
+    							</s:NavigatorContent>
+    						</mx:ViewStack>
+    					</s:VGroup>
+    				</s:NavigatorContent>
+    
+
+	<mx:HRule width="100%"/>
+	
+	<s:VGroup width="100%">
+		<s:HGroup width="100%" paddingLeft="2" paddingRight="2" includeInLayout="{AppModel.getInstance().loaded_sequence != null}" visible="{AppModel.getInstance().loaded_sequence != null}">
+			<s:HGroup width="100%" horizontalAlign="left">
+				<s:VGroup width="100%" height="100%">
+					
+					<s:Label fontWeight="bold" width="200" text="Loaded Sequence Fields"/>	
+					<s:DropDownList prompt="Select Field" dataProvider="{AppModel.getInstance().fields}" labelField="field_name" id="sequence_fields" selectedItem="{selected_field}" change="sequence_fields_changeHandler(event)" width="239"/>
+				</s:VGroup>
+			</s:HGroup>	
+			<s:HGroup width="100%" height="100%" verticalAlign="bottom" horizontalAlign="right">
+				<s:Button label="Add Field to Store" enabled="{allow_add_field_to_store}" id="add_to_store" click="add_to_store_clickHandler(event)"/>	
+				</s:HGroup>	
+		</s:HGroup>	
+		
+		
+		<s:TextArea id="sql_command" width="100%" height="79"/>
+		
+		<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+			<s:HGroup width="100%" horizontalAlign="left">
+				<s:Label width="100%" id="status" text="{status_text}"/>
+				<mx:Text selectable="true" text="{'Selected Table: '+ddlt_tables.selectedItem}"/>
+				
+				
+			</s:HGroup>	
+		</s:HGroup>	
+	</s:VGroup>
+</s:Group>

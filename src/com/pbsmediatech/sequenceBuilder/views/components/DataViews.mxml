@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			
+			import db.view.DataView;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			
+			import mx.collections.ArrayCollection;
+			
+			import spark.components.NavigatorContent;
+			
+			
+			private var _views:ArrayCollection;
+			public function get views():ArrayCollection
+			{
+				return _views;
+			}
+
+			public function set views(value:ArrayCollection):void
+			{
+				_views = value;
+				do_set_up();
+			}
+
+		
+			
+			private function do_set_up():void
+			{
+				vs.removeAll();
+				for each (var dw:DataView in views)
+				{
+					var wrapper:NavigatorContent = new NavigatorContent;
+					wrapper.label = dw.view_name;
+					var vm:DataViewMaker = new DataViewMaker();
+					vm.dw = dw;
+					wrapper.addElement(vm);
+					vs.addChild(wrapper);
+				}
+			}
+			
+
+			protected function btn_load_clickHandler(event:MouseEvent):void
+			{
+				views = AppModel.getInstance().data_views;
+			}
+
+
+			protected function btn_add_clickHandler(event:MouseEvent):void
+			{
+				var dw:DataView = new DataView;
+				dw.view_fields = "[]";
+				var wrapper:NavigatorContent = new NavigatorContent;
+				wrapper.label = "New";
+				var vm:DataViewMaker = new DataViewMaker();
+				vm.dw = dw;
+				wrapper.addElement(vm);
+				vs.addChild(wrapper);
+			}
+
+
+			protected function btn_remove_clickHandler(event:MouseEvent):void
+			{
+				if(vs.selectedIndex>=0)
+				{
+				vs.removeChildAt(vs.selectedIndex);
+				}
+			}
+
+
+			public function save():void
+			{
+				var children:Array = vs.getChildren();
+				var dvs:Array = [];
+				for each (var nc:NavigatorContent in children)
+				{
+					var dvm:DataViewMaker = nc.getElementAt(0) as DataViewMaker;
+					dvm.save();
+					dvs.push(dvm.dw);
+				}
+				
+				AppModel.getInstance().loaded_sequence.sequence_views = JSON.encode(dvs);
+			}
+
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%">
+		<s:Button label="Add" id="btn_add" click="btn_add_clickHandler(event)"/>
+		<s:Button label="Remove" id="btn_remove" click="btn_remove_clickHandler(event)"/>
+		<s:Button label="load" id="btn_load" click="btn_load_clickHandler(event)"/>
+		<s:Button label="Save" id="btn_save" click="save()"/>
+	</s:HGroup>
+	<s:TabBar id="tabbar" dataProvider="{vs}"/>
+	<mx:ViewStack id="vs" width="100%" height="100%">
+		
+	</mx:ViewStack>
+	
+</s:Group>

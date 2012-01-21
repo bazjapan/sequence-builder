@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:MXDataGridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx" 
+						  focusEnabled="true">
+	<fx:Script>
+		<![CDATA[
+			import db.field.Field;
+			import db.MySQLRow;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			
+			import utils.events.CallbackEvent;
+			public var field:Field;
+			[Bindable]public var row:MySQLRow;
+			override public function set data(value:Object):void
+			{
+				if(value != null)
+				{
+				field = value as Field;
+				dispatchEvent(new CallbackEvent("EVENT_GET_FIELD_INFO",
+					function(mySQLRow:MySQLRow):void
+					{
+						row = mySQLRow;
+					}
+					,true));
+				}
+			}
+			
+
+			protected function add_row_clickHandler(event:MouseEvent):void
+			{
+				trace(field.field_name)
+			}
+
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%">
+		<s:Button id="add_row" click="add_row_clickHandler(event)" label="Add" visible="{row == null}"/>
+	</s:HGroup>
+</s:MXDataGridItemRenderer>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				autoDrawBackground="true">
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="selected"/>
+	</s:states>
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.json.utils.JSONResultHelper2;
+			import com.pbsmediatech.json.utils.extractResult;
+			
+			import db.view.ViewField;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.object_proxy;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.events.TextOperationEvent;
+			
+			[Bindable]
+			public var view_field:ViewField;
+			
+			[Bindable]
+			public var available_fields:ArrayCollection = new ArrayCollection;
+			[Bindable]
+			public var fk_field:String = "";
+			[Bindable]
+			public var fk_table:String;
+			
+			override public function set data(value:Object):void
+			{
+				if(!value)return;
+				view_field = value as ViewField;
+				if(view_field.is_FK)
+				{
+					fk_table = view_field.fk_target.split(".")[0];
+				}
+			}
+			
+
+			protected function is_ID_clickHandler(event:MouseEvent):void
+			{
+				available_fields.removeAll();
+				getDataStoreServiceController(AppModel.getInstance().loaded_sequence.sequence_domain, AppModel.getInstance().dev).get_table_info({table_name:fk_table},function(evt:ResultEvent):void
+				{
+					var results:Array = new JSONResultHelper2().resultToArray(extractResult(evt));
+					for each (var obj:Object in results)
+					{
+						available_fields.addItem(obj);
+					}
+					
+				});
+				
+			}
+
+
+			protected function checkbox1_changeHandler(event:Event):void
+			{
+				view_field.can_be_null = cb_canBeNull.selected;
+			}
+
+
+			protected function fields_changeHandler(event:IndexChangeEvent):void
+			{
+					view_field.tunnel_field	 = fields.selectedItem["Field"];
+					if(view_field.field_alias == null || view_field.field_alias == "")
+					{
+					view_field.field_alias	 = fields.selectedItem["Field"];
+					}
+			}
+
+
+			protected function cb_tunnel_clickHandler(event:MouseEvent):void
+			{
+				view_field.tunnel = cb_tunnel.selected;
+			}
+
+
+			protected function ti_field_alias_changeHandler(event:TextOperationEvent):void
+			{
+				view_field.field_alias = ti_field_alias.text;
+			}
+
+
+
+		]]>
+	</fx:Script>
+	<s:BorderContainer width="100%" height="40" backgroundColor.selected="#E1E1E1">
+		
+	<s:HGroup width="100%" height="100%" paddingLeft="5" verticalAlign="middle">
+			<s:Label width="100" text="{view_field.table_name}"/>
+			<s:Label text="{view_field.field_name}" width="200"/>
+			<s:CheckBox id="cb_tunnel" click="cb_tunnel_clickHandler(event)" visible="{view_field.is_FK}" selected="{view_field.tunnel}"/>
+		<s:HGroup height="100%" verticalAlign="middle"  visible="{view_field.is_FK &amp;&amp; cb_tunnel.selected}" includeInLayout="{view_field.is_FK}">
+			<s:Label text="{fk_table}"/>
+			<s:DropDownList id="fields" dataProvider="{available_fields}" prompt="{view_field.tunnel_field}" labelField="Field" width="150" change="fields_changeHandler(event)"/>	
+			<mx:Image width="16" height="16" buttonMode="true" source="{IconLib.REFRESH_24}" id="is_ID" toolTip="Get Fields for Table" click="is_ID_clickHandler(event)" />
+			<s:TextInput id="ti_field_alias" width="200" change="ti_field_alias_changeHandler(event)" text="{view_field.field_alias}"/>
+			<s:CheckBox id="cb_canBeNull" label="Null" toolTip="Can be Null" selected="{view_field.can_be_null}" change="checkbox1_changeHandler(event)"/>
+		</s:HGroup>
+		
+	</s:HGroup>
+	
+	</s:BorderContainer>
+</s:ItemRenderer>

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			protected function add_ouput_param_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+		]]>
+	</fx:Script>
+
+
+	<fx:Script>
+		<![CDATA[
+			import spark.events.IndexChangeEvent;
+			protected function check_method_name_clickHandler(event:MouseEvent):void
+			{
+				//check and move forward
+				vs.selectedIndex = 1;
+			}
+
+			protected function method_types_changeHandler(event:IndexChangeEvent):void
+			{
+				method_type = method_types.selectedItem as String;
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:RadioButtonGroup id="param_in_message_type"/>
+		<s:RadioButtonGroup id="param_out_type"/>
+		<s:RadioButtonGroup id="output_num_to_return"/>
+	</fx:Declarations>
+<fx:Script>
+	<![CDATA[
+		[Bindable]public var method_type:String
+	]]>
+</fx:Script>
+<s:TabBar dataProvider="{vs}"/>
+<mx:ViewStack width="100%" height="100%" id="vs">
+<s:NavigatorContent width="100%" height="100%" label="Method Name">
+	<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+	<s:TextInput id="method_name"/>
+
+	<s:Button id="check_method_name" label="check_method_name" click="check_method_name_clickHandler(event)"/>
+	<s:Label id="method_name_validates_indicator" text="Validates?"/>
+	</s:VGroup>
+</s:NavigatorContent>	
+<s:NavigatorContent width="100%" height="100%" label="Method Type">
+	
+	<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+	<s:Label text="Choose Method type"/>
+	<s:DropDownList id="method_types" change="method_types_changeHandler(event)">
+		<s:dataProvider>
+			<s:ArrayList>
+				<fx:String>Get</fx:String>
+				<fx:String>Add</fx:String>
+				<fx:String>Update</fx:String>
+				<fx:String>Remove</fx:String>
+			</s:ArrayList>
+		</s:dataProvider>
+	</s:DropDownList>
+	</s:VGroup>
+</s:NavigatorContent>	
+	<s:NavigatorContent width="100%" height="100%" label="Inputs">
+		<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+		<s:HGroup width="100%" height="100%">
+
+			<fx:Script>
+				<![CDATA[
+					protected function add_input_param_clickHandler(event:MouseEvent):void
+					{
+						// TODO Auto-generated method stub
+					}
+				]]>
+			</fx:Script>
+
+			<s:VGroup width="100%" height="100%">
+				<s:Label text="Available Inputs"/>
+				<s:List id="available_fields" width="100%" height="100%">
+					<!--list of fields in sequence-->
+				</s:List>
+				<s:HGroup width="100%" horizontalAlign="right">
+					<s:Button enabled="{available_fields.selectedItem != null}" id="add_input_param" click="add_input_param_clickHandler(event)"/>
+				</s:HGroup>
+			</s:VGroup>
+			<s:VGroup width="100%" height="100%">
+				<s:Label text="Inputs expected"/>
+				<s:List id="params_in" width="100%" height="100%">
+					
+				</s:List>
+				
+				<s:HGroup width="100%">
+
+					<fx:Script>
+						<![CDATA[
+							protected function remove_input_param_clickHandler(event:MouseEvent):void
+							{
+								// TODO Auto-generated method stub
+							}
+						]]>
+					</fx:Script>
+
+					<s:CheckBox id="param_is_required" label="param_is_required"/>
+					<s:HGroup width="100%" horizontalAlign="right">
+						<s:Button enabled="{params_in.selectedItem != null}" id="remove_input_param" label="Remove" click="remove_input_param_clickHandler(event)"/>
+					</s:HGroup>
+				</s:HGroup>
+				<s:VGroup width="100%" height="100%" enabled="{param_is_required.selected == true}">
+					<s:TabBar dataProvider="{vs_params_in}"/>
+                    <mx:ViewStack  id="vs_params_in" width="100%" height="100%">
+                    	<s:NavigatorContent label="Input param not supplied Message" width="100%" height="100%">
+                    	<s:VGroup width="100%" height="100%">
+								
+							<s:HGroup width="100%">
+								<s:RadioButton id="use_default_in_message" selected="true" label="default" group="{param_in_message_type}"/>
+								<s:RadioButton id="use_custom_in_message" label="custom" group="{param_in_message_type}"/>
+							</s:HGroup>
+							<s:TextArea width="100%" height="100%" id="param_not_supplied_message" enabled="{use_custom_in_message.selected}"/>
+						
+							
+						</s:VGroup>
+
+							<fx:Script>
+								<![CDATA[
+									protected function remove_ouput_param_clickHandler(event:MouseEvent):void
+									{
+										// TODO Auto-generated method stub
+									}
+								]]>
+							</fx:Script>
+
+                    	</s:NavigatorContent>
+						<s:NavigatorContent label="Input param rules">
+							<s:VGroup width="100%" height="100%">
+								
+				<s:Label text="Can Add param rules here - must be over 6 characters etc"/>
+				<s:Label text="Plus fail message"/>
+							</s:VGroup>
+							
+						</s:NavigatorContent>
+                    	</mx:ViewStack>
+                    
+                    
+					</s:VGroup>
+			</s:VGroup>
+		</s:HGroup>	
+		
+		</s:VGroup>
+	</s:NavigatorContent>
+	<s:NavigatorContent label="Output">
+		<s:HGroup width="100%" height="100%">
+			<s:VGroup width="100%" height="100%">
+		<s:HGroup width="100%">
+			<s:RadioButton label="object" id="output_object" group="{param_out_type}"/>
+			<s:RadioButton label="object_id" id="output_object_id" group="{param_out_type}"/>
+			<s:RadioButton label="success_boolean" id="output_success_boolean" group="{param_out_type}"/>
+			<s:RadioButton label="object_params" id="output_object_params" group="{param_out_type}"/>
+		</s:HGroup>
+				<s:VGroup width="100%" height="100%"  includeInLayout="{output_object_params.selected}" visible="{output_object_params.selected}">
+					
+		<s:List id="available_output_params" width="100%" height="100%"/>
+		<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+        		<s:HGroup width="100%" horizontalAlign="left">
+        			<s:Button enabled="{available_output_params.selectedItem != null}" label="Add" id="add_ouput_param" click="add_ouput_param_clickHandler(event)"/>
+        		</s:HGroup>	
+        		<s:HGroup width="100%" horizontalAlign="right">
+        			
+        			<s:Button enabled="{selected_output_params.selectedItem != null}" label="Remove" id="remove_ouput_param" click="remove_ouput_param_clickHandler(event)"/>
+        		</s:HGroup>	
+        	</s:HGroup>	
+        
+		<s:List id="selected_output_params" width="100%" height="100%"/>
+		</s:VGroup>
+		</s:VGroup>
+		<s:VGroup width="100%" height="100%" enabled="{method_type == 'Get'}">
+		<s:TabBar dataProvider="{vs_}"/>
+        <mx:ViewStack  id="vs_" width="100%" height="100%">
+        <s:NavigatorContent label="Return" width="100%" height="100%">
+        		<s:VGroup>
+					<s:HGroup>
+						<s:RadioButton group="{output_num_to_return}" label="one" value="1" id="output_num_one"/>
+						<s:RadioButton group="{output_num_to_return}" label="all" value="all" id="output_num_all"/>
+						<s:RadioButton group="{output_num_to_return}" label="set" value="set" id="output_num_set"/>
+					<s:NumericStepper id="output_set_num" maximum="100" minimum="1" enabled="{output_num_set.selected == true}"/>
+					</s:HGroup>
+					<s:Label text="Where"/>
+					<s:List width="100%" height="100%">
+						<!--copy of inputs expected-->
+					</s:List>
+				</s:VGroup>
+        </s:NavigatorContent>
+        <s:NavigatorContent label="Order" width="100%" height="100%">
+        		<s:VGroup>
+					<s:HGroup height="100%">
+					<s:DropDownList id="lt_return_params"/>
+					<s:Button label="Add" />
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Label id="output_param_order_field_name" text="Field name"/>
+						<s:CheckBox label="Desc"/>
+					</s:HGroup>	
+				</s:VGroup>
+        </s:NavigatorContent>
+        </mx:ViewStack>
+        					
+        		
+		</s:VGroup>
+		</s:HGroup>
+	</s:NavigatorContent>
+<s:NavigatorContent label="Do it">
+	<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+		<s:Button label="Save"/>
+		<s:Button label="Generate"/>
+	</s:VGroup>
+</s:NavigatorContent>
+
+
+</mx:ViewStack>
+
+
+
+
+</s:Application>

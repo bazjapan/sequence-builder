@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="800" minHeight="600" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:local="*" xmlns:domains="com.pbsmediatech.sequenceBuilder.views.components.domains.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="3" paddingRight="3"/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import com.maccherone.json.JSON;
+			import com.pbsmediatech.dto.ControllerSequence;
+			import com.pbsmediatech.json.controllers.ControllerSequenceController;
+			import com.pbsmediatech.json.controllers.DomainController;
+			import com.pbsmediatech.json.utils.ControllerSequenceResultHelper;
+			import com.pbsmediatech.json.utils.DomainResultHelper;
+			import com.pbsmediatech.json.utils.JSONResultHelper2;
+			import com.pbsmediatech.json.utils.extractResult;
+			
+			import db.MySQLRow;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.components.ForeignKeyList;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.loadSequenceToModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.sequences.loadSavedSequncesForDomainToModel;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.components.TitleWindow;
+			
+			import utils.array.distinctByParam;
+			import utils.date.dateToTimeString;
+			import utils.date.now;
+			import utils.object.isEmpty;
+			import utils.string.replace;
+			import utils.text.newLine;
+
+
+
+			private function cc():void
+			{
+				AppModel.getInstance().sequence_maker_version = 0.93
+				//0.2 Domain Tales
+				//0.3 Deploy PHP controller
+				//0.4 Fields can be moved up and down;
+				//0.5 PHP Update template return value changes
+				//0.6 AS3 Form Generation Added
+				//0.61 Cleanups
+				//0.7 php controller update methods checking whether variables are set before applying to db; 
+				//0.8 added defaults to fields
+				//0.9 json labels and format changed
+				//0.91 Added method/field info to sequence controller generated code
+				//0.92 Json Array Datagrid and ViewProjects Admin added
+				//0.921 PHP controller maker now being give methodInfo object
+			    //0.93 Generating light Sequence Object Config
+					
+				AppModel.getInstance().datastore.fields = new ArrayCollection;
+				
+				new DomainController(AppModel.getInstance().service_base_url).get_all_domains(function(evt:ResultEvent):void
+				{
+					var results:Array = new DomainResultHelper().resultToArray(extractResult(evt));
+					AppModel.getInstance().domains.source = results;
+				});
+				
+			}
+
+			
+			[Bindable]private var help_txt:String = 'Table Name = sp_event_user_registrations' +newLine()+
+				'Table Label = event_user_registration_table' +newLine()+
+				'Object Name = event_registration' +newLine()+
+				'Controller Name = Event_User_Registration' +newLine()+
+				'Class Name = PartnerEventUserRegistration'+newLine()+newLine()+newLine()+newLine()+newLine();
+				'Custom Method = '+newLine()+
+				'input: [{"required": true,"field": "project_name"}]'+newLine()+
+				'output: {"num": "0:*", "fields": ["module_id","title","version"]';
+			
+			
+			[Bindable]private var last_saved:String;
+			
+			private var sequence_controller:ControllerSequenceController = new ControllerSequenceController(AppModel.getInstance().service_base_url);
+			
+			protected function get_saved_sequences_clickHandler(event:MouseEvent):void
+			{
+				loadSavedSequncesForDomainToModel(save_sequence_domain_chooser.selectedItem["domain_label"]);
+			}
+			//depends on save sequences being loaded
+			private function show_foreign_keys_clickHandler(event:MouseEvent):void
+			{
+				//TODO get form DB
+				var loaded_sequence_table_name:String = AppModel.getInstance().loaded_sequence.sequence_table_name;
+				var id_fields:Array = [];
+				var distinct:Array = distinctByParam(AppModel.getInstance().saved_sequences.source, 'sequence_controller_name');	
+				for each (var seq:ControllerSequence in distinct)
+				{
+					var fields:Array = JSON.decode(seq.sequence_fields);
+					
+					var info:Object = JSON.decode(seq.sequence_info);
+					var table_name:String = "Unknown";
+					if(info.hasOwnProperty("table_name")){table_name = info["table_name"]};
+					if(table_name != loaded_sequence_table_name)
+					{
+					for each (var obj:Object in fields)
+					{
+						var row:Field = new Field(obj);
+						
+						if(row.is_ID)
+						{
+							var fk:Object = new Object;
+							fk["table_name"] = table_name;
+							fk["field_name"] = row.field_name;
+							fk["field"] = row;
+							id_fields.push(fk);
+						}
+					}
+					}
+				}
+				
+				var fkPop:ForeignKeyList = new ForeignKeyList;
+				fkPop.title = "keys";
+				PopUpManager.addPopUp(fkPop,this,true);
+				PopUpManager.centerPopUp(fkPop);
+				fkPop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					PopUpManager.removePopUp(fkPop);
+				});
+				fkPop.foreign_keys.source = id_fields;
+				fkPop.addFKFunc = function(obj:Object):void{
+					var fieldToCopy:Field = obj["field"];
+					var fieldToAdd:Field = new Field;
+					fieldToAdd.field_name = fieldToCopy.field_name;
+					fieldToAdd.field_size = fieldToCopy.field_size;
+					fieldToAdd.field_note = fieldToCopy.field_note;
+					fieldToAdd.field_type = fieldToCopy.field_type;
+					fieldToAdd.can_search_by = true;
+					fields.addItem(fieldToAdd);
+				}
+			}
+			
+			
+			protected function load_selected_sequence_clickHandler(event:MouseEvent):void
+			{
+				loadSequence(dg_saved.selectedItem as ControllerSequence);
+			}
+			private function loadSequence(seq:ControllerSequence):void
+			{
+				var loaded_sequence:ControllerSequence = loadSequenceToModel(seq);
+				vs.selectedIndex = 2;
+				//get datastore info
+				getDataStoreServiceController(seq.sequence_domain, AppModel.getInstance().dev).get_table_info({table_name:loaded_sequence.sequence_table_name}, function(evt:ResultEvent):void
+				{
+					AppModel.getInstance().datastore.fields = new ArrayCollection;
+					var results:Array = new JSONResultHelper2().resultToArray(String(evt.result));
+					for each (var obj:Object in results)
+					{
+						AppModel.getInstance().datastore.fields.addItem(new MySQLRow(obj));
+						
+					}
+					trace("get_table_info complete " +AppModel.getInstance().datastore.fields.length)
+					dispatchEvent(new Event("EVENT_DATASTORE_TABLES_UPDATED",true));
+				}
+				);
+			}
+
+
+			
+
+			
+			protected function save_controller_sequence_clickHandler(event:MouseEvent):void
+			{
+				var saved_ok:Boolean;
+				//new
+				if(isNaN(AppModel.getInstance().loaded_sequence.sequence_ID))
+				{
+					Button(event.target).enabled = false;
+					fillSequence();
+					sequence_controller.add_controller_sequence(AppModel.getInstance().loaded_sequence, function(evt:ResultEvent):void
+					{
+						Button(event.target).enabled = true;
+						var returnedID:Number = Number(JSON.decode(extractResult(evt)).result);
+						if(returnedID == 0)
+						{
+							//fail
+							Alert.show("Unable to Save, please try again");
+							
+						}
+						else
+						{
+						saved_ok = true;	
+						AppModel.getInstance().loaded_sequence.sequence_ID = returnedID;
+						AppModel.getInstance().saved_sequences.addItem(AppModel.getInstance().loaded_sequence);
+						}
+						if(saved_ok){last_saved = dateToTimeString(now())};
+					});
+				}
+				//update
+				else
+				{
+					fillSequence();
+					sequence_controller.update_controller_sequences_by_sequence_ID(AppModel.getInstance().loaded_sequence, function(evt:ResultEvent):void
+					{
+						saved_ok = new JSONResultHelper2().resultIsGood(extractResult(evt));
+						for each (var saved:ControllerSequence in AppModel.getInstance().saved_sequences)
+						{
+							if(saved.sequence_ID == AppModel.getInstance().loaded_sequence.sequence_ID)
+							{
+								saved = AppModel.getInstance().loaded_sequence;
+								break;
+							}
+						}
+						if(saved_ok){last_saved = dateToTimeString(now())};
+					});
+				} 
+				
+				if(saved_ok){last_saved = dateToTimeString(now())};
+				
+				//generated_method_editor.save();
+			}
+
+			private function fillSequence():void
+			{
+				sequence_details_editor.save();
+				sequence_row_editor.save();
+				dataviews.save();
+				code_admin.save();
+				
+			}
+
+			protected function clone_controller_sequence_clickHandler(event:MouseEvent):void
+			{
+				var cloned:ControllerSequence = new ControllerSequence(AppModel.getInstance().loaded_sequence);
+			/* 	cloned.sequence_domain = AppModel.getInstance().loaded_sequence.sequence_domain;
+				cloned.sequence_fields = AppModel.getInstance().loaded_sequence.sequence_fields;
+				cloned.sequence_info = AppModel.getInstance().loaded_sequence.sequence_info;
+				cloned.sequence_controller_name = AppModel.getInstance().loaded_sequence.sequence_controller_name;
+				cloned.sequence_notes = AppModel.getInstance().loaded_sequence.sequence_notes;
+				cloned.sequence_custom_methods = AppModel.getInstance().loaded_sequence.sequence_custom_methods;
+				cloned.sequence_table_name = AppModel.getInstance().loaded_sequence.sequence_table_name;
+				cloned.sequence_table_version = AppModel.getInstance().loaded_sequence.sequence_table_version;
+				cloned.generated_method_info = AppModel.getInstance().loaded_sequence.generated_method_info;*/
+			
+				cloned.sequence_ID = NaN;
+				cloned.sequence_version = AppModel.getInstance().loaded_sequence.sequence_version+0.01; 
+				
+				loadSequence(cloned);
+			}
+
+
+			
+
+
+			protected function show_help_click_handler(event:MouseEvent):void
+			{
+				var tw:TitleWindow = new TitleWindow
+				tw.width = 500;
+				tw.height = 500;
+				var vg:VGroup = new VGroup;
+				vg.width = 500;
+				vg.height = 500;
+				var ta:TextArea = new TextArea;
+				ta.text = help_txt
+				ta.width = 500;
+				ta.height = 430;
+				tw.addElement(vg);
+				vg.addElement(ta);
+				PopUpManager.addPopUp(tw,this);
+				tw.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void{closeME()});
+				function closeME():void
+				{
+					PopUpManager.removePopUp(tw);
+				}
+			}
+
+
+			protected function new_controller_sequence_clickHandler(event:MouseEvent):void
+			{
+				AppModel.getInstance().loaded_sequence = new ControllerSequence;
+				AppModel.getInstance().fields.removeAll();
+				sequence_details_editor.controller_description.text = "";
+				sequence_details_editor.object_name.text = "";
+				sequence_details_editor.class_name.text = "";
+				AppModel.getInstance().loaded_sequence.sequence_version = 0.1;
+				sequence_details_editor.sequence_version.value = 0.1;
+				//AppModel.getInstance().loaded_sequence.sequence_table_version = 0;
+			}
+			protected function remove_saved_sequence_clickHandler(event:MouseEvent):void
+			{
+				removeSequence(dg_saved.selectedItem as ControllerSequence);
+			}
+			protected function remove_controller_sequence_clickHandler(event:MouseEvent):void
+			{
+				if(isNaN(AppModel.getInstance().loaded_sequence.sequence_ID)){AppModel.getInstance().loaded_sequence = null}
+				else
+				{
+					removeSequence(AppModel.getInstance().loaded_sequence);
+				}
+			}
+			
+			private function removeSequence(sq:ControllerSequence):void
+			{
+				if(sq == null)return;
+				Alert.show("Are you sure you want to remove the sequence?", "Warning",Alert.NO|Alert.YES,null, 
+					function(ce:CloseEvent):void
+					{
+						if(ce.detail == Alert.YES)
+						{
+							sequence_controller.remove_controller_sequences_by_sequence_ID(sq, function(evt:ResultEvent):void
+							{
+								var counter:int = 0;
+								for each (var obj:ControllerSequence in AppModel.getInstance().saved_sequences)
+								{
+									if(obj.sequence_ID == sq.sequence_ID)
+									{
+										AppModel.getInstance().saved_sequences.removeItemAt(counter);
+										break;
+									}
+									counter++;
+								}
+								if(AppModel.getInstance().loaded_sequence != null)
+								{
+								if(sq.sequence_ID == AppModel.getInstance().loaded_sequence.sequence_ID)
+								{
+									AppModel.getInstance().loaded_sequence = null;
+									AppModel.getInstance().fields.removeAll();
+								}
+								}
+							});
+							
+							
+						}
+						
+					});
+			}
+			
+			
+			
+			
+
+			
+
+
+			protected function make_get_method_clickHandler(event:MouseEvent):void
+			{
+				/* AppModel.getInstance().copy_area_text += getPHPSearchMethod(false,
+					object_name.text,
+					table_label.text, 
+					elected_field.field_name);
+				AppModel.getInstance().copy_area_text += newLine(); */
+			}
+
+
+			protected function make_update_method_clickHandler(event:MouseEvent):void
+			{
+				/* copy_area_text += getPHPUpdateMethod(object_name.text,selected_field.field_name,table_name.text,fields.source);
+				copy_area_text += newLine(); */
+			}
+
+
+			protected function make_remove_method_clickHandler(event:MouseEvent):void
+			{
+				/* copy_area_text += getPHPRemoveMethod(object_name.text,selected_field.field_name,table_name.text);
+				copy_area_text += newLine(); */
+			}
+			
+			private function generate_json_clickHandler(event:MouseEvent):void{
+				var all:ArrayCollection =  AppModel.getInstance().saved_sequences;
+				var ready:Object = {};
+				var output:String = "";
+				for(var i:int = 0; i< all.length; i++){
+						var seq:ControllerSequence = all[i];
+						if(seq.sequence_ready){
+						var jsonSafe:Object = new Object;
+						jsonSafe.store_type = "mongo";
+						//jsonSafe.sequence_domain = seq.sequence_domain
+						jsonSafe.version  = JSON.decode(String(seq.sequence_version))
+						jsonSafe.name	 = seq.sequence_controller_name
+						jsonSafe.last_modified = seq.sequence_last_modified;
+						var fields:Array = JSON.decode(seq.sequence_fields);
+						jsonSafe.fields = {};
+						for(var j:int = 0; j< fields.length; j++){
+							jsonSafe.fields[fields[j].field_name] = fields[j];
+						}
+						jsonSafe.info = JSON.decode(seq.sequence_info);
+						ready[jsonSafe.name] = jsonSafe;
+						//var encoded:String = JSON.encode(jsonSafe)
+						//output += encoded;
+						}
+				}
+				
+				output = JSON.encode(ready,true);
+				var pop:TitleWindow = new TitleWindow();
+				var ta:TextArea = new TextArea;
+				ta.width = 500;
+				ta.height = 500;
+				pop.addElement(ta);
+				ta.text = output;
+				pop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					PopUpManager.removePopUp(pop);
+				});
+				pop.title = "DataStore JSON"
+				PopUpManager.addPopUp(pop, this,false);
+				
+				trace(output);
+				
+			}
+
+		
+			
+			
+
+
+			protected function btn_config_gen_clickHandler(event:MouseEvent):void
+			{
+				var s:ControllerSequence = AppModel.getInstance().loaded_sequence;
+				var c:Object = {};
+				c.home = s.sequence_domain+"."+s.sequence_controller_name;
+				c.fields = [];
+				
+				for (var i:int = 0; i < AppModel.getInstance().fields.length; i++)
+				{
+					var f:Field = AppModel.getInstance().fields[i] as Field;
+					
+					var fc:Object = {};
+					
+					
+					fc.size = f.field_size;
+					if(f.is_ID)fc.is_ID = true;
+					fc.type = f.field_type;
+					if(!f.updateable)fc.updateable = false;
+					if(f.is_required)fc.is_required = true;
+					if(f.is_unique)fc.is_unique = true;
+					if(f.field_type== Field.JSONOBJ && !isEmpty(f.json_labels))fc.json_labels = f.json_labels;
+					if(!isEmpty(f.default_value))fc.default_value = f.default_value;
+					if(!isEmpty(f.prompt))fc.prompt = f.prompt;
+					if(!isEmpty(f.validation))fc.validation = f.validation
+					fc.name = f.field_name;
+					c.fields.push(fc);
+					trace(f.json_labels)
+					
+				}
+				var infoObject:Object = JSON.decode(s.sequence_info);
+				c.name = infoObject.class_name; 
+				c.version = s.sequence_version;
+			
+				var output:String = JSON.encode(c,true);
+				var pop:TitleWindow = new TitleWindow();
+				var ta:TextArea = new TextArea;
+				ta.width = 500;
+				ta.height = 500;
+				pop.addElement(ta);
+				ta.text = output;
+				pop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					PopUpManager.removePopUp(pop);
+				});
+				pop.title = "Sequence Class JSON"
+				PopUpManager.addPopUp(pop, this,false);
+				
+				trace(JSON.encode(c,true));
+					
+				
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayList;
+			import mx.collections.ArrayCollection;
+			import db.field.Field;
+			import mx.events.ListEvent;
+			
+
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+    		<s:HGroup horizontalAlign="left">
+	<s:TabBar dataProvider="{vs}"/>
+    			
+    		</s:HGroup>	
+    		<s:HGroup width="100%" horizontalAlign="right">
+				<s:VGroup width="100%" horizontalAlign="right" paddingRight="5">
+				<s:HGroup>
+				<s:Label text="{'Saved: '+last_saved}" paddingRight="5"/>
+				<s:Label text="{'App Ver: '+AppModel.getInstance().sequence_maker_version}"/>
+				</s:HGroup>					
+				<s:Label text="{'Sequence ID: '+AppModel.getInstance().loaded_sequence.sequence_ID}"/>
+				</s:VGroup>
+	<s:Button label="Save" toolTip="Save Sequennce" id="save_controller_sequence" visible="{AppModel.getInstance().loaded_sequence != null}" click="save_controller_sequence_clickHandler(event)"/>
+    			
+    		</s:HGroup>	
+    	</s:HGroup>	
+    
+
+	<mx:ViewStack width="100%" height="100%" id="vs" creationPolicy="all">
+		<s:NavigatorContent width="100%" height="100%" label="Saved">
+			<s:VGroup width="100%" height="100%">
+				<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+					<s:HGroup width="100%" horizontalAlign="left">
+						<s:Button visible="{dg_saved.selectedItem != null}" id="load_selected_sequence" label="load_selected_sequence"  click="load_selected_sequence_clickHandler(event)"/>
+						<s:Button visible="{dg_saved.selectedItem != null}" id="generate_json" label="Generate JSON"  click="generate_json_clickHandler(event)"/>
+					</s:HGroup>	
+					<s:HGroup width="100%" horizontalAlign="right">
+						<s:Button visible="{dg_saved.selectedItem != null}"  id="remove_saved_sequence" label="remove_saved_sequence" click="remove_saved_sequence_clickHandler(event)"/>
+						<s:DropDownList width="250" requireSelection="true" dataProvider="{AppModel.getInstance().domains}" labelField="domain_label" id="save_sequence_domain_chooser"/>
+						<s:Button enabled="{save_sequence_domain_chooser.selectedItem != null}" id="get_saved_sequences" label="get_saved_sequences" click="get_saved_sequences_clickHandler(event)"/>
+					</s:HGroup>	
+				</s:HGroup>	
+				<s:DataGrid width="100%" height="100%" id="dg_saved" dataProvider="{AppModel.getInstance().saved_sequences}">
+					<s:columns>
+						<s:ArrayList>
+							<s:GridColumn width="30" headerText="Ready?" dataField="sequence_ready" rendererIsEditable="true" >
+								<s:itemRenderer>
+									<fx:Component>
+										<s:GridItemRenderer>
+											<s:CheckBox label="" selected="@{data.sequence_ready}" horizontalCenter="0"/>
+										</s:GridItemRenderer>
+									</fx:Component>
+								</s:itemRenderer>
+							</s:GridColumn>	
+						<s:GridColumn dataField="sequence_date_added" width="120"/>
+						<s:GridColumn dataField="sequence_ID" width="50"/>
+						<s:GridColumn dataField="sequence_version" width="50"/>
+						<s:GridColumn dataField="sequence_controller_name" width="200"/>
+						<s:GridColumn dataField="sequence_last_modified" width="150"/>
+						<s:GridColumn dataField="sequence_notes"/>
+						</s:ArrayList>
+					</s:columns>
+				</s:DataGrid>
+				
+			</s:VGroup>
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="Data Domains">
+			<domains:DomainAdmin width="100%" height="100%">
+				
+			</domains:DomainAdmin>
+			
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="Sequence Info">
+		<s:VGroup width="100%" height="100%">
+			<s:HGroup width="100%">
+				
+				<s:HGroup width="100%" horizontalAlign="right">
+					<s:Button label="Help" toolTip="Help" id="show_help" click="show_help_click_handler(event)"/>
+					<s:Button label="JSON Config" toolTip="Generate Config" id="btn_config_gen" click="btn_config_gen_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
+					<s:Button label="New Version" toolTip="Create New Version of current(last saved)" id="clone_controller_sequence" visible="{AppModel.getInstance().loaded_sequence != null}" click="clone_controller_sequence_clickHandler(event)"/>
+					<s:Button label="New" id="new_controller_sequence" click="new_controller_sequence_clickHandler(event)"/>
+					<s:Button label="Remove" id="remove_controller_sequence" click="remove_controller_sequence_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
+				</s:HGroup>	
+			</s:HGroup>
+			<!--Top End-->
+			<components1:SequenceDetails id="sequence_details_editor" width="100%" height="100%" loaded_sequence="{AppModel.getInstance().loaded_sequence}">
+			
+		</components1:SequenceDetails>
+		</s:VGroup>
+		
+	<!--	<s:HGroup width="100%" horizontalAlign="left">
+			<s:Button label="make_get_method" toolTip="Copy get method to clipboard" visible="{dg_rows.selectedItem}" id="make_get_method" click="make_get_method_clickHandler(event)"/>
+			<s:Button label="make_update_method" toolTip="Copy update method to clipboard" visible="{dg_rows.selectedItem}" id="make_update_method" click="make_update_method_clickHandler(event)"/>
+			<s:Button label="make_remove_method" toolTip="Copy remove method to clipboard" visible="{dg_rows.selectedItem}" id="make_remove_method" click="make_remove_method_clickHandler(event)"/>
+		</s:HGroup>-->	
+			
+		</s:NavigatorContent>
+		<!--Settings-->
+		<s:NavigatorContent enabled="{AppModel.getInstance().loaded_sequence != null}" width="100%" height="100%" label="Fields">
+			<s:VGroup width="100%" height="100%">
+				<components1:TableRows id="sequence_row_editor" width="100%" height="100%" fields="{AppModel.getInstance().fields}"/>
+			</s:VGroup>
+		</s:NavigatorContent>
+		
+		<s:NavigatorContent enabled="{AppModel.getInstance().loaded_sequence != null}" label="Code" width="100%" height="100%">
+			<components1:CodeAdmin sequence_details_editor="{sequence_details_editor}" id="code_admin" width="100%" height="100%">
+				
+			</components1:CodeAdmin>
+        </s:NavigatorContent>
+        <s:NavigatorContent label="Clipboard">
+			<s:HGroup width="100%" height="100%">
+				<s:TextArea id="ta_copy_area" text="{AppModel.getInstance().copy_area_text}" change="{AppModel.getInstance().copy_area_text = ta_copy_area.text}" width="100%" height="100%" fontSize="14">
+					
+				</s:TextArea>
+			</s:HGroup>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="Log">
+			<s:HGroup width="100%" height="100%">
+				<s:TextArea id="ta_log_area" text="{AppModel.getInstance().session_log_text}"  width="100%" height="100%" fontSize="14">
+					
+				</s:TextArea>
+			</s:HGroup>
+		</s:NavigatorContent>
+	
+		<s:NavigatorContent width="100%" height="100%" label="Operational">
+		
+			<components1:ActiveControllers load_sequence_func="{loadSequence}" width="100%" height="100%">
+				
+			</components1:ActiveControllers>
+	
+		</s:NavigatorContent>
+		<s:NavigatorContent label="Data Store">
+			<components1:DomainTables width="100%" height="100%">
+				
+			</components1:DomainTables>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="Data Views">
+			<components1:DataViews width="100%" height="100%" id="dataviews" views="{AppModel.getInstance().data_views}">
+				
+			</components1:DataViews>
+			
+		</s:NavigatorContent>
+		<s:NavigatorContent label="View Projects">
+			<components1:ViewProjectAdmin width="100%" height="100%">
+				
+			</components1:ViewProjectAdmin>
+			
+		</s:NavigatorContent>
+		
+	</mx:ViewStack>
+</s:Application>

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.TextInput;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.components.TitleWindow;
+			import spark.components.gridClasses.GridColumn;
+			import spark.events.GridSelectionEvent;
+			
+			import utils.ac.moveItemDown;
+			import utils.ac.moveItemUp;
+			import utils.object.isEmpty;
+	
+			
+			[Bindable]
+			public var isEditable:Boolean;
+			[Bindable]
+			public var allowEdits:Boolean = true;
+			[Bindable]
+			public var allowAdd:Boolean = true;
+			[Bindable]
+			public var allowRemove:Boolean = true;
+			[Bindable]
+			public var allowAddParam:Boolean = true;
+			[Bindable]
+			public var selectionMode:String = "singleRow";
+			[Bindable]
+			private var ac:ArrayCollection = new ArrayCollection;
+			[Bindable]
+			public var selected_object:Object;
+			
+			public function set jsonArray(jsonA:String):void
+			{
+				if(jsonA == ""){jsonA = "[]"};
+				ac.source = JSON.decode(jsonA);
+			}
+			public function get jsonArray():String{
+				var array:Array = removeEmpties(ac.source);
+				return JSON.encode(array);
+			}
+			public function addObject(obj:Object):void
+			{
+			ac.addItem(obj);	
+			}
+			public function getObjects(remove_empties:Boolean):Array{
+				
+				if(remove_empties){
+					removeEmpties(ac.source)
+				}
+				return ac.source;
+				
+			}
+			
+			
+			
+			private function removeEmpties(arr:Array):Array{
+				var len:int = arr.length;
+				for (var i:int = 0; i < len; i++)
+				{
+					var obj:Object = arr[i];
+					var removeMe:Boolean;
+					removeMe = isEmpty(obj);
+					var props_with_no_value:int = 0;
+					var total_props:int = 0;
+					for (var prop:String in obj){
+						total_props++;
+						if(obj[prop]=== ""){
+							props_with_no_value++
+						};
+					}
+					removeMe = props_with_no_value === total_props;
+					if(removeMe){
+						arr.splice(i,1);
+					}
+					
+					
+				}
+				
+				return arr;
+				
+			}
+
+		
+
+
+		
+
+
+			protected function theGrid_doubleClickHandler(event:MouseEvent):void
+			{
+				
+				menu.visible = !menu.visible;
+				
+			}
+
+
+		
+
+
+			protected function theGrid_clickHandler(event:MouseEvent):void
+			{
+				selected_object = theGrid.selectedItem;
+			}
+
+
+			protected function theGrid_mouseOutHandler(event:MouseEvent):void
+			{
+				menu.visible = false;
+			}
+
+
+			protected function btn_add_clickHandler(event:MouseEvent):void
+			{
+				var no:Object = new Object;
+				ac.addItem(no);
+				theGrid.selectedItem = no;
+				
+			}
+
+
+			protected function btn_remove_clickHandler(event:MouseEvent):void
+			{
+				if(selected_object == null || theGrid.selectedItem == null){return};
+				ac.removeItemAt(theGrid.selectedIndex);
+			}
+
+
+			protected function btn_move_up_clickHandler(event:MouseEvent):void
+			{
+				if(selected_object == null || theGrid.selectedItem == null){return};
+				moveItemUp(selected_object, ac);
+			}
+
+
+			protected function btn_move_down_clickHandler(event:MouseEvent):void
+			{
+				if(selected_object == null || theGrid.selectedItem == null){return};
+				moveItemDown(selected_object, ac);
+			}
+
+
+			protected function theGrid_selectionChangeHandler(event:GridSelectionEvent):void
+			{
+				selected_object = theGrid.selectedItem;
+			}
+
+
+			protected function btn_edit_clickHandler(event:MouseEvent):void
+			{
+				isEditable = !isEditable;
+				if(isEditable){
+					selected_object = null;
+					selectionMode = "singleCell";
+				}else{
+					selectionMode = "singleRow";
+				}
+			}
+
+
+			protected function btn_add_param_clickHandler(event:MouseEvent):void
+			{
+				var tw:EnterNamePop = new EnterNamePop;
+				tw.minLength = 3;
+				tw.happy = function(name:String):void
+				{
+					selected_object[name]= "value";
+					var dgc:GridColumn = new GridColumn;
+					dgc.dataField = name;
+					dgc.headerText = name;
+					theGrid.columns.addItem(dgc);
+					closeMe();
+					
+				}
+					tw.addEventListener(CloseEvent.CLOSE, function(evt:CloseEvent):void{
+						
+						closeMe();
+					});
+						function closeMe():void{
+							PopUpManager.removePopUp(tw);
+							tw = null;
+						}
+						PopUpManager.addPopUp(tw, this);
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+<s:DataGrid  toolTip="Double Click to show menu." editable="{isEditable}"  selectionMode="{selectionMode}"  selectionChange="theGrid_selectionChangeHandler(event)" click="theGrid_clickHandler(event)" dataProvider="{ac}" id="theGrid" width="100%" height="100%" doubleClickEnabled="true" doubleClick="theGrid_doubleClickHandler(event)">
+
+</s:DataGrid>
+	<s:HGroup gap="0" id="menu" y="2" right="5" visible="false">
+		<s:ToggleButton label="e" id="btn_edit" click="btn_edit_clickHandler(event)" toolTip="Edit Cells" width="24"  visible="{allowEdits}" includeInLayout="{allowEdits}" icon="{AssetLib.JSONARRAY_GRID_EDIT}"/>
+		<s:Button label="+" id="btn_add" click="btn_add_clickHandler(event)" toolTip="Add Item" width="24" visible="{allowAdd}" includeInLayout="{allowAdd}" icon="{AssetLib.JSONARRAY_GRID_ADD}" />
+		<s:Button label="-" visible="{selected_object != null &amp;&amp; allowRemove}" id="btn_remove" click="btn_remove_clickHandler(event)" toolTip="Remove Item" width="24" includeInLayout="{allowRemove}" icon="{AssetLib.JSONARRAY_GRID_REMOVE}"/>
+		<s:Button label="u" visible="{selected_object != null}" id="btn_move_up" click="btn_move_up_clickHandler(event)" toolTip="Move Item Up"  width="24" icon="{AssetLib.JSONARRAY_GRID_UP}"/>
+		<s:Button label="d" visible="{selected_object != null}" id="btn_move_down" click="btn_move_down_clickHandler(event)" toolTip="Move Item Down"  width="24" icon="{AssetLib.JSONARRAY_GRID_DOWN}"/>
+		<s:Button label="a" visible="{selected_object != null  &amp;&amp; allowAddParam}" id="btn_add_param" click="btn_add_param_clickHandler(event)" toolTip="Add Column"  width="24" includeInLayout="{allowAddParam}" icon="{AssetLib.JSONARRAY_GRID_ADD_COLUMN}"/>
+	</s:HGroup>
+</s:Group>

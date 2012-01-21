@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="412" height="134" title="Create Table">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="2" paddingRight="3" verticalAlign="middle" horizontalAlign="center"/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.CloseEvent;
+			public var happy:Function;
+			[Bindable]public var minTableNameLength:int;
+			[Bindable]public var minTableKeyLength:int;
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:VGroup width="100%">
+		<s:Label text="Table Name"/>
+		<s:TextInput id="table_name" toolTip="Name for Table" width="100%"/>
+		<s:Label text="Key(ID) Name"/>
+		<s:HGroup width="100%">
+			
+		<s:TextInput id="key_name" toolTip="Name of Key" width="100%"/>
+		<s:Button label="ok" enabled="{table_name.text.length+1 &gt; minTableNameLength &amp;&amp; key_name.text.length &gt; minTableKeyLength}" click="{happy(table_name.text, key_name.text)}"/>
+		</s:HGroup>
+	</s:VGroup>
+	
+</s:TitleWindow>

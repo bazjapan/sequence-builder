@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" creationComplete="init(event)">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getArrayOfLabelsbyParam;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceControllerTest;
+		
+			public function init(evt:Event):void
+			{
+			
+				getDataStoreServiceControllerTest(getArrayOfLabelsbyParam("domain_label",AppModel.getInstance().domains.source),
+					function(mess:String):void{trace(mess)},function(mess:String):void{trace(mess)});
+			}
+			
+		]]>
+	</fx:Script>
+</s:Application>

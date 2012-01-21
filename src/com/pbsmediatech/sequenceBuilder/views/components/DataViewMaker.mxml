@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc()">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			
+			import db.field.Field;
+			import db.view.DataView;
+			import db.view.ViewField;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.components.renderer.DataViewFieldRenderer;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			public var view_fields:ArrayCollection = new ArrayCollection;
+			[Bindable]
+			public var view_name:String;
+			[Bindable]
+			public var query:String = "";
+			
+			
+			public function get dw():DataView
+			{
+				return _dw;
+			}
+
+			public function set dw(value:DataView):void
+			{
+				_dw = value;
+				view_name = dw.view_name;
+				var fs:Array = JSON.decode(dw.view_fields);
+				for each (var obj:Object in fs)
+				{
+					var vf:ViewField = new ViewField(obj);
+					view_fields.addItem(vf);
+				}
+			}
+
+			private var _dw:DataView;
+			
+			public function save():void
+			{
+				dw.view_name = ti_view_name.text;
+				dw.view_fields = JSON.encode(view_fields.source);
+			}
+
+			protected function add_field_clickHandler(event:MouseEvent):void
+			{
+				var selected:Field = dd_available_fields.selectedItem as Field;
+				addField(selected);
+			}
+
+
+		
+
+
+			protected function btn_save_clickHandler(event:MouseEvent):void
+			{
+
+				
+				dw.view_name = ti_view_name.text;
+				dw.view_fields = JSON.encode(view_fields.source);
+				
+				
+			}
+
+
+			protected function btn_remove_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(lt_viewFields.selectedItem == null)return;
+				view_fields.removeItemAt(lt_viewFields.selectedIndex);
+			}
+
+
+			protected function add_all_fields_clickHandler(event:MouseEvent):void
+			{
+				for each (var obj:Field in AppModel.getInstance().fields)
+				{
+					addField(obj);
+				}
+			}
+			
+			private function addField(f:Field):void
+			{
+				var selected:Field = f
+				var vf:ViewField = new ViewField;
+				vf.field_name = selected.field_name;
+				vf.is_FK = selected.is_FK;
+				vf.fk_target = selected.fk_target;
+				vf.table_name = AppModel.getInstance().loaded_sequence.sequence_table_name
+				
+				view_fields.addItem(vf);// TODO Auto-generated method stub
+			}
+
+
+			protected function cc():void
+			{
+				
+			}
+
+
+			protected function btn_query_clickHandler(event:MouseEvent):void
+			{
+				var counter:int = 1;
+				var selects:Array = [];
+				var joins:Array = [];
+				var order_by:String;
+				for each (var vf:ViewField in view_fields)
+				{
+					var select:String = "tb1."+vf.field_name;
+					if(vf.tunnel)
+					{
+						
+						counter++;
+						var join_type:String = "INNER JOIN";
+						if(vf.can_be_null)
+						{
+							join_type = "LEFT JOIN";
+						}
+						
+						select = "tb"+counter.toString()+"."+vf.tunnel_field+" AS "+vf.field_alias;
+						joins.push(join_type+" "+vf.fk_target.split(".")[0]+" AS tb"+counter.toString()+ " ON tb"+counter.toString()+"."+vf.fk_target.split(".")[1]+" = tb1."+vf.field_name);
+						
+						
+						//trace(join_type+" "+vf.fk_target.split(".")[0]+" AS tb"+counter.toString()+ " ON tb"+counter.toString()+"."+vf.fk_target.split(".")[1]+" = tb1."+vf.field_name);
+					}
+					else
+					{
+							
+					}
+					selects.push(select);
+					
+					
+				}
+				trace(JSON.encode(view_fields.source))
+				
+				trace("SELECT "+selects.join(","));
+				trace(" FROM "+AppModel.getInstance().loaded_sequence.sequence_table_name+" AS tb1 ");
+				trace(joins.join(" "));
+				
+				
+				query = "";
+				query+="SELECT "+selects.join(",");
+				query+=" FROM "+AppModel.getInstance().loaded_sequence.sequence_table_name+" AS tb1 ";
+				query+= joins.join(" ");
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Label text="View Name"/>
+	<s:TextInput id="ti_view_name" text="{view_name}"/>
+	<s:HGroup>
+	<s:DropDownList width="250" id="dd_available_fields" prompt="Select Field" dataProvider="{AppModel.getInstance().fields}" labelField="field_name" />
+			<s:Button enabled="{dd_available_fields.selectedItem != null}" label="Add" id="add_field" click="add_field_clickHandler(event)"/>
+			<s:Button label="Add All" id="add_all_fields" click="add_all_fields_clickHandler(event)"/>
+			<s:Button label="Remove" id="btn_remove" click="btn_remove_clickHandler(event)"/>
+			<s:Button label="Query" id="btn_query" click="btn_query_clickHandler(event)"/>
+	</s:HGroup>
+	
+	<s:VGroup width="100%" height="100%">
+		<s:TabBar dataProvider="{vs}"/>
+		<mx:ViewStack id="vs" width="100%" height="100%">
+		<s:NavigatorContent label="Fields" width="100%" height="100%">
+		<s:List id="lt_viewFields" width="100%" height="100%" dataProvider="{view_fields}" labelField="field_name" itemRenderer="com.pbsmediatech.sequenceBuilder.views.components.renderer.DataViewFieldRenderer">
+		</s:List>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="Query" width="100%" height="100%">
+			<s:TextArea text="{query}" width="100%" height="100%">
+			</s:TextArea>
+		</s:NavigatorContent>
+		</mx:ViewStack>
+	</s:VGroup>
+	
+</s:Group>

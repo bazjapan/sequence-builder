@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" creationComplete="cc()">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.code.sequenceBuilder.uiBuilder.makeAddEntityForm;
+			
+			import db.field.Field;
+			import db.field.IDFieldSize;
+			
+			import mx.collections.ArrayCollection;
+			
+			private function cc():void
+			{
+			var fields:ArrayCollection = new ArrayCollection();
+			
+			var field1:Field = new Field();
+			field1.field_type = Field.VARCHAR;
+			field1.field_name = "field_name1";
+			fields.addItem(field1);
+			
+			var f2:Field = new Field();
+			f2.field_type = Field.BIGINT;
+			f2.field_size = IDFieldSize();
+			f2.field_name = "field_name2";
+			fields.addItem(f2);
+			
+			container.addElement(makeAddEntityForm(fields, function(vo:Object):void
+			{
+				trace("I have him "+vo);
+			}));
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:Group id="container" width="100%" height="100%">
+		
+	</s:Group>
+	
+</s:Application>

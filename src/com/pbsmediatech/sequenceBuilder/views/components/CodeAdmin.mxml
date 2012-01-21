@@ -1,0 +1,745 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300" xmlns:components="jp.unchained.views.components.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	
+
+	<fx:Script>
+		<![CDATA[
+			
+			import com.maccherone.json.JSON;
+			import com.pbsmediatech.code.method_builders.CustomMethod;
+			import com.pbsmediatech.code.method_builders.LangCodePair;
+			import com.pbsmediatech.code.method_builders.as3.makeAS3Controller;
+			import com.pbsmediatech.code.method_builders.custom_methods.CustomMethodDescription;
+			import com.pbsmediatech.code.method_builders.js.makeJSController;
+			import com.pbsmediatech.code.method_builders.as3.makeAS3Class;
+			import com.pbsmediatech.code.method_builders.as3.makeAS3Event;
+			import com.pbsmediatech.code.method_builders.as3.makeAS3JSONResultHelper;
+			import com.pbsmediatech.code.method_builders.as3.makeAS3Utils;
+			import com.pbsmediatech.code.method_builders.php.makePHPController;
+			import com.pbsmediatech.code.method_builders.sql.makeSQLScript;
+			import com.pbsmediatech.code.method_builders.utils.makeMethodInfos;
+			import com.pbsmediatech.dto.ControllerSequence;
+			import com.pbsmediatech.dto.Domain;
+			import com.pbsmediatech.json.utils.JSONResultHelper2;
+			import com.pbsmediatech.json.utils.extractResultMessage;
+			import com.pbsmediatech.json.utils.extractResultResult;
+			import com.pbsmediatech.json.utils.resultIsGood;
+			
+			import db.field.Field;
+			import db.field.getFieldOptions;
+			
+			import flash.utils.describeType;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDefaultGeneratedMethodNames;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.get_domains_by_domain_label;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.saveFile;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.components.TitleWindow;
+			
+			import utils.object.toString;
+			import utils.objectArrayToCSV;
+			import utils.string.removeWhiteSpace;
+			import utils.string.replace;
+			import utils.text.newLine;
+			import utils.url.openInBrowser;
+			
+			[Bindable]public var sequence_details_editor:SequenceDetails;
+			[Bindable]public var status_text:String;
+			
+			protected function make_clickHandler(event:MouseEvent):void
+			{
+				var mis:Object = makeMethodInfos(sequence_details_editor.object_name.text, AppModel.getInstance().fields.source,getCustomLangPairs(), AppModel.getInstance().excludes)
+				ta_build_info.text = com.maccherone.json.JSON.encode(mis,true);
+				prepareSQL();
+				preparePHPController(mis);
+				prepareAS3Controller(mis);
+				prepareJSController(mis);
+				prepareAS3Class();
+				prepareAS3JSONResultHelper();
+				prepareAS3Utils();
+				prepareAS3Event();
+				makeCSV();
+				prepareJSON();
+				
+			}
+			private function makeCSV():void{
+				
+				var biDimensionalArray:Array = [];
+				var columnsToUse:Array = getFieldOptions();
+				
+				for each (var row:Field in AppModel.getInstance().fields)
+				{
+					
+					var entry:Array = [] ;
+					for each (var columnforuse:Object in columnsToUse)
+					{
+						try
+						{
+							entry[columnforuse.toString()] = row[columnforuse.toString()];
+							
+						}
+						catch(err:Error)
+						{
+							trace(err);
+						}
+						
+					}
+					biDimensionalArray.push(entry);
+					
+				}
+				var csv:String = objectArrayToCSV(biDimensionalArray);
+				AppModel.getInstance().csv_text = csv;
+			}
+			private function prepareSQL():void
+			{
+				AppModel.getInstance().sql_text = makeSQLScript(AppModel.getInstance().loaded_sequence.sequence_version, getIDField(),
+					AppModel.getInstance().loaded_sequence.sequence_table_name,
+					AppModel.getInstance().fields.source)
+				
+			}
+		
+			
+			private function preparePHPController(mis:Object):void
+			{
+				AppModel.getInstance().php_controller_text = makePHPController(getIDField(),
+					sequence_details_editor.controller_name.text,
+					sequence_details_editor.object_name.text,
+					sequence_details_editor.class_name.text,
+					sequence_details_editor.controller_description.text,
+					AppModel.getInstance().loaded_sequence.sequence_ID,
+					AppModel.getInstance().loaded_sequence.sequence_version,
+					AppModel.getInstance().loaded_sequence.sequence_table_name,
+					AppModel.getInstance().loaded_sequence.sequence_table_version,
+					AppModel.getInstance().fields.source,getCustomLangPairs(), AppModel.getInstance().excludes, mis);
+			}
+			private function prepareAS3Controller(mis:Object):void{
+				
+				AppModel.getInstance().as3_controller_text = makeAS3Controller(
+					AppModel.getInstance().loaded_sequence.sequence_ID,
+					sequence_details_editor.class_name.text,
+					sequence_details_editor.controller_name.text,
+					sequence_details_editor.object_name.text,
+					sequence_details_editor.domain_name.selectedItem["domain_package_root"],
+					AppModel.getInstance().loaded_sequence.sequence_version,
+					AppModel.getInstance().loaded_sequence.sequence_table_version,
+					AppModel.getInstance().fields.source,getCustomLangPairs(), AppModel.getInstance().excludes, mis);
+			}
+			private function prepareJSController(mis:Object):void{
+				trace(JSON.encode(mis, true))
+				AppModel.getInstance().js_controller_text = makeJSController(
+					Domain(get_domains_by_domain_label(AppModel.getInstance().loaded_sequence.sequence_domain)[0]).domain_api_url,
+					AppModel.getInstance().loaded_sequence.sequence_ID,
+					sequence_details_editor.class_name.text,
+					sequence_details_editor.controller_name.text,
+					sequence_details_editor.object_name.text,
+					sequence_details_editor.domain_name.selectedItem["domain_package_root"],
+					AppModel.getInstance().loaded_sequence.sequence_version,
+					AppModel.getInstance().loaded_sequence.sequence_table_version,
+					AppModel.getInstance().fields.source,
+					getCustomLangPairs(), 
+					AppModel.getInstance().excludes, mis);
+			}
+			
+			private function prepareAS3Class():void{
+				AppModel.getInstance().as3_class_text = makeAS3Class(
+					sequence_details_editor.class_name.text,
+					sequence_details_editor.domain_name.selectedItem["domain_package_root"],
+					AppModel.getInstance().loaded_sequence.sequence_version,
+					AppModel.getInstance().fields.source);
+			}
+			
+			private function prepareAS3Utils():void
+			{
+				AppModel.getInstance().as3_utils_text = makeAS3Utils(
+					sequence_details_editor.class_name.text,
+					sequence_details_editor.domain_name.selectedItem["domain_package_root"],
+					AppModel.getInstance().loaded_sequence.sequence_version,
+					AppModel.getInstance().fields.source);
+			}
+			private function prepareAS3JSONResultHelper():void
+			{
+				AppModel.getInstance().as3_ResultHelper_text = makeAS3JSONResultHelper(
+					sequence_details_editor.class_name.text,
+					sequence_details_editor.domain_name.selectedItem["domain_package_root"],
+					AppModel.getInstance().loaded_sequence.sequence_version);
+			}
+			private function prepareAS3Event():void
+			{
+				AppModel.getInstance().as3_Event_text = makeAS3Event(
+					String(sequence_details_editor.domain_name.selectedItem["domain_package_root"])+".dto.event",
+					sequence_details_editor.class_name.text, 
+					AppModel.getInstance().loaded_sequence.sequence_version,
+					getControllerMethods(true,false));
+			}
+			private function getControllerMethods(include_custom:Boolean = true, include_excluded:Boolean = true):Array
+			{
+				
+				var methodNames:Array = getDefaultGeneratedMethodNames(
+					sequence_details_editor.object_name.text, 
+					AppModel.getInstance().fields.source);	
+				
+				if(include_custom){
+					//custom
+					for each (var obj:CustomMethod in custom_method_editor.custom_methods)
+					{
+						if(include_excluded)
+						{
+						methodNames.push(obj.method_name);
+						}
+						else
+						{
+							if(obj.gen)
+							{
+								methodNames.push(obj.method_name);	
+							}
+						}
+					}
+				}
+				if(!include_excluded)
+				{
+					for (var i:int = 0; i < methodNames.length; i++)
+					{
+						var hit:Boolean;
+						for (var j:int = 0; j < AppModel.getInstance().excludes.length; j++)
+							{
+								if(methodNames[i] == AppModel.getInstance().excludes[j])
+								{
+									hit = true;
+									break;
+								}
+							}
+						if(hit)
+						{
+							methodNames.splice(i,1);
+						}
+					}
+				}
+				
+				return methodNames;
+			}
+			
+			
+			private function getCustomLangPairs():Array
+			{
+				var all_lang_pairs:Array = [];
+				for each (var method:CustomMethod in custom_method_editor.custom_methods)
+				{	
+					if(method.gen)
+					{
+					var lang_pairs:Array = custom_method_editor.makeLangPairs(method.method_lang_code_pairs);
+					for each (var lp:LangCodePair in lang_pairs)
+					{
+						lp.input = method.input;
+						lp.output = method.output;
+						lp.method_name = method.method_name;
+						lp.method_type = method.method_type;
+						all_lang_pairs.push(lp);
+					}
+					}
+					
+				}
+				return all_lang_pairs;
+			}
+			
+			
+			
+			
+			private function getIDField():Field
+			{
+				for (var i:int = 0; i < AppModel.getInstance().fields.length; i++)
+				{
+					if(Field(AppModel.getInstance().fields[i]).is_ID)
+					{
+						return Field(AppModel.getInstance().fields[i]);
+					}
+				}
+				return new Field;
+			}
+			
+			
+			
+			
+			
+			protected function load_csv_clickHandler(event:MouseEvent):void
+			{
+				var tw:TitleWindow = new TitleWindow
+				tw.width = 500;
+				tw.height = 500;
+				var vg:VGroup = new VGroup;
+				vg.width = 500;
+				vg.height = 500;
+				var ta:TextArea = new TextArea;
+				ta.width = 500;
+				ta.height = 430;
+				tw.addElement(vg);
+				vg.addElement(ta);
+				var button:Button = new Button;
+				button.label = "Load";
+				button.addEventListener(MouseEvent.CLICK, function(evt:Event):void
+				{
+					closeME();
+					var text:String = ta.text;
+					var objs:Array = text.split(newLine());
+					if(objs.length<1)return;
+					AppModel.getInstance().fields.removeAll();
+					
+					var labels:Array = String(objs[0]).split(",");
+					var realObjects:Array = [];
+					for (var i:int = 1; i < objs.length; i++)
+					{
+						var real:Object = new Object;
+						var values:Array = String(objs[i]).split(",");
+						for (var j:int = 0; j < labels.length; j++)
+						{
+							
+							real[labels[j]] = values[j];
+						}
+						realObjects.push(real);
+					}
+					
+					
+					for each (var obj:Object in realObjects)
+					{
+						AppModel.getInstance().fields.addItem(new Field(obj));
+					}
+					
+				});
+				vg.addElement(button);
+				PopUpManager.addPopUp(tw,this);
+				tw.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void{closeME()});
+				
+				function closeME():void
+				{
+					PopUpManager.removePopUp(tw);
+				}
+			}
+			
+			//save to disk
+			protected function save_php_controller_clickHandler(event:MouseEvent):void
+			{
+				saveFile(AppModel.getInstance().php_controller_text,sequence_details_editor.controller_name.text.toLowerCase()+".php");
+			}
+			
+			protected function save_AS3_controller_clickHandler(event:MouseEvent):void
+			{
+				saveFile(AppModel.getInstance().as3_controller_text,sequence_details_editor.class_name.text+"Controller"+".as");
+			}
+			
+			
+			protected function save_AS3_class_clickHandler(event:MouseEvent):void
+			{
+				saveFile(AppModel.getInstance().as3_class_text,sequence_details_editor.class_name.text+".as");
+				
+			}
+			protected function save_AS3_resultHelper_clickHandler(event:MouseEvent):void
+			{
+				saveFile(AppModel.getInstance().as3_ResultHelper_text,sequence_details_editor.class_name.text+"ResultHelper.as");
+			}
+			protected function save_as3Utils_clickHandler(event:MouseEvent):void
+			{
+				saveFile(AppModel.getInstance().as3_utils_text,sequence_details_editor.class_name.text+"Utils.as");
+			}
+			protected function save_as3Event_clickHandler(event:MouseEvent):void
+			{
+				saveFile(AppModel.getInstance().as3_Event_text,sequence_details_editor.class_name.text+"Event.as");
+			}
+			protected function save_js_controller_clickHandler(event:MouseEvent):void
+			{
+				var controller_name:String = sequence_details_editor.controller_name.text.toLowerCase()+"_controller";
+				saveFile(AppModel.getInstance().js_controller_text,controller_name+".js");
+			}
+
+			
+			
+			
+			protected function save_csv_clickHandler(event:MouseEvent):void
+			{
+				makeCSV();
+				var fr:FileReference= new FileReference();
+				
+				var fileName:String = replace(sequence_details_editor.controller_name.text,"/"," ")+".csv";			
+				saveFile(AppModel.getInstance().csv_text,fileName);
+			}
+		
+			private function doGenerateMethods(callback:Function):void
+			{
+				callback(getDefaultGeneratedMethodNames(
+					sequence_details_editor.object_name.text, 
+					AppModel.getInstance().fields.source));
+			}
+			public function save():void{
+				AppModel.getInstance().loaded_sequence.sequence_custom_methods = custom_method_editor.custom_method_data;
+				
+				var excludes:Array = AppModel.getInstance().excludes;
+				
+				var user_built:Array = [];
+				for each (var cmd:CustomMethodDescription in AppModel.getInstance().added_methods)
+				{
+					user_built.push(cmd.object);
+				}
+				
+				var theWholeThing:Object = new Object;
+				theWholeThing.excludes = excludes;
+				theWholeThing.user_built = user_built;
+				
+				AppModel.getInstance().loaded_sequence.generated_method_info = JSON.encode(theWholeThing);
+				
+				
+			}
+			private function prepareJSON():void
+			{
+				
+				if(AppModel.getInstance().loaded_sequence != null){
+					var seq:ControllerSequence = AppModel.getInstance().loaded_sequence;
+					var jsonSafe:Object = new Object;
+					jsonSafe.store_type = "mongo";
+					jsonSafe.sequence_domain = seq.sequence_domain;
+					jsonSafe.sequence_version  = JSON.decode(String(seq.sequence_version));
+					jsonSafe.sequence_controller_name = seq.sequence_controller_name;
+					jsonSafe.sequence_last_modified = seq.sequence_last_modified;
+					jsonSafe.sequence_fields = JSON.decode(seq.sequence_fields);
+					jsonSafe.sequence_info = JSON.decode(seq.sequence_info);
+					var encoded:String = JSON.encode(jsonSafe)
+					AppModel.getInstance().json_text = encoded;
+				}
+					//makeSQLScript(AppModel.getInstance().loaded_sequence.sequence_version, getIDField(),
+					//AppModel.getInstance().loaded_sequence.sequence_table_name,
+					//AppModel.getInstance().fields.source)
+				
+			}
+			
+			
+
+			[Bindable]private var php_controller_deployed:Boolean;
+			private var php_controller_deployed_url:String;
+			protected function deploy_php_controller_clickHandler(event:MouseEvent):void
+			{
+				php_controller_deployed = false;
+				var content:String = AppModel.getInstance().php_controller_text;
+				var escaped:String = encodePluses(escape(content));
+				getDataStoreServiceController(Domain(ddlt_domains.selectedItem).domain_label,
+					AppModel.getInstance().dev).deploy_php_api_controller({controller_name:sequence_details_editor.controller_name.text.toLowerCase(),
+					controller_content:escaped},function(evt:ResultEvent):void
+					{
+						status_text = "Deployed";
+						var returnedMessage:String = extractResultMessage(evt);
+						php_controller_deployed_url = extractResultResult(evt).toString();
+						AppModel.getInstance().log_me(returnedMessage);
+						php_controller_deployed = true;
+						
+					}); 
+							
+			}
+			
+
+			
+			[Bindable]private var js_controller_deployed:Boolean;
+			private var js_controller_deployed_url:String;
+			protected function deploy_js_controller_clickHandler(event:MouseEvent):void
+			{
+				var controller_folder:String = "js/controllers/";
+				js_controller_deployed = false;
+				var selected_domain:Domain = ddlt_domains_for_js_controllers.selectedItem as Domain; 
+				var domain_label:String = selected_domain.domain_label;
+				var content:String = AppModel.getInstance().js_controller_text;
+				var controller_name:String = sequence_details_editor.controller_name.text.toLowerCase()+"_controller";
+				var domain_code_root:String = selected_domain.domain_code_root+controller_folder;
+				
+				var escaped:String = encodePluses(escape(content));
+				getDataStoreServiceController(domain_label,
+					AppModel.getInstance().dev).deploy_js_controller({controller_name:controller_name,
+						controller_content:escaped, domain_code_root:domain_code_root},function(evt:ResultEvent):void
+						{
+							if(resultIsGood(evt))
+								{
+							var returnedMessage:String = extractResultMessage(evt);
+							view_js_controller.toolTip = returnedMessage;
+							js_controller_deployed_url = extractResultResult(evt).toString();
+							AppModel.getInstance().log_me(returnedMessage);
+							js_controller_deployed = true;
+								}
+								else
+								{
+									Alert.show("Unable to deploy controller");
+								}
+						}); 
+			}
+			private function encodePluses(str:String):String
+			{
+				return replace(str,"+","%2B"); 
+			}
+
+			protected function view_js_controller_clickHandler(event:MouseEvent):void
+			{
+				openInBrowser(js_controller_deployed_url);
+			}
+			protected function view_php_controller_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+
+			protected function view_js_code_clickHandler(event:MouseEvent):void
+			{
+				openInBrowser(js_code_deployed_url);
+			}
+
+
+			[Bindable]private var js_code_deployed:Boolean;
+			private var js_code_deployed_url:String;
+			protected function deploy_js_code_clickHandler(event:MouseEvent):void
+			{
+				var sub_folder:String = "js/";
+				js_code_deployed = false;
+				var selected_domain:Domain = ddlt_domains_for_js_code.selectedItem as Domain; 
+				var domain_label:String = selected_domain.domain_label;
+				var content:String = ta_js_code.text;
+				var file_name:String = ti_js_code_filename.text;
+				var domain_code_root:String = selected_domain.domain_code_root+sub_folder;
+				
+				var escaped:String = encodePluses(escape(content));
+				getDataStoreServiceController(domain_label,
+					AppModel.getInstance().dev).deploy_js_controller({controller_name:file_name,
+						controller_content:escaped, domain_code_root:domain_code_root},function(evt:ResultEvent):void
+						{
+							if(resultIsGood(evt))
+							{
+								var returnedMessage:String = extractResultMessage(evt);
+								view_js_code.toolTip = returnedMessage;
+								js_code_deployed_url = extractResultResult(evt).toString();
+								AppModel.getInstance().log_me(returnedMessage);
+								js_code_deployed = true;
+							}
+							else
+							{
+								Alert.show("Unable to deploy code");
+							}
+						}); 
+			}
+
+		]]>
+	</fx:Script>
+	
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:VGroup width="100%" height="100%">
+		<s:TabBar dataProvider="{vs_methods}"/>
+		<mx:ViewStack  id="vs_methods" width="100%" height="100%">
+			
+			<s:NavigatorContent label="Custom" width="100%" height="100%">
+				<components1:CustomMethods id="custom_method_editor" width="100%" height="100%" custom_method_data="{AppModel.getInstance().loaded_sequence.sequence_custom_methods}">
+					
+				</components1:CustomMethods>
+			</s:NavigatorContent>
+			
+			<s:NavigatorContent label="Generated" width="100%" height="100%">
+				<components1:GeneratedMethods id="generated_method_editor" generateFunc="doGenerateMethods" fields="{AppModel.getInstance().fields}" object_name="{sequence_details_editor.object_name.text}" width="100%" height="100%"/>
+			</s:NavigatorContent>
+			
+			<s:NavigatorContent label="Build" width="100%" height="100%">
+			<components1:MethodBuilder2 width="100%" height="100%">
+					
+			</components1:MethodBuilder2>
+			</s:NavigatorContent>
+			
+			<s:NavigatorContent label="Code" enabled="{AppModel.getInstance().loaded_sequence != null}"  width="100%" height="100%">
+				<s:VGroup width="100%" height="100%">
+				<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+							<s:HGroup width="100%" horizontalAlign="left">
+								<mx:TabBar width="100%" dataProvider="{vs_code}"/>
+							</s:HGroup>	
+							<s:HGroup width="100%" horizontalAlign="right" paddingRight="3">
+								<mx:VRule height="24"/>
+								<s:Button enabled="{AppModel.getInstance().loaded_sequence != null}" label="Generate Code" id="make" click="make_clickHandler(event)"/>	
+							</s:HGroup>	
+						</s:HGroup>	
+						<mx:ViewStack id="vs_code" width="100%" height="100%">
+							<s:NavigatorContent width="100%" height="100%" label="PHP">
+								<s:VGroup width="100%" height="100%">
+									<s:TabBar dataProvider="{vs_php}"/>
+									<mx:ViewStack id="vs_php" width="100%" height="100%">
+										<s:NavigatorContent label="PHP Controller">
+											<s:VGroup width="100%" height="100%">
+												<s:HGroup width="100%" horizontalAlign="right" verticalAlign="middle">
+													<!--<s:Button width="24" height="24" enabled="{php_controller_deployed}" id="view_php_controller" click="view_php_controller_clickHandler(event)"/>
+													--><s:DropDownList id="ddlt_domains" dataProvider="{AppModel.getInstance().domains}" labelField="domain_label" prompt="Select Domain"  width="241"/>
+													<s:Button enabled="{ddlt_domains.selectedItem != null}" label="Deploy" id="deploy_php_controller" click="deploy_php_controller_clickHandler(event)"/>
+													<s:Button label="Download" id="save_php_controller" click="save_php_controller_clickHandler(event)"/>
+												</s:HGroup>
+												<s:HGroup width="100%" height="100%">
+													<s:TextArea id="ta_php_controller" text="{AppModel.getInstance().php_controller_text}" width="100%" height="100%" fontSize="14"/>
+												</s:HGroup>
+											</s:VGroup>
+										</s:NavigatorContent>
+									</mx:ViewStack><!--vs_php-->
+								</s:VGroup>
+							</s:NavigatorContent><!--PHP-->
+							
+							<s:NavigatorContent label="AS3" width="100%" height="100%">
+								<s:VGroup width="100%" height="100%">
+									<s:TabBar dataProvider="{vs_as3}"/>
+									<mx:ViewStack  id="vs_as3" width="100%" height="100%">
+										
+										<s:NavigatorContent label="AS3 Controller">
+											<s:VGroup width="100%" height="100%">
+												<s:HGroup width="100%" horizontalAlign="right">
+													<s:Button label="Download" id="save_AS3_controller" click="save_AS3_controller_clickHandler(event)"/>
+												</s:HGroup>
+												<s:HGroup width="100%" height="100%">
+													<s:TextArea id="ta_as3_controller" text="{AppModel.getInstance().as3_controller_text}" width="100%" height="100%" fontSize="14"/>
+												</s:HGroup>
+											</s:VGroup>
+										</s:NavigatorContent>
+										
+										<s:NavigatorContent label="AS3 Object Class">
+											<s:VGroup width="100%" height="100%">
+												<s:HGroup width="100%" horizontalAlign="right">
+													<s:Button label="Download" id="save_AS3_class" click="save_AS3_class_clickHandler(event)"/>
+												</s:HGroup>
+												<s:HGroup width="100%" height="100%">
+													<s:TextArea id="ta_as3_class" text="{AppModel.getInstance().as3_class_text}" width="100%" height="100%" fontSize="14"/>
+												</s:HGroup>
+											</s:VGroup>
+										</s:NavigatorContent>
+										
+										<s:NavigatorContent label="AS3 Result Helper">
+											<s:VGroup width="100%" height="100%">
+												<s:HGroup width="100%" horizontalAlign="right">
+													<s:Button label="Download" id="save_AS3_resultHelper" click="save_AS3_resultHelper_clickHandler(event)"/>
+												</s:HGroup>
+												<s:HGroup width="100%" height="100%">
+													<s:TextArea id="ta_as3_resultHelper" text="{AppModel.getInstance().as3_ResultHelper_text}" width="100%" height="100%" fontSize="14"/>
+												</s:HGroup>
+											</s:VGroup>
+										</s:NavigatorContent>
+										
+										<s:NavigatorContent label="AS3 Class Utils">
+											<s:VGroup width="100%" height="100%">
+												<s:HGroup width="100%" horizontalAlign="right">
+													<s:Button label="Download" id="save_as3Utils" click="save_as3Utils_clickHandler(event)"/>
+												</s:HGroup>
+												<s:HGroup width="100%" height="100%">
+													<s:TextArea id="ta_as3Utils" text="{AppModel.getInstance().as3_utils_text}" width="100%" height="100%" fontSize="14"/>
+												</s:HGroup>
+											</s:VGroup>
+										</s:NavigatorContent>
+										
+										<s:NavigatorContent label="AS3 Events">
+											<s:VGroup width="100%" height="100%">
+												<s:HGroup width="100%" horizontalAlign="right">
+													<s:Button label="Download" id="save_as3Event" click="save_as3Event_clickHandler(event)"/>
+												</s:HGroup>
+												<s:HGroup width="100%" height="100%">
+													<s:TextArea id="ta_as3Events" text="{AppModel.getInstance().as3_Event_text}" width="100%" height="100%" fontSize="14"/>
+												</s:HGroup>
+											</s:VGroup>
+										</s:NavigatorContent>
+									</mx:ViewStack><!--vs_as3-->
+								</s:VGroup>	
+							</s:NavigatorContent><!--end as3-->
+							<s:NavigatorContent width="100%" height="100%" label="JS">
+								<s:VGroup width="100%" height="100%">
+									<s:TabBar dataProvider="{vs_js}"/>
+									<mx:ViewStack id="vs_js" width="100%" height="100%">
+										<s:NavigatorContent label="JS Controller">
+											<s:VGroup width="100%" height="100%">
+												
+												<s:HGroup width="100%" horizontalAlign="right" verticalAlign="middle">
+													<s:Button width="24" height="24" enabled="{js_controller_deployed}" id="view_js_controller" click="view_js_controller_clickHandler(event)"/>
+													<s:DropDownList id="ddlt_domains_for_js_controllers" dataProvider="{AppModel.getInstance().domains}" labelField="domain_label" prompt="Select Domain"  width="241"/>
+													<s:Button enabled="{ddlt_domains_for_js_controllers.selectedItem != null}" label="Deploy" id="deploy_js_controller" click="deploy_js_controller_clickHandler(event)"/>
+													<s:Button label="Download" id="save_js_controller" click="save_js_controller_clickHandler(event)"/>
+												</s:HGroup>
+												<s:HGroup width="100%" height="100%">
+													<s:TextArea id="ta_js_controller" text="{AppModel.getInstance().js_controller_text}" width="100%" height="100%" fontSize="14"/>
+												</s:HGroup>
+											</s:VGroup>
+										</s:NavigatorContent>
+										<s:NavigatorContent label="JS Code">
+											<s:VGroup width="100%" height="100%">
+												
+												<s:HGroup width="100%" horizontalAlign="right" verticalAlign="middle">
+													<s:Label text="File Name" toolTip=".js will be added on save"/>
+													<s:TextInput id="ti_js_code_filename"  toolTip=".js will be added on save"/>
+													<s:Button width="24" height="24" enabled="{js_code_deployed}" id="view_js_code" click="view_js_code_clickHandler(event)"/>
+													<s:DropDownList id="ddlt_domains_for_js_code" dataProvider="{AppModel.getInstance().domains}" labelField="domain_label" prompt="Select Domain"  width="241"/>
+													<s:Button enabled="{ddlt_domains_for_js_controllers.selectedItem != null &amp;&amp; ta_js_code.text.length &gt; 50 &amp;&amp; ti_js_code_filename.text.length &gt; 2}" label="Deploy" id="deploy_js_code" click="deploy_js_code_clickHandler(event)"/>
+												</s:HGroup>
+												<s:HGroup width="100%" height="100%">
+													<s:HGroup>
+													</s:HGroup>
+													<s:TextArea id="ta_js_code"  width="100%" height="100%" fontSize="14"/>
+												</s:HGroup>
+											</s:VGroup>
+										</s:NavigatorContent>
+									</mx:ViewStack><!--vs_js-->
+								</s:VGroup>
+							</s:NavigatorContent><!--JS-->
+							<s:NavigatorContent label="SQL" width="100%" height="100%">
+								<s:VGroup width="100%" height="100%">
+									<s:NavigatorContent label="SQL" width="100%" height="100%">
+										<s:HGroup width="100%" height="100%">
+											<s:TextArea id="ta_sql" text="{AppModel.getInstance().sql_text}" width="100%" height="100%" fontSize="14"/>
+										</s:HGroup>
+									</s:NavigatorContent>
+								</s:VGroup>
+							</s:NavigatorContent>
+							<s:NavigatorContent label="JSON" width="100%" height="100%">
+								<s:VGroup width="100%" height="100%">
+									<s:HGroup width="100%" height="100%">
+										<s:TextArea id="ta_json" text="{AppModel.getInstance().json_text}" width="100%" height="100%" fontSize="14"/>
+									</s:HGroup>
+								</s:VGroup>
+							</s:NavigatorContent>
+							<s:NavigatorContent label="CSV" width="100%" height="100%">
+								<s:VGroup width="100%" height="100%">
+									
+									<s:HGroup width="100%" horizontalAlign="right">
+										<s:Button label="Load CSV" id="load_csv" click="load_csv_clickHandler(event)"/>
+										<s:Button label="Download CSV" id="save_csv" click="save_csv_clickHandler(event)"/>
+									</s:HGroup>
+									<s:HGroup width="100%" height="100%">
+										<s:TextArea id="ta_csv" text="{AppModel.getInstance().csv_text}" width="100%" height="100%" fontSize="14"/>
+									</s:HGroup>
+								</s:VGroup>
+							</s:NavigatorContent>
+							<s:NavigatorContent label="Build Info" width="100%" height="100%">
+								<s:VGroup width="100%" height="100%">
+									<s:TextArea id="ta_build_info" width="100%" height="100%"/>
+								</s:VGroup>
+							</s:NavigatorContent>
+						</mx:ViewStack>			
+				</s:VGroup>	
+			</s:NavigatorContent>
+			
+			<s:NavigatorContent width="100%" height="100%" label="Forms">
+				<components1:FormAdmin sequence_details_editor="{this.sequence_details_editor}" width="100%" height="100%">
+					
+				</components1:FormAdmin>
+			</s:NavigatorContent>			
+			
+			
+			
+			
+			
+			
+		</mx:ViewStack>
+	</s:VGroup>
+	
+	
+</s:Group>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="500" height="500">
+
+	<fx:Script>
+		<![CDATA[
+			import db.field.Field;
+			import db.WhereClause;
+			
+			import com.pbsmediatech.code.method_builders.CustomGeneratedMethod;
+			import com.pbsmediatech.sequenceBuilder.views.components.renderer.WhereClauseRenderer;
+			
+			import mx.controls.Alert;
+			[Bindable]public var where_clauses:ArrayCollection = new ArrayCollection;
+			[Bindable]public var method_prefix:String;
+			public var addMethodFunc:Function;
+			
+			protected function add_field_clickHandler(event:MouseEvent):void
+			{
+				var field:Field = dd_available_fields.selectedItem as Field;
+				if(field == null)return;
+				var where_clause:WhereClause = new WhereClause;
+				where_clause.field_name = field.field_name;
+				where_clause.field_type = field.field_type;
+				where_clause.order = where_clauses.length+1;
+				if(where_clauses.length>0)
+				{
+					//previouse where clause;
+					var previous_clause:WhereClause = where_clauses[where_clauses.length-1];
+					previous_clause.suffix = 'and';
+				}
+				where_clauses.addItem(where_clause);
+			
+			}
+			private function do_name():void
+			{
+			var methodName:String ='';
+			for (var i:int = 0; i < where_clauses.length; i++)
+				{
+				methodName+=WhereClause(where_clauses[i]).clauseString();
+				if(i<where_clauses.length-1)
+				{
+					methodName+= "_"
+				}
+				}
+			
+			method_name.text = methodName;
+			}
+			protected function add_method_clickHandler(event:MouseEvent):void
+			{
+				for each (var wc:WhereClause in where_clauses)
+				{
+					trace(wc.field_name)
+					trace(wc.field_type)
+					trace(wc.clause)
+					trace(wc.suffix)
+					if(wc.clause == null)
+					{
+						Alert.show("Please select clause type for "+wc.field_name+".");
+						return;
+					}
+					if(method_name.text==null || method_name.text == '')
+					{
+						Alert.show("Please give method a name.");
+						return;
+					}
+				}
+			
+				var customGenerated_method:CustomGeneratedMethod = new CustomGeneratedMethod;
+				customGenerated_method.method_name = method_prefix+method_name.text;
+				customGenerated_method.clauses = where_clauses.source;
+				addMethodFunc(customGenerated_method);
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:layout>
+		<s:VerticalLayout paddingBottom="3" paddingLeft="2" paddingRight="2">
+			
+		</s:VerticalLayout>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			[Bindable]public var available_fields_for_method_type:ArrayCollection;
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%">
+		<s:DropDownList width="100%" id="dd_available_fields" labelField="field_name" dataProvider="{available_fields_for_method_type}"/>
+		<s:Button label="add_field" id="add_field" click="add_field_clickHandler(event)" enabled="{dd_available_fields.selectedItem}"/>
+	</s:HGroup>
+	<s:Scroller width="100%" height="100%">
+		
+	<s:DataGroup dataProvider="{where_clauses}" width="100%" height="100%" itemRenderer="com.pbsmediatech.sequenceBuilder.views.components.renderer.WhereClauseRenderer">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+		
+		
+	</s:DataGroup>
+	</s:Scroller>
+	<mx:HRule width="100%"/>
+	<s:HGroup width="100%" paddingLeft="2" paddingRight="2" verticalAlign="middle" horizontalAlign="center">
+    	<s:VGroup width="100%">
+		<s:Label text="{method_prefix}"/>
+		<s:TextInput width="100%" id="method_name" toolTip="{'method name must be more than 5 characters'}"/>
+		</s:VGroup>	
+    	<s:VGroup>
+		<s:Button id="generate_name" label="gen_name" click="do_name()" enabled="{where_clauses.length &gt; 0}"/>
+    	<s:Button id="add_method" label="add_method" click="add_method_clickHandler(event)" enabled="{where_clauses.length &gt; 0 &amp;&amp; method_name.text.length &gt; 5}"/>
+		</s:VGroup>	
+    </s:HGroup>	
+    
+</s:TitleWindow>

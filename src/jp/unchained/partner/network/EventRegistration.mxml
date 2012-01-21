@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:Form>
+		<mx:FormItem label="Name" required="true">
+			<s:TextInput id="ti_firstName" />
+			<s:TextInput id="ti_lastName" />
+		</mx:FormItem>
+		<mx:FormItem label="Job Title" required="true">
+			<s:TextInput id="ti_jobTitle" />
+		</mx:FormItem>
+		<mx:FormItem label="Telephone">
+			<s:TextInput id="ti_telNumber"/>
+			<s:TextInput id="ti_mobNumber"/>
+		</mx:FormItem>
+		<mx:FormItem label="Email" required="true">
+			<s:TextInput id="ti_email"/>
+		</mx:FormItem>
+		<mx:FormItem label="Personal Website">
+			<s:TextInput id="ti_personalWebsite"/>
+		</mx:FormItem>
+	</mx:Form>
+	<mx:Form>
+		<mx:FormItem label="Company" required="true">
+			<s:TextInput id="ti_firstName" />
+			<s:TextInput id="ti_lastName" />
+		</mx:FormItem>
+		<mx:FormItem label="Job Title">
+			<s:TextInput id="ti_jobTitle" />
+		</mx:FormItem>
+		<mx:FormItem label="Telephone">
+			<s:TextInput id="ti_telNumber"/>
+			<s:TextInput id="ti_mobNumber"/>
+		</mx:FormItem>
+		<mx:FormItem label="Email">
+			<s:TextInput id="ti_email"/>
+		</mx:FormItem>
+		<mx:FormItem label="Personal Website">
+			<s:TextInput id="ti_personalWebsite"/>
+		</mx:FormItem>
+	</mx:Form>
+</s:Group>

@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+
+
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.pbsmediatech.dto.ActiveController;
+			import com.pbsmediatech.dto.ViewModule;
+			import com.pbsmediatech.dto.ViewProject;
+			import com.pbsmediatech.json.controllers.ControllerSequenceController;
+			import com.pbsmediatech.json.controllers.ViewModuleController;
+			import com.pbsmediatech.json.controllers.ViewProjectController;
+			import com.pbsmediatech.json.utils.JSONResultHelper2;
+			import com.pbsmediatech.json.utils.JSONResultHelper3;
+			import com.pbsmediatech.json.utils.ViewModuleResultHelper;
+			import com.pbsmediatech.json.utils.ViewProjectResultHelper;
+			import com.pbsmediatech.json.utils.extractResult;
+			import com.pbsmediatech.json.utils.extractResultResult;
+			import com.pbsmediatech.json.utils.resultIsGood;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.get_domains_by_domain_label;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.array.removeItem;
+			import utils.date.now;
+			import utils.object.isEmpty;
+			import utils.object.toString;
+			import utils.timestamp.dateToTimestamp;
+			import utils.timestamp.timestampToDate;
+			import utils.type.describeProperties;
+			
+			
+			private var sequence_controller:ControllerSequenceController = new ControllerSequenceController(AppModel.getInstance().service_base_url);
+			
+			private var view_projects_controller:ViewProjectController = new ViewProjectController(AppModel.getInstance().service_base_url);
+			[Bindable]
+			private var view_projects:ArrayCollection;
+			[Bindable]
+			private var selected_view_project:ViewProject;
+			//--------------------------------------------------
+			private var view_modules_controller:ViewModuleController = new ViewModuleController(AppModel.getInstance().service_base_url);
+			[Bindable]
+			private var view_modules:ArrayCollection;
+			[Bindable]
+			private var selected_view_module:ViewModule;
+			
+			[Bindable]
+			private var active_controllers_in_domain:ArrayCollection = new ArrayCollection;
+			
+			[Bindable]
+			private var last_updated:String;
+			
+			private function cc(): void{
+				
+				view_projects_controller.get_all_view_projects(function(evt:ResultEvent):void{
+					
+					view_projects = new ArrayCollection(new ViewProjectResultHelper().resultToArray(extractResult(evt)));
+					
+				});
+			}
+			
+			protected function dd_view_projects_changeHandler(event:IndexChangeEvent):void
+			{
+				selected_view_project = dd_view_projects.selectedItem as ViewProject;
+			}
+			
+			
+			protected function btn_load_view_modules_clickHandler(event:MouseEvent):void
+			{
+				if(selected_view_project == null){return;}
+				var vo:Object = {};
+				vo.project_name = selected_view_project.project_name;
+				view_modules_controller.get_view_modules_by_project_name(vo,function(evt:ResultEvent):void{
+					view_modules = new ArrayCollection(new ViewModuleResultHelper().resultToArray(extractResult(evt)));
+				});
+				
+			}
+			
+
+			protected function dg_view_modules_clickHandler(event:MouseEvent):void
+			{
+				selected_view_module = dg_view_modules.selectedItem as ViewModule;
+			}
+			
+			protected function update_view_project_clickHandler(event:MouseEvent):void
+			{
+				if(selected_view_project== null){return};
+				selected_view_project.data_domains = dg_data_domains.jsonArray;;
+				selected_view_project.project_languages = dg_project_languages.jsonArray;
+				selected_view_project.js_dependencies = dg_js_dependencies.jsonArray;
+				selected_view_project.css_dependencies = dg_css_dependencies.jsonArray;
+				selected_view_project.data_session = dg_data_session.jsonArray;
+				selected_view_project.data_sequences = dg_data_sequences.jsonArray;
+				
+				view_projects_controller.update_view_projects_by_project_ID(selected_view_project, function(evt:ResultEvent):void{
+					
+					last_updated = "Updated : "+dateToTimestamp(now());
+				})
+				
+			}
+		
+			
+			protected function update_view_module_clickHandler(event:MouseEvent):void
+			{
+				if(selected_view_module== null){return};
+				view_modules_controller.update_view_modules_by_module_id(selected_view_module, function(evt:ResultEvent):void{
+					
+					last_updated = "Updated :"+dateToTimestamp(new Date);
+				})
+			}
+
+
+
+			protected function remove_view_module_clickHandler(event:MouseEvent):void
+			{
+				if(selected_view_module== null){return};
+				view_modules_controller.remove_view_modules_by_module_id(selected_view_module, function(evt:ResultEvent):void
+				{
+					if(resultIsGood(evt)){
+						var len:int = view_modules.length;
+						for (var i:int = 0; i < len;  i++){
+						var vm:ViewModule = view_modules[i] as ViewModule;
+						if(vm.module_id == selected_view_module.module_id){
+							view_modules.removeItemAt(i);
+							selected_view_module = null;
+							break;	
+						}};
+					}
+					
+				});
+			}
+			
+			private function deploy(jsons:String, type:String):void
+			{
+				var urls:Array = [];
+				var array:Array = JSON.decode(jsons);
+				for (var i:int = 0; i < array.length; i++)
+				{
+					urls.push(array[i]["url"]);
+				}
+				Alert.show(urls.join("|"));
+				txt_js_dependency_deployment_history.text = "How do I know where to deploy this to??"
+				
+			}
+			protected function btn_get_operational_controllers_clickHandler(event:MouseEvent):void
+			{
+				if(dg_data_domains.selected_object == null){return};
+				var domain_label:String = dg_data_domains.selected_object['domain_label'];
+				getDataStoreServiceController(domain_label, AppModel.getInstance().dev).get_active_controller_info({},function(evt:ResultEvent):void
+				{
+					active_controllers_in_domain.removeAll();
+					var all_results:Array = new JSONResultHelper3(ActiveController).resultToArray(extractResult(evt));
+					for (var i:int = 0; i < all_results.length; i++)
+					{
+						var ac:ActiveController = all_results[i] as ActiveController;
+						if(Number(ac.template_ver) >= 0.8 && ac.class_name != ""){
+							active_controllers_in_domain.addItem(ac);
+							
+						}
+					}
+					
+				});
+				
+				
+			}
+			
+			protected function btn_add_controller_clickHandler(event:MouseEvent):void
+			{
+				if(dg_active_controllers_in_domain.selectedItem == null){return;}
+				var act_con:ActiveController = dg_active_controllers_in_domain.selectedItem as ActiveController;
+				
+				
+				var data_sequence:Object = new Object;
+				//data_sequence.sequence_ID = seq_part.sequence_ID;
+				//data_sequence.sequence_controller_name = seq_part.sequence_controller_name;
+				//dg_data_sequences.addObject(data_sequence);
+				
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:HGroup width="100%" verticalAlign="middle">
+		<s:DropDownList width="250" prompt="Choose Project" selectedIndex="-1" dataProvider="{view_projects}" labelField="project_name" id="dd_view_projects" change="dd_view_projects_changeHandler(event)"/>
+	<s:Button id="btn_update_view_project" label="Update" click="update_view_project_clickHandler(event)"/>
+		<s:Label text="{last_updated}"/>
+	</s:HGroup>	
+	<s:TabBar dataProvider="{vs}"/>
+	<mx:ViewStack id="vs" width="100%" height="100%" creationPolicy="all">
+		<s:NavigatorContent width="100%" height="100%" label="Info">
+			
+		
+			<mx:Form width="100%" height="100%">
+			
+				<s:HGroup width="100%" height="100%">
+					<s:VGroup  width="100%" height="100%">
+						<mx:FormItem width="100%"  label="project_ID" labelWidth="120">
+							<s:Label text="{selected_view_project.project_ID}"/>
+						</mx:FormItem>
+						<mx:FormItem width="100%" label="project_name" labelWidth="120">
+							<s:Label text="{selected_view_project.project_name}"/>
+						</mx:FormItem>
+						<mx:FormItem width="100%" label="admin_email" labelWidth="120">
+							<s:TextInput id="ti_admin_email" text="{selected_view_project.admin_email}" change="{selected_view_project.admin_email = ti_admin_email.text}"/>
+						</mx:FormItem>
+						
+						<mx:FormItem width="100%" height="100%" label="project_languages" labelWidth="120">
+							<components1:JSONArrayGrid id="dg_project_languages" width="100%" height="100%" jsonArray="{selected_view_project.project_languages}"/>
+						</mx:FormItem>	
+					</s:VGroup>
+					<s:VGroup width="100%" height="100%">
+						
+					</s:VGroup>
+					
+				</s:HGroup>
+			</mx:Form>
+		
+			
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="Data">
+			<mx:Form width="100%" height="100%">
+				<mx:HDividedBox width="100%" height="100%">
+					<mx:VDividedBox  width="100%" height="100%">
+						
+						<s:VGroup width="100%" height="100%">
+						<s:Label text="data_domains"/>
+						<components1:JSONArrayGrid  width="100%" height="100%" id="dg_data_domains" jsonArray="{selected_view_project.data_domains}"/>
+						</s:VGroup>
+						
+						<s:VGroup width="100%" height="100%">
+						<s:HGroup width="100%" verticalAlign="middle">
+							<s:HGroup width="100%" horizontalAlign="left">
+							<s:Label text="Operational Sequence Controllers in Domain"/>
+							</s:HGroup>
+							<s:HGroup width="100%" horizontalAlign="right">
+							<s:Button label="Get Controllers" id="btn_get_operational_controllers" click="btn_get_operational_controllers_clickHandler(event)"/>
+							</s:HGroup>
+							<s:HGroup width="100%" horizontalAlign="right">
+							<s:Button label="Use Controller" id="btn_add_controller" click="btn_add_controller_clickHandler(event)"/>
+							</s:HGroup>
+						</s:HGroup>
+						<s:DataGrid dataProvider="{active_controllers_in_domain}" id="dg_active_controllers_in_domain" width="100%" height="100%">
+							<s:columns>
+								<s:ArrayList>
+									<s:GridColumn dataField="name"/>
+									<s:GridColumn dataField="object_name"/>
+									<s:GridColumn dataField="class_name"/>
+									<s:GridColumn dataField="sequence_ID"/>
+									<s:GridColumn dataField="sequence_version"/>
+									<s:GridColumn dataField="type"/>
+									<s:GridColumn dataField="template_ver"/>
+								</s:ArrayList>
+							</s:columns>
+						</s:DataGrid>
+						</s:VGroup>
+					</mx:VDividedBox>
+					<mx:VDividedBox  width="100%" height="100%">
+						
+						<s:VGroup width="100%" height="100%">
+						<s:Label text="data_session"/>
+						<components1:JSONArrayGrid width="100%" height="100%" id="dg_data_session" jsonArray="{selected_view_project.data_session}"/>
+						</s:VGroup>
+						<s:VGroup width="100%" height="100%">
+						<s:Label text="data_sequences"/>
+						<components1:JSONArrayGrid allowEdits="false" allowAdd="false" width="100%" height="100%" id="dg_data_sequences" jsonArray="{selected_view_project.data_sequences}"/>
+						</s:VGroup>
+						
+					</mx:VDividedBox>
+				
+				</mx:HDividedBox>
+			</mx:Form>
+			
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="Dependencies">
+			
+			<mx:Form width="100%" height="100%">
+				
+				<s:HGroup width="100%" height="100%">
+				
+					<s:VGroup  width="100%" height="100%">
+						<mx:FormItem width="100%" height="100%">
+							<s:Label text="js_dependencies"/>
+							<s:HGroup width="100%" height="100%">
+							<components1:JSONArrayGrid width="100%" height="100%" id="dg_js_dependencies" jsonArray="{selected_view_project.js_dependencies}"/>
+							<s:VGroup width="200">
+								<s:Button label="Deploy JS Dependencies" click="deploy(selected_view_project.js_dependencies, 'js')" />
+								<s:TextArea id="txt_js_dependency_deployment_history" editable="false" width="100%" height="100%">
+									
+								</s:TextArea>
+							</s:VGroup>	
+							</s:HGroup>
+						</mx:FormItem>
+						<mx:FormItem width="100%" height="100%">
+							<s:Label text="css_dependencies"/>
+							<s:HGroup width="100%" height="100%">
+							<components1:JSONArrayGrid width="100%" height="100%" id="dg_css_dependencies" jsonArray="{selected_view_project.css_dependencies}"/>
+							<s:VGroup width="200">
+								<s:Button label="Deploy" click="deploy(selected_view_project.css_dependencies, 'css')" />
+							</s:VGroup>	
+				</s:HGroup>
+						</mx:FormItem>
+					</s:VGroup>
+					
+				</s:HGroup>
+			</mx:Form>
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="Modules">
+			<s:VGroup width="100%" height="100%">
+				
+		
+			<s:Button id="btn_load_view_modules" enabled="{dd_view_projects.selectedItem != null}" label="Load View Modules" click="btn_load_view_modules_clickHandler(event)"/>
+			
+			<s:HGroup width="100%" height="100%">
+			
+			<s:DataGrid id="dg_view_modules" width="100%" height="100%" dataProvider="{view_modules}" click="dg_view_modules_clickHandler(event)" >
+				<s:columns>
+					<s:ArrayList>
+						<s:GridColumn dataField="module_id" headerText="ID"/>
+						<s:GridColumn dataField="title" headerText="Title"/>
+						<s:GridColumn dataField="version" headerText="Version"/>
+					</s:ArrayList>
+				</s:columns>
+			</s:DataGrid>
+			<mx:Form width="100%" height="100%">
+				<s:VGroup width="100%" height="100%">
+					<mx:FormItem width="100%" height="100%" label="description" labelWidth="120" >
+						<s:TextArea   width="100%" height="100%" id="ta_description" text="{selected_view_module.description}"  change="{selected_view_module.description = ta_description.text}"/>
+					</mx:FormItem>
+					<mx:FormItem width="100%" height="100%" label="data_dependencies" labelWidth="120">
+						<s:TextArea  id="dg_data_dependencies"  width="100%" height="100%" text="{selected_view_module.data_dependencies}" change="{selected_view_module.data_dependencies = dg_data_dependencies.text}"/>
+					</mx:FormItem>
+					<mx:FormItem width="100%" height="100%" label="html" labelWidth="120">
+						<s:TextArea id="ta_html"  width="100%" height="100%" text="{selected_view_module.html}"  change="{selected_view_module.html = ta_html.text}"/>
+					</mx:FormItem>	
+					<mx:FormItem width="100%" height="100%" label="js" labelWidth="120">
+						<s:TextArea id="ta_js"  width="100%" height="100%" text="{selected_view_module.js}"  change="{selected_view_module.js = ta_js.text}"/>
+					</mx:FormItem>
+					<mx:FormItem width="100%" height="100%" label="css" labelWidth="120">
+						<s:TextArea id="ta_css"  width="100%" height="100%" text="{selected_view_module.css}" change="{selected_view_module.css = ta_css.text}"/>
+					</mx:FormItem>
+				</s:VGroup>
+				<s:HGroup horizontalAlign="right" width="100%">
+					<s:Button label="Remove View Module" id="remove_view_module" click="remove_view_module_clickHandler(event)"/>
+					<s:Button label="Update View Module" id="update_view_module" click="update_view_module_clickHandler(event)"/>
+				</s:HGroup>
+			</mx:Form>	
+				
+			</s:HGroup>
+			</s:VGroup>
+		</s:NavigatorContent>
+	</mx:ViewStack>
+	
+	
+	
+</s:Group>

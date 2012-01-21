@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc()">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.code.method_builders.CustomGeneratedMethod;
+			import com.pbsmediatech.code.method_builders.GeneratedMethod;
+			
+			import db.field.Field;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+
+
+			
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.json.controllers.ControllerSequenceController;
+			import com.adobe.serialization.json.JSON;
+
+			import com.pbsmediatech.code.method_builders.GeneratedMethod;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDefaultGeneratedMethodNames;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.ListEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			
+
+			
+			private function cc():void
+			{
+				show_generated_methods_clickHandler();
+			}
+			
+			[Bindable]private var method_types:ArrayCollection = new ArrayCollection;
+			public var generateFunc:Function;//generates default methods
+			
+		
+			
+			[Bindable]private var selected_default_method:GeneratedMethod;
+			
+			
+			[Bindable]public var fields:ArrayCollection;
+			[Bindable]public var object_name:String;
+
+			private function show_generated_methods_clickHandler(event:MouseEvent = null):void
+			{
+				AppModel.getInstance().generated_methods.removeAll();
+				generateFunc(function(arr:Array):void{
+					for each (var method_name:String in arr)
+					{
+						//check exclude info here also that a methos with the same name as the exclude exists
+						var genMethod:GeneratedMethod = new GeneratedMethod();
+						genMethod.method_name = method_name;
+						genMethod.set_type_by_name(method_name);
+						genMethod.gen = !isExcluded(method_name);
+						AppModel.getInstance().generated_methods.addItem(genMethod);
+					}
+			
+				});
+			}
+			private function isExcluded(method_name:String):Boolean
+			{
+				for each (var str:String in AppModel.getInstance().excludes)
+				{
+					if(str == method_name)
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+
+			protected function toggle_generate_clickHandler(event:MouseEvent):void
+			{
+				selected_default_method.gen = !selected_default_method.gen;
+				fillExcludedMethods()
+			}
+
+
+			protected function dg_default_generated_changeHandler(event:ListEvent):void
+			{
+				selected_default_method = dg_default_generated.selectedItem as GeneratedMethod;
+			}
+			private function fillExcludedMethods():void
+			{
+				AppModel.getInstance().excludes = [];
+			for each (var method:GeneratedMethod in AppModel.getInstance().generated_methods)
+			{
+				if(method.gen == false){AppModel.getInstance().excludes.push(method.method_name)};
+			}
+			
+			}
+
+
+		
+
+		]]>
+	</fx:Script>
+	
+	<s:HGroup width="100%">
+		<s:Button label="refresh_auto_generated_methods" id="show_generated_methods" click="show_generated_methods_clickHandler(event)"/>
+		<s:Button enabled="{dg_default_generated.selectedItem != null}" id="toggle_generate" label="toggle_generate" click="toggle_generate_clickHandler(event)"/>
+	</s:HGroup>
+	<s:Label text="Defaults"/>
+	<mx:DataGrid width="100%" height="100%" dataProvider="{AppModel.getInstance().generated_methods}" id="dg_default_generated" change="dg_default_generated_changeHandler(event)">
+		
+	</mx:DataGrid>
+	<!--<s:HGroup width="100%">
+		<s:DropDownList id="dd_method_types" prompt="Method Type" width="200" dataProvider="{method_types}" change="dd_method_types_changeHandler(event)"/>
+		<s:Button label="add_method" id="add_method" click="add_method_clickHandler(event)" enabled="{dd_method_types.selectedItem != null}"/>
+		<s:Button label="remove_method" id="remove_method" click="remove_method_clickHandler(event)" enabled="{dg_added_methods.selectedItem != null}"/>
+	</s:HGroup>-->
+	<s:Label text="Added"/>
+	<mx:DataGrid id="dg_added_methods" width="100%" height="100%" dataProvider="{AppModel.getInstance().added_methods}"/>
+	
+</s:Group>

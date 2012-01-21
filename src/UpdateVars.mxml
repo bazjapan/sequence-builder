@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.pbsmediatech.DomainSettings;
+			import com.pbsmediatech.json.controllers.TestVOController;
+			import com.pbsmediatech.json.utils.extractResult;
+			
+			import mx.rpc.events.ResultEvent;
+			
+			import utils.text.newLine;
+			private var controller:TestVOController = new TestVOController(DomainSettings.API_URL);
+			
+			protected function test_me_clickHandler(event:MouseEvent):void
+			{
+				var params:Object = new Object;
+				var conditions:Array = [{ID:22}];
+				var fields:Array = ["field_two", "test_ID" ];
+				params.fields = JSON.encode(fields);
+				//params.conditions = JSON.encode(conditions);
+				controller.get_fields(params, function(evt:ResultEvent):void
+				{
+					output.text += extractResult(evt)+newLine();
+					
+				});
+									
+								
+			}
+			public function getAll():void
+			{
+				controller.get_all_test_vos(function(evt:ResultEvent):void
+				{
+					output.text += extractResult(evt)+newLine();
+				});
+									
+								
+			}
+			private function getVarbyID():void
+			{
+			
+				var params:Object = new Object;
+				params.test_ID = 1;
+				var fields:Array = ["field_two", "test_ID" ];
+				params.fields = JSON.encode(fields);
+				//params.conditions = JSON.encode(conditions);
+				controller.get_fields_by_ID(params, function(evt:ResultEvent):void
+				{
+					output.text += extractResult(evt)+newLine();
+					
+				});
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script >
+		<![CDATA[
+			
+			
+			
+		]]>
+	</fx:Script>
+<s:Button label="Go" id="test_me" click="test_me_clickHandler(event)"/>
+<s:Button label="Get All" id="get_all_butt" click="getAll()"/>
+<s:Button label="Get Var by ID" id="get_var_id_butt" click="getVarbyID()"/>
+
+	<s:TextArea width="100%" height="100%" id="output">
+		
+	</s:TextArea>
+</s:Application>

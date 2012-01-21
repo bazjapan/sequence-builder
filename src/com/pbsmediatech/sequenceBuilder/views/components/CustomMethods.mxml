@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:image="image.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.code.method_builders.utils.MethodTypes;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			protected function method_note_clickHandler(event:MouseEvent):void
+			{
+				if(!selected_custom_method){return};
+				var noteTaker:NoteTaker2 = new NoteTaker2;
+				noteTaker.width = 300;
+				noteTaker.height = 200;
+				noteTaker.text = selected_custom_method.note;
+				noteTaker.title = selected_custom_method.method_name;
+				PopUpManager.addPopUp(noteTaker,this,true);
+				PopUpManager.centerPopUp(noteTaker);
+				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					selected_custom_method.note = noteTaker.text;
+					PopUpManager.removePopUp(noteTaker);
+				})
+			}
+
+			protected function btn_set_inputs_clickHandler(event:MouseEvent):void
+			{
+				if(!selected_custom_method){return};
+				var noteTaker:NoteTaker2 = new NoteTaker2;
+				noteTaker.width = 300;
+				noteTaker.height = 200;
+				
+				noteTaker.text = JSON.encode(selected_custom_method.input);
+				
+				noteTaker.title = selected_custom_method.method_name;
+				PopUpManager.addPopUp(noteTaker,this,true);
+				PopUpManager.centerPopUp(noteTaker);
+				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					try{
+					selected_custom_method.input = JSON.decode(noteTaker.text);
+					PopUpManager.removePopUp(noteTaker);
+					}catch(e:Error){
+					Alert.show("Must be correctly formed JSON");
+					}
+					
+				})
+			}
+
+
+			protected function btn_set_outputs_clickHandler(event:MouseEvent):void
+			{
+				if(!selected_custom_method){return};
+				var noteTaker:NoteTaker2 = new NoteTaker2;
+				noteTaker.width = 300;
+				noteTaker.height = 200;
+				noteTaker.text = JSON.encode(selected_custom_method.output);
+				noteTaker.title = selected_custom_method.method_name;
+				PopUpManager.addPopUp(noteTaker,this,true);
+				PopUpManager.centerPopUp(noteTaker);
+				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					try{
+					selected_custom_method.output = JSON.decode(noteTaker.text);
+					PopUpManager.removePopUp(noteTaker);
+					}catch(e:Error){
+					Alert.show("Must be correctly formed JSON");
+					}
+					;
+				});
+			}
+
+
+			protected function dd_method_type_changeHandler(event:IndexChangeEvent):void
+			{
+				selected_custom_method.method_type = dd_method_type.selectedItem as String;
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
+		]]>
+	</fx:Script>
+
+	<fx:Script>
+		<![CDATA[
+			protected function remove_method_clickHandler(event:MouseEvent):void
+			{
+				custom_methods.removeItemAt(dg_custom_methods.selectedIndex);
+			}
+
+			protected function toggle_generate_clickHandler(event:MouseEvent):void
+			{
+				if(selected_custom_method != null)
+				{
+					selected_custom_method.gen = !selected_custom_method.gen;
+				}
+			}
+
+		]]>
+	</fx:Script>
+
+	
+
+
+
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.pbsmediatech.code.method_builders.LangCodePair;
+			import com.pbsmediatech.code.method_builders.as3.getAS3Method;
+			import com.pbsmediatech.code.method_builders.js.getJSMethod;
+			
+			import mx.events.ListEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.text.newLine;
+			protected function add_method_clickHandler(event:MouseEvent):void
+			{
+				var method:CustomMethod = new CustomMethod();
+				method.method_name = method_name.text;
+				var php:LangCodePair = new LangCodePair({lang:"php",code:getFunctionSkeleton("php", method.method_name)});
+				var as3:LangCodePair = new LangCodePair({lang:"as3",code:getFunctionSkeleton("as3", method.method_name)});
+				var js:LangCodePair = new LangCodePair({lang:"js",code:getFunctionSkeleton("js", method.method_name)});
+				var lang_pairs:Array = [php,as3,js]
+				method.method_lang_code_pairs = JSON.encode(lang_pairs);
+				selected_lang_code_pair = php;
+				lang_code_pairs.source = lang_pairs;
+				custom_methods.addItem(method);
+				method_name.text = "";
+				
+				selected_custom_method = method;
+				dg_custom_methods.selectedIndex = custom_methods.getItemIndex(method);
+			}
+			private function getFunctionSkeleton(lang:String, methodName:String):String
+			{
+				var theText:String = '';
+				if(lang == "php")
+				{
+					theText = "public function "+methodName+"()"+newLine();
+					theText+= "{"+newLine();
+					theText +="//"+methodName+" PHP Code Here:"+newLine();
+					theText+= "}";
+				}
+				else if(lang == "as3")
+				{
+					theText = getAS3Method(methodName);
+				}
+				else if(lang == "js")
+				{
+					theText = getJSMethod(methodName);
+				}
+				
+				return theText;
+				
+			}
+			
+
+			public function save_all_methods():void
+			{
+				
+			}
+
+
+			protected function dg_custom_methods_changeHandler(event:ListEvent):void
+			{
+				if(selected_custom_method != null){trace("should I save code now?")}
+				
+				
+				selected_custom_method = dg_custom_methods.selectedItem as CustomMethod;
+				lang_code_pairs.removeAll();
+				var objs:Array = JSON.decode(selected_custom_method.method_lang_code_pairs);
+				for each (var obj:Object in objs)
+				{
+					lang_code_pairs.addItem(new LangCodePair(obj));
+				}
+				if(lang_code_pairs.length>0)
+				{
+					selected_lang_code_pair = lang_code_pairs[0] as LangCodePair;
+					lang_pair_chooser.selectedIndex = 0;
+				}
+				
+			}
+			
+			protected function lang_pair_chooser_changeHandler(event:IndexChangeEvent):void
+			{
+			selected_lang_code_pair = lang_code_pairs.getItemAt(event.newIndex) as LangCodePair;
+			}
+			/* protected function add_code_lang_clickHandler(event:MouseEvent):void
+			{
+				//lang_code_pairs.addItem(new LangCodePair({lang:method_code_lang.text}));
+			} */
+
+			protected function save_code_clickHandler(event:MouseEvent):void
+			{
+				selected_lang_code_pair.code = lang_pair_code.text;
+				selected_custom_method.method_lang_code_pairs = JSON.encode(lang_code_pairs.source);
+				
+			}
+			
+			public function set custom_method_data(json:String):void
+			{
+				custom_methods.removeAll();
+				if(!json)return;
+				var methods:Array = JSON.decode(json);
+				
+				for each (var obj:Object in methods)
+				{
+					custom_methods.addItem(new CustomMethod(obj));
+				}
+			}
+			public function get custom_method_data():String
+			{
+				return JSON.encode(custom_methods.source);
+			}
+
+		]]>
+	</fx:Script>
+			
+	
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.code.method_builders.CustomMethod;
+			
+			import mx.collections.ArrayCollection;
+			[Bindable]public var selected_custom_method:CustomMethod;
+			[Bindable]public var custom_methods:ArrayCollection = new ArrayCollection;
+			[Bindable]public var lang_code_pairs:ArrayCollection = new ArrayCollection;
+			[Bindable]public var selected_lang_code_pair:LangCodePair;
+			
+			
+			public function makeLangPairs(json:String):Array
+			{
+				var objArray:Array = JSON.decode(json);
+				var lang_pairs:Array = [];
+				for each (var obj:Object in objArray)
+				{
+					lang_pairs.push(new LangCodePair(obj));
+				}
+				return lang_pairs;
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:VDividedBox width="100%" height="100%">
+		
+		<s:VGroup width="100%">
+		<s:Label text="Method Name"/>
+		<s:HGroup width="100%">
+		<s:TextInput id="method_name" width="100%"/>
+		<s:Button id="add_method" label="Add" toolTip="Add Method" click="add_method_clickHandler(event)"/>			
+		</s:HGroup>
+			
+		<mx:DataGrid id="dg_custom_methods" width="100%" height="100%" dataProvider="{custom_methods}"  change="dg_custom_methods_changeHandler(event)">
+			<mx:columns>
+				<mx:DataGridColumn dataField="method_name" headerText="Name"/>
+				<mx:DataGridColumn dataField="note" headerText="Notes"/>
+				<mx:DataGridColumn width="50" dataField="gen" headerText="Generate"/>
+			</mx:columns>
+		</mx:DataGrid>
+			<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+            		<s:HGroup width="100%" horizontalAlign="left">
+            			
+            		</s:HGroup>	
+            		<s:HGroup width="100%" horizontalAlign="right">
+            		</s:HGroup>	
+            			<s:Button visible="{dg_custom_methods.selectedItem != null}" id="remove_method" label="remove_method" click="remove_method_clickHandler(event)"/>
+            	</s:HGroup>	
+            
+		</s:VGroup>
+			
+			<s:VGroup width="100%" height="100%">
+				
+			
+		<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+			<s:HGroup width="100%" horizontalAlign="left">
+			<s:TabBar dataProvider="{lang_code_pairs}" labelField="lang" id="lang_pair_chooser" change="lang_pair_chooser_changeHandler(event)">
+			</s:TabBar>
+			</s:HGroup>	
+			<s:HGroup horizontalAlign="right">
+				<s:DropDownList visible="{dg_custom_methods.selectedItem != null}" selectedItem="{selected_custom_method.method_type}" dataProvider="{new ArrayCollection(MethodTypes.METHOD_TYPES)}" id="dd_method_type" change="dd_method_type_changeHandler(event)"/>
+				<s:Button id="btn_set_inputs" visible="{dg_custom_methods.selectedItem != null}" label="Input" click="btn_set_inputs_clickHandler(event)"/>			
+				<s:Button id="btn_set_outputs" visible="{dg_custom_methods.selectedItem != null}" label="Output" click="btn_set_outputs_clickHandler(event)"/>			
+			<s:Button id="toggle_generate" visible="{dg_custom_methods.selectedItem != null}" label="Toggle" click="toggle_generate_clickHandler(event)"/>			
+			<image:FadedImage fadeAlpha="0.5" width="16" height="16" source="{IconLib.NOTE_24}" buttonMode="true" id="method_note" visible="{dg_custom_methods.selectedItem != null}" click="method_note_clickHandler(event)" faded="{selected_custom_method.note == null || selected_custom_method.note == ''}"/>
+			</s:HGroup>
+			<s:HGroup horizontalAlign="right">
+            			<s:Button label="save_code" id="save_code" click="save_code_clickHandler(event)"/>
+			</s:HGroup>	
+			</s:HGroup>	
+			<s:TextArea fontSize="14" text="{selected_lang_code_pair.code}" id="lang_pair_code" width="100%" height="100%">
+				
+			</s:TextArea>
+			</s:VGroup>
+		
+		
+	
+	
+	</mx:VDividedBox>
+	
+	
+</s:Group>

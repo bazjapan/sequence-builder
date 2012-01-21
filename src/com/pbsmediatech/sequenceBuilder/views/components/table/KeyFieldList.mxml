@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="400" xmlns:image="image.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			protected function refresh_clickHandler(event:MouseEvent):void
+			{
+				getStoreKeyInfo();
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.dto.Domain;
+			import com.pbsmediatech.json.utils.JSONResultHelper2;
+			import com.pbsmediatech.json.utils.extractResult;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.ListEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			[Bindable]public var remote_key_fields:ArrayCollection = new ArrayCollection;
+			
+			public var excludes:Array = [];
+			[Bindable]private var can_add:Boolean;
+			private var selected_field:Object;
+			public var addFieldFunc:Function;
+			private var _domain_label:String
+			public var last_loaded_domain_label:String = "none";
+			
+			
+			public function get domain_label():String
+			{
+				return _domain_label;
+			}
+
+			public function set domain_label(value:String):void
+			{
+				_domain_label = value;
+				if(last_loaded_domain_label == "none" || last_loaded_domain_label != _domain_label)
+				{
+					getStoreKeyInfo();
+				}
+			}
+
+
+
+			private function getStoreKeyInfo():void
+			{
+				if(domain_label == null || domain_label == "none" ||domain_label == ""){return};
+			getDataStoreServiceController(domain_label, AppModel.getInstance().dev).get_store_key_fields({},
+				function(evt:ResultEvent):void
+				{
+					var results:Array = new JSONResultHelper2().resultToArray(extractResult(evt));
+					remote_key_fields.source = results;
+					last_loaded_domain_label = domain_label;
+					
+				});			
+			}
+			
+			
+			
+			protected function add_clickHandler(event:MouseEvent):void
+			{
+			if(addFieldFunc != null)
+			{
+				addFieldFunc(selected_field);
+			}
+			}
+
+			protected function dg_changeHandler(event:ListEvent):void
+			{
+				selected_field = dg.selectedItem;
+				can_add = true;
+				for each (var str:String in excludes)
+				{
+				if(str == selected_field["field_name"])
+				{
+					can_add = false;
+					break;
+				}
+				}
+			}
+
+		]]>
+	</fx:Script>
+		
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	
+	
+	<mx:DataGrid id="dg" change="dg_changeHandler(event)" width="100%" height="100%" dataProvider="{remote_key_fields}">
+		<mx:columns>
+			<mx:DataGridColumn dataField="table_name" headerText="table_name"/>
+			<mx:DataGridColumn dataField="field_name" headerText="field_name"/>
+			<mx:DataGridColumn dataField="field_type" headerText="field_type"/>
+			
+			
+		</mx:columns>
+	</mx:DataGrid>
+	<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+     		<s:HGroup width="100%" horizontalAlign="left">
+     			<s:Button id="refresh" click="refresh_clickHandler(event)" label="Refresh"/>
+     		</s:HGroup>	
+     		<s:HGroup width="100%" horizontalAlign="right">
+     		<image:FadedImage source="{IconLib.ADD_24}" width="24" height="24" enabled="{can_add}" fadeAlpha="0.3" id="add" click="add_clickHandler(event)"/>
+     		</s:HGroup>	
+     	</s:HGroup>	
+     
+	
+</s:TitleWindow>

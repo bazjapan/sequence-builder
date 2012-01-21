@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				autoDrawBackground="true" width="100%" xmlns:components="jp.unchained.views.components.*" creationComplete="cc()" xmlns:image="image.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*">
+	
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="selected"/>
+	</s:states>
+	<fx:Script>
+	
+		<![CDATA[
+			import com.pbsmediatech.json.utils.JSONResultHelper2;
+			import com.pbsmediatech.json.utils.extractResult;
+			
+			import db.Datastore;
+			import db.MySQLRow;
+			import db.field.Field;
+			import db.field.IDFieldSize;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
+			import com.pbsmediatech.sequenceBuilder.views.components.NoteTaker2;
+			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.compareFieldToMySQLRow;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVaraibleLengthProperty;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.Application;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.events.TextOperationEvent;
+			
+			import utils.events.CallbackEvent;
+			import utils.object.isEmpty;
+			import utils.object.isNull;
+
+			[Bindable]private var allow_add_to_store:Boolean = true;
+			[Bindable]private var allow_update_store:Boolean = true;
+			[Bindable]private var allow_table_edits:Boolean = true;
+			
+			[Bindable]private var connection_broken:Boolean;//lets user know if fk connection has a problem
+			
+			[Bindable]public var field:Field;
+			private var associatedRow:MySQLRow;
+			override public function set data(value:Object):void
+			{
+				field = value as Field;
+				
+				if(field != null && field_size != null)
+				{
+					field_size.value = field.field_size;
+					field_type.selectedItem = field.field_type;
+					if(associatedRow == null)
+					{
+						verifyRemoteInfo();
+					}
+					
+				}
+				
+			}
+			private function cc():void
+			{
+			this.addEventListener("EVENT_DATASTORE_TABLES_UPDATED", onEVENT_DATASTORE_TABLES_UPDATED);
+			systemManager.addEventListener("EVENT_DATASTORE_TABLES_UPDATED", onEVENT_DATASTORE_TABLES_UPDATED);
+			if(field != null)
+			{
+				field_size.value = field.field_size;
+				field_type.selectedItem = field.field_type;
+				validateFK();
+			}
+			}
+			private function validateFK():void
+			{
+				try
+				{
+				if(field.is_FK)
+				{
+					trace("lets validate FK");
+					var bits:Array = field.fk_target.split(".");
+					trace(bits[0])
+					trace(bits[1])
+					var store_name:String = bits[0];
+					var field_name:String = bits[1];
+					getDataStoreServiceController(AppModel.getInstance().loaded_sequence.sequence_domain, AppModel.getInstance().dev).get_store_field_info({store_name:store_name, field_name:field_name},
+						function(evt:ResultEvent):void
+						{
+							var results:Array = new JSONResultHelper2().resultToArray(extractResult(evt));
+							if(results.length>0){connection_broken = false}else{connection_broken = true};
+						});
+				}
+				}
+				catch(e:Error)
+				{
+					trace("validateFK() "+e)
+				}
+			}
+
+			private function onEVENT_DATASTORE_TABLES_UPDATED(event:Event):void
+			{
+				verifyRemoteInfo();
+			}
+			private function verifyRemoteInfo():void
+			{
+				allow_add_to_store = false;
+				allow_table_edits = false;
+				allow_update_store = false;
+				
+				if(field == null)return;
+				var fields:ArrayCollection = AppModel.getInstance().datastore.fields;
+				if(fields != null)
+				{
+					for each (var obj:MySQLRow in fields){
+						if(obj.Field == field.field_name)
+						{
+							associatedRow = obj;
+							break;
+						}
+					}
+					
+				}
+				if(associatedRow != null)
+				{
+					allow_add_to_store = false;
+					var same:Boolean = compareFieldToMySQLRow(field,associatedRow);
+					allow_update_store = !same;
+					allow_table_edits = true;
+				}
+				else
+				{
+					allow_add_to_store = true;
+					
+				}
+				
+				
+			}
+	
+
+
+			protected function updateable_clickHandler(event:MouseEvent):void
+			{
+				field.updateable = !field.updateable;
+				// TODO Auto-generated method stub
+			}
+
+
+			protected function can_search_by_clickHandler(event:MouseEvent):void
+			{
+				field.can_search_by = !field.can_search_by;
+				// TODO Auto-generated method stub
+			}
+			protected function is_required_clickHandler(event:MouseEvent):void
+			{
+				field.is_required = !field.is_required;
+				// TODO Auto-generated method stub
+			}
+
+
+			protected function can_update_by_clickHandler(event:MouseEvent):void
+			{
+				field.can_update_by = !field.can_update_by;
+				// TODO Auto-generated method stub
+			}
+
+
+			protected function can_remove_by_clickHandler(event:MouseEvent):void
+			{
+				field.can_remove_by = !field.can_remove_by;
+				// TODO Auto-generated method stub
+			}
+			protected function is_index_clickHandler(event:MouseEvent):void
+			{
+				field.is_index = !field.is_index;
+				// TODO Auto-generated method stub
+			}
+			protected function field_is_unique_clickHandler(event:MouseEvent):void
+			{
+				field.is_unique = !field.is_unique;
+				// TODO Auto-generated method stub
+			}
+
+
+			protected function field_type_changeHandler(event:IndexChangeEvent):void
+			{
+				field.field_type = field_type.selectedItem as String;
+				if(field.field_type == Field.ID){field_size.value = IDFieldSize(); field.field_size = IDFieldSize();};
+				verifyRemoteInfo();
+			}
+
+			protected function field_name_changeHandler(event:TextOperationEvent):void
+			{
+				field.field_name = field_name.text;
+				verifyRemoteInfo();
+			}
+
+
+			protected function field_size_changeHandler(event:Event):void
+			{
+				field.field_size = field_size.value;
+				verifyRemoteInfo();
+			}
+
+			
+			//store functions
+			protected function add_to_store_clickHandler(event:MouseEvent):void
+			{
+				dispatchEvent(new Event("EVENT_ADD_FIELD_TO_STORE", true));
+			}
+
+
+			protected function update_store_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				dispatchEvent(new Event("EVENT_UPDATE_FIELD_IN_STORE", true));
+			}
+
+
+			protected function open_field_in_store_click_handler(event:MouseEvent):void
+			{
+				dispatchEvent(new Event("EVENT_OPEN_FIELD_IN_STORE", true));
+				// TODO Auto-generated method stub
+			}
+
+			//------------------------
+			protected function trash_field_clickHandler(event:MouseEvent):void
+			{
+				dispatchEvent(new Event("TRASH_FIELD", true));
+			}
+
+			
+
+
+			protected function field_note_clickHandler(event:MouseEvent):void
+			{
+				
+				var noteTaker:NoteTaker2 = new NoteTaker2;
+				noteTaker.width = 300;
+				noteTaker.height = 200;
+				noteTaker.text = field.field_note;
+				noteTaker.title = field.field_name;
+				PopUpManager.addPopUp(noteTaker,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(noteTaker);
+				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					field.field_note = noteTaker.text;
+					PopUpManager.removePopUp(noteTaker);
+				})
+			}
+			protected function is_ID_clickHandler(event:MouseEvent):void
+			{
+				var setToTrue:Boolean = !field.is_ID;
+				if(setToTrue)
+				{
+					dispatchEvent(new CallbackEvent("EVENT_CHECK_ONLY_ID_FIELD", function(onlyOne:Boolean):void
+					{
+						if(onlyOne)
+						{
+							field.is_ID = true;
+							field.is_FK = false;
+						}
+						else
+						{
+							field.is_ID = false;
+						}
+					},true))
+				}
+				else
+				{
+					field.is_ID = false;
+				}
+				verifyRemoteInfo();
+			}
+			protected function is_FK_clickHandler(event:MouseEvent):void
+			{
+				if(field.is_ID){field.is_FK = false; field.fk_target = '';   return};
+				if(field.is_FK)
+				{
+					field.is_FK = false;
+					field.fk_target = '';
+				}
+				else
+				{
+				dispatchEvent(new FieldEvent(FieldEvent.EVENT_SHOW_FOREIGN_KEYS_FOR_FIELD,field,null,true));
+				}
+			}
+
+			protected function is_insert_date_clickHandler(event:MouseEvent):void
+			{
+				var setToTrue:Boolean = !field.is_insert_date;
+				if(setToTrue)
+				{
+				dispatchEvent(new CallbackEvent("EVENT_CHECK_ONLY_INSERT_DATE_FIELD", function(onlyOne:Boolean):void
+				{
+					if(onlyOne)
+					{
+						field.is_insert_date = true;
+						field.is_last_mod = false;
+					}
+					else
+					{
+						field.is_insert_date = false;
+					}
+				},true))
+				}
+				else
+				{
+					field.is_insert_date = false;
+				}
+				verifyRemoteInfo();
+			}
+
+
+			protected function is_last_mod_clickHandler(event:MouseEvent):void
+			{
+				var setToTrue:Boolean = !field.is_last_mod;
+				if(setToTrue)
+				{
+					dispatchEvent(new CallbackEvent("EVENT_CHECK_ONLY_LAST_MOD_DATE_FIELD", function(onlyOne:Boolean):void
+					{
+						if(onlyOne)
+						{
+							field.is_last_mod = true;
+							field.is_insert_date = false;
+						}
+						else
+						{
+							field.is_last_mod = false;
+						}
+					},true))
+				}
+				else
+				{
+					field.is_last_mod = false;
+				}
+				verifyRemoteInfo();
+			}
+
+
+			
+
+
+			protected function is_FK_error_clickHandler(event:MouseEvent):void
+			{
+				validateFK();
+			}
+			
+			//default
+			protected function field_default_value_clickHandler(event:MouseEvent):void
+			{
+				
+				var noteTaker:NoteTaker2 = new NoteTaker2;
+				noteTaker.width = 300;
+				noteTaker.height = 200;
+				noteTaker.text = field.default_value;
+				noteTaker.title = "Default for "+field.field_name;
+				PopUpManager.addPopUp(noteTaker,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(noteTaker);
+				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					field.default_value = noteTaker.text;
+					PopUpManager.removePopUp(noteTaker);
+				})
+			}
+			protected function field_validation_clickHandler(event:MouseEvent):void
+			{
+				
+				var noteTaker:NoteTaker2 = new NoteTaker2;
+				noteTaker.width = 300;
+				noteTaker.height = 200;
+				noteTaker.text = field.validation;
+				noteTaker.title = "Validation for "+field.field_name;
+				PopUpManager.addPopUp(noteTaker,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(noteTaker);
+				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					field.validation = noteTaker.text;
+					PopUpManager.removePopUp(noteTaker);
+				})
+			}
+			protected function field_prompt_clickHandler(event:MouseEvent):void
+			{
+				
+				var noteTaker:NoteTaker2 = new NoteTaker2;
+				noteTaker.width = 300;
+				noteTaker.height = 200;
+				noteTaker.text = field.prompt;
+				noteTaker.title = "Prompt for "+field.field_name;
+				PopUpManager.addPopUp(noteTaker,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(noteTaker);
+				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					field.prompt = noteTaker.text;
+					PopUpManager.removePopUp(noteTaker);
+				})
+			}
+			protected function field_json_labels_clickHandler(event:MouseEvent):void
+			{
+				
+				var noteTaker:NoteTaker2 = new NoteTaker2;
+				noteTaker.width = 300;
+				noteTaker.height = 200;
+				noteTaker.text = field.json_labels;
+				noteTaker.title = "Schema for "+field.field_name;
+				PopUpManager.addPopUp(noteTaker,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(noteTaker);
+				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					field.json_labels = noteTaker.text;
+					PopUpManager.removePopUp(noteTaker);
+				})
+			}
+			
+
+		]]>
+	</fx:Script>
+	
+	<s:BorderContainer width="100%" height="40" backgroundColor.selected="#E1E1E1">
+		<s:HGroup width="100%" height="100%" paddingRight="5" paddingLeft="5">
+			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
+				<mx:Image buttonMode="true" source="{IconLib.TRASH_24}" toolTip="Remove Field" id="trash_field" click="trash_field_clickHandler(event)"/>
+			</s:VGroup>
+			<mx:VRule height="35"/>
+			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
+				<mx:Image  buttonMode="true" source="{IconLib.NOTE_24}" id="field_note" toolTip="Edit Field Note" click="field_note_clickHandler(event)"  alpha="{field.field_note!=null?1:0.5}"/>
+			</s:VGroup>
+			<s:VGroup height="100%" verticalAlign="middle" horizontalAlign="center">
+				<mx:Image width="16" height="16" buttonMode="true" source="{IconLib.KEY_24}" id="is_ID" toolTip="Set as ID Field" click="is_ID_clickHandler(event)" alpha="{field.is_ID?1:0.3}"/>
+			</s:VGroup>
+			<s:VGroup height="100%" verticalAlign="middle" horizontalAlign="center">
+				<image:FadedImage fadeAlpha="0.3" width="16" height="16" buttonMode="true" source="{IconLib.CONNECT_16}" id="is_FK" toolTip="{field.is_FK?'Connects to '+field.fk_target:'Set as Connector Field'}" click="is_FK_clickHandler(event)" faded="{field.is_FK == false}" visible="{field.field_type == Field.ID &amp;&amp; !field.is_ID}" />
+			</s:VGroup>
+			<s:VGroup includeInLayout="{connection_broken}" visible="{connection_broken}" height="100%" verticalAlign="middle" horizontalAlign="center">
+				<image:FadedImage includeInLayout="{connection_broken}" visible="{connection_broken}" fadeAlpha="0.3" width="16" height="16" buttonMode="true" source="{IconLib.ERROR_16}" id="is_FK_error" toolTip="Connection to store failed - click to validate again" click="is_FK_error_clickHandler(event)" />
+			</s:VGroup>
+			<mx:VRule height="35"/>
+			<s:VGroup height="100%" verticalAlign="middle">
+				<s:TextInput id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="60" width="200" change="field_name_changeHandler(event)"/>
+			</s:VGroup>
+			<s:VGroup  height="100%" verticalAlign="middle">
+				<s:HGroup verticalAlign="middle">
+					
+				<components1:FieldTypeDropDownList enabled="{!field.is_FK}"  id="field_type" toolTip="field_type" width="100%"
+												  
+												  horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_fields_types}" change="field_type_changeHandler(event)">
+					
+				</components1:FieldTypeDropDownList>
+				<s:HGroup visible="{field_type.selectedItem == Field.DATE_TIME}">
+					<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Last Modified Date" source="{IconLib.CLOCK_24}" id="is_last_mod" click="is_last_mod_clickHandler(event)" alpha="{field.is_last_mod?1:0.3}"/>
+					<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Date Created" source="{IconLib.CLOCK_GREEN_24}" id="is_insert_date" click="is_insert_date_clickHandler(event)" alpha="{field.is_insert_date?1:0.3}"/>
+					
+				</s:HGroup>
+				<s:HGroup visible="{field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.LIST || field_type.selectedItem == Field.JSONARR}">
+					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_JSON_LABELS_24}" id="field_json_labels" toolTip="Edit Field Schema" click="field_json_labels_clickHandler(event)" faded="{isNull(field.json_labels)|| isEmpty(field.json_labels)}"/>
+				</s:HGroup>
+				</s:HGroup>
+			</s:VGroup>
+			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
+				<s:NumericStepper enabled="{fieldHasVaraibleLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="{field_type.selectedItem == Field.DECIMAL?0.1:1}" minimum="0" maximum="5000" toolTip="field_size" value="{field.field_size}" change="field_size_changeHandler(event)" width="85" />
+			</s:VGroup>
+			<mx:VRule height="35"/>
+			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
+				
+			<s:HGroup>
+				<mx:Image  visible="{!field.is_ID &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false}" width="24" height="24" buttonMode="true" source="{IconLib.UPDATEABLE_24}" toolTip="Field is updateable" id="updateable" click="updateable_clickHandler(event)" alpha="{field.updateable?1:0.3}"/>
+				<mx:Image width="24" height="24" buttonMode="true" source="{IconLib.DB_SEARCH_24}" toolTip="Can Search by" id="can_search_by" click="can_search_by_clickHandler(event)" alpha="{field.can_search_by?1:0.3}"/>
+				<mx:Image width="24" height="24" buttonMode="true" source="{IconLib.DB_UPDATE_24}" toolTip="Can update by" id="can_update_by" click="can_update_by_clickHandler(event)" alpha="{field.can_update_by?1:0.3}"/>
+				<mx:Image enabled="{!field.is_ID}" width="24" height="24" buttonMode="true" source="{IconLib.DB_REMOVE_24}" toolTip="Can remove by" id="can_remove_by" click="can_remove_by_clickHandler(event)" alpha="{field.can_remove_by?1:0.3}"/>
+				<mx:Image enabled="{!field.is_ID}" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_IS_INDEX_24}" toolTip="Is Indexed" id="is_index" click="is_index_clickHandler(event)" alpha="{field.is_index?1:0.3}"/>
+			</s:HGroup>
+				
+			</s:VGroup>
+			<s:VGroup width="25" height="100%" verticalAlign="middle" horizontalAlign="center">
+				<mx:VRule height="35"/>
+			</s:VGroup>
+			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
+				
+				<s:HGroup>
+					<mx:Image width="24" height="24" buttonMode="true" source="{IconLib.FIELD_REQUIRED_24}" toolTip="Is Required" id="is_required" click="is_required_clickHandler(event)" alpha="{field.is_required?1:0.3}" enabled="{!field.is_ID}"/>
+					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_DEFAULT_24}" id="field_default_value" toolTip="Edit Field Default Value" click="field_default_value_clickHandler(event)" faded="{isNull(field.default_value)|| isEmpty(field.default_value)}" visible="{!field.is_ID &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false}" />
+					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_VALIDATION_24}" id="field_validation" toolTip="Edit Field Validation" click="field_validation_clickHandler(event)" faded="{isNull(field.validation)|| isEmpty(field.validation)}" visible="{!field.is_ID &amp;&amp; !field.is_FK &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false}"/>
+					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_IS_UNIQUE_24}" id="field_is_unique" toolTip="Field is Unique" click="field_is_unique_clickHandler(event)" faded="{!field.is_unique}" visible="{!field.is_ID &amp;&amp; !field.is_FK &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false}"/>
+				</s:HGroup>
+				
+				
+			</s:VGroup>
+			<s:VGroup width="25" height="100%" verticalAlign="middle" horizontalAlign="center">
+				<mx:VRule height="35"/>
+			</s:VGroup>
+			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
+				<s:HGroup>
+					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_PROMPT_24}" id="field_prompt" toolTip="Edit Field Prompt" click="field_prompt_clickHandler(event)" faded="{isNull(field.prompt)}" visible="{!field.is_ID &amp;&amp; !field.is_FK &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false}"/>
+				</s:HGroup>
+			</s:VGroup>
+			<s:VGroup width="25" height="100%" verticalAlign="middle" horizontalAlign="center">
+				<mx:VRule height="35"/>
+			</s:VGroup>
+			<s:VGroup height="100%" width="100%" verticalAlign="middle" horizontalAlign="right">
+				<s:HGroup>
+					<mx:Image width="16" height="16" buttonMode="true" source="{IconLib.ADD_FIELD_TO_DATASTORE}" toolTip="Add Field to Store" id="add_to_store" click="add_to_store_clickHandler(event)" visible="{allow_add_to_store}"  includeInLayout="{allow_add_to_store}"/>
+					<mx:Image width="16" height="16" buttonMode="true" source="{IconLib.FIELD_DIFFERS_TO_DATASTORE_16}" toolTip="Update Field in Store" id="update_store" click="update_store_clickHandler(event)" visible="{allow_update_store}" includeInLayout="{allow_update_store}"/>
+					<mx:Image width="16" height="16" buttonMode="true" source="{IconLib.LINK_FIELD_TO_DATABASE_16}" toolTip="field is linked to store." id="link_to_store" click="open_field_in_store_click_handler(event)"  visible="{allow_table_edits}" includeInLayout="{allow_table_edits}"/>
+				</s:HGroup>
+			</s:VGroup>
+		</s:HGroup>
+	</s:BorderContainer>
+	
+</s:ItemRenderer>

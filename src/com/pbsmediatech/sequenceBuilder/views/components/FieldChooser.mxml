@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import db.field.Field;
+			
+			import mx.collections.ArrayCollection;
+			protected function add_field_clickHandler(event:MouseEvent):void
+			{
+				if(addFunc != null)
+				{
+					addFunc(dg_fields.selectedItem as Field);
+				}
+			}
+			[Bindable]public var fields:ArrayCollection;
+			public var addFunc:Function;
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:DataGrid id="dg_fields" width="100%" height="100%" dataProvider="{fields}">
+		<mx:columns>
+			<mx:DataGridColumn dataField="field_name"/>
+			<mx:DataGridColumn dataField="field_type"/>
+			<mx:DataGridColumn dataField="field_size"/>
+		</mx:columns>
+		
+	</mx:DataGrid>
+	<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+    		<s:HGroup width="100%" horizontalAlign="left">
+    			
+    		</s:HGroup>	
+    		<s:HGroup width="100%" horizontalAlign="right">
+    			<s:Button enabled="{dg_fields.selectedItem != null}" label="Add" id="add_field" click="add_field_clickHandler(event)"/>
+    		</s:HGroup>	
+    	</s:HGroup>	
+    
+</s:TitleWindow>

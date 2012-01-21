@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import mx.events.CloseEvent;
+			protected function ok_clickHandler(event:MouseEvent):void
+			{
+				dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			[Bindable]public var text:String;
+		]]>
+	</fx:Script>
+	<s:TextArea id="ta"  width="100%" height="100%" text="{text}" change="{text = ta.text}">
+		
+	</s:TextArea>
+	<s:HGroup width="100%" horizontalAlign="right">
+		<s:Button label="OK" id="ok" click="ok_clickHandler(event)"/>
+	</s:HGroup>
+</s:TitleWindow>

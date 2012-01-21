@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" >
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			//creationComplete="cc()"
+			/* import com.pbsmediatech.json.utils.JSONResultHelper;
+			import com.adobe.serialization.json.JSON;
+			
+			import flash.sampler.getSetterInvocationCount;
+			
+			import jp.unchained.getServiceBaseURL;
+			import jp.unchained.json.controllers.partner.Events_Controller;
+			import jp.unchained.json.controllers.partner.Users_Controller;
+			import jp.unchained.json.controllers.partner.dto.PartnerUser;
+			import jp.unchained.json.controllers.partner.utils.PartnerUserResultHelper;
+			import jp.unchained.partner.PartnerSiteConstants;
+			
+			import com.pbsmediatech.json.utils.JSONResultHelper;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.ListEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.events.TextOperationEvent;
+			
+			import utils.text.newLine;
+			import utils.validation.isEmail;
+			
+			[Bindable]private var partner_users:ArrayCollection = new ArrayCollection;
+			[Bindable]private var selected_user:PartnerUser;
+			[Bindable]private var canRegister:Boolean;
+			private var userController:Users_Controller = new Users_Controller(getServiceBaseURL(PartnerSiteConstants.debbuging));
+			private function cc():void
+			{
+				ta_log.text += "Service using controllers at "+getServiceBaseURL(PartnerSiteConstants.debbuging);
+				
+			}
+			private function getAll():void
+			{
+				userController.get_all_users(function(evt:ResultEvent):void
+				{
+					partner_users = new ArrayCollection;
+					partner_users.source = new PartnerUserResultHelper().resultToArray(evt.result as String);
+					ta_log.text += newLine()+partner_users.length+" Users returned";
+				});
+				
+			}
+			private function save():void
+			{
+				if(selected_user == null)return;
+				selected_user.user_login = ti_user_login.text;
+				selected_user.user_pass = ti_user_pass.text;
+				selected_user.user_email = ti_user_email.text;
+				userController.register_user(selected_user, function(evt:ResultEvent):void
+				{
+					
+					if(new PartnerUserResultHelper().registeredUserResultGood(evt.result.toString()))
+						{
+							var obj:Object = new Object;
+							obj.ID = evt.result;
+							userController.get_user_by_id(obj,function(evt:ResultEvent):void
+							{
+								var added:PartnerUser = new PartnerUser(JSON.decode(evt.result.toString()));
+								partner_users.addItem(added);
+								selected_user = added;
+							});
+					}
+						else
+						{
+							ta_log.text += newLine()+"Failed to register User "+evt.result.toString();
+											
+											
+						}
+					
+				});
+									
+							
+			}
+			
+			
+			private function makeNew():void
+			{
+				selected_user = new PartnerUser();
+				canRegister = false;
+				
+			}
+			private function checkEmail():void
+			{
+				var obj:Object = new Object;
+				
+				obj.user_email = ti_user_email.text;
+			userController.check_email_exists(obj, function(evt:ResultEvent):void
+			{
+				if(evt.result == 'false')
+				{
+					ta_log.text += newLine()+obj.user_email+" is free to use";
+				}
+				else
+				{
+					ta_log.text += newLine()+obj.user_email+" belongs to user with ID "+evt.result.toString();
+				}
+			});
+								
+							
+			
+			}
+			private function checkUserLogin():void
+			{
+				var obj:Object = new Object;
+				
+				obj.user_login = ti_user_login.text;
+				userController.check_user_login_exists(obj, function(evt:ResultEvent):void
+				{
+					if(!evt.result)
+					{
+						ta_log.text += newLine()+obj.user_login+" is free to use";
+					}
+					else
+					{
+						ta_log.text += newLine()+obj.user_login+" belongs to user with ID "+evt.result.toString();
+					}
+				});
+				
+				
+			
+			}
+			
+			protected function dg_events_changeHandler(event:ListEvent):void
+			{
+				selected_user = dg_events.selectedItem as PartnerUser;
+			}
+			private function removeItem():void
+			{
+				userController.remove_user_by_id(selected_user, function(evt:ResultEvent):void
+				{
+					if(new PartnerUserResultHelper().removeResultGood(evt.result))
+					{
+						partner_users.removeItemAt(dg_events.selectedIndex);
+						selected_user = null;
+						ta_log.text += newLine()+"User removed "+evt.result.toString();
+					}
+				});
+			} 
+			
+
+			protected function ti_user_email_changeHandler(event:TextOperationEvent):void
+			{
+				canRegister = isEmail(ti_user_email.text);
+			} */
+
+		]]>
+	</fx:Script>
+	
+	<!--<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+		<s:HGroup width="100%" horizontalAlign="left">
+			
+		</s:HGroup>	
+		<s:HGroup width="100%" horizontalAlign="right">
+			<s:Button label="Get Users" id="btn_get" click="getAll()"/>
+		</s:HGroup>	
+	</s:HGroup>	
+	
+	<mx:VDividedBox width="100%" height="100%">
+		
+		<mx:DataGrid width="100%" height="50%" dataProvider="{partner_users}" id="dg_events" change="dg_events_changeHandler(event)"/>
+		<s:HGroup width="100%" height="100%">
+			<mx:Form width="100%" height="100%" enabled="{selected_user != null}">
+				<mx:FormItem label="User Login Name">
+					<s:TextInput id="ti_user_login" text="{selected_user.user_login}" width="150"/>
+				</mx:FormItem>
+				<mx:FormItem label="User Email">
+					<s:TextInput id="ti_user_email" change="ti_user_email_changeHandler(event)" text="{selected_user.user_email}" width="150"/>
+				</mx:FormItem>
+				<mx:FormItem label="User Password">
+					<s:TextInput id="ti_user_pass" text="{selected_user.user_pass}" width="150"/>
+				</mx:FormItem>
+				<s:HGroup horizontalAlign="center" width="100%">
+					<s:Button label="Register" click="save()" visible="{canRegister}"/>
+				</s:HGroup>
+			</mx:Form>
+			<s:VGroup width="100%" height="100%">
+				<s:TextArea id="ta_log" width="100%" height="100%"/>
+			</s:VGroup>
+		</s:HGroup>
+	</mx:VDividedBox>
+	<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+		<s:HGroup width="100%" horizontalAlign="left">
+			<s:Button label="New" click="makeNew()"/>
+			<s:Button label="Check Email" click="checkEmail()" enabled="{ti_user_email.text != ''}"/>
+			<s:Button label="Check User Login" click="checkUserLogin()" enabled="{ti_user_login.text != ''}"/>
+			
+			<s:Button label="Remove" click="removeItem()"/>
+			<mx:VRule height="24"/>
+		
+		</s:HGroup>	
+		<s:HGroup width="100%" horizontalAlign="right">
+		</s:HGroup>	
+	</s:HGroup>	-->
+	
+	
+	
+	
+	
+	
+</s:Group>

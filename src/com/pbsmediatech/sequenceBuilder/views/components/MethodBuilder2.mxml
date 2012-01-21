@@ -1,0 +1,514 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc()">
+	<s:layout>
+		<s:VerticalLayout>
+			
+		</s:VerticalLayout>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			
+			import db.field.Field;
+			import db.WhereClause;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.code.method_builders.GeneratedMethod;
+			import com.pbsmediatech.code.method_builders.custom_methods.CustomMethodDescription;
+			import com.pbsmediatech.code.method_builders.custom_methods.MethodInputParam;
+			import com.pbsmediatech.code.method_builders.custom_methods.MethodInputRule;
+			import com.pbsmediatech.code.method_builders.custom_methods.MethodOutput;
+			import com.pbsmediatech.code.method_builders.custom_methods.MethodOutputParam;
+			import com.pbsmediatech.code.method_builders.custom_methods.OrderByField;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.filterFieldsWhere;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.utils.object_proxy;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.events.TextOperationEvent;
+			protected function add_input_param_rule_clickHandler(qualifier:String, rule_value:String):void
+			{
+				var rule:MethodInputRule = new MethodInputRule;
+				rule.qualifier = qualifier;
+				rule.value = rule_value;
+				rule.field_name = selected_input_param.field_name;
+				selected_input_param.custom_input_rules.addItem(rule);
+			}
+
+			protected function remove_input_param_rule_clickHandler(event:MouseEvent):void
+			{
+				selected_input_param.custom_input_rules.removeItemAt(selected_input_param_input_rules.selectedIndex);
+			}
+
+
+			protected function remove_order_by_field_clickHandler(event:MouseEvent):void
+			{
+				fields_to_order_by.removeItemAt(lt_fields_to_order_by.selectedIndex);
+			}
+
+
+			protected function add_order_by_field_clickHandler(field_name:String, order_dir:String):void
+			{
+				for each (var existing:OrderByField in fields_to_order_by)
+				{
+					if(field_name == existing.field_name)
+					{
+						return;
+					}
+				}
+				var newOrder:OrderByField = new OrderByField;
+				newOrder.field_name = field_name;
+				newOrder.order_dir = order_dir;
+				fields_to_order_by.addItem(newOrder);
+				
+			}
+
+
+			protected function add_where_clause_clickHandler(event:MouseEvent):void
+			{
+				var searchable_field:Field = lt_searchable_fields.selectedItem as Field;
+				if(searchable_field != null)
+				{
+				var where_clause:WhereClause = new WhereClause;
+				where_clause.field_name = searchable_field.field_name;
+				where_clause.field_type = searchable_field.field_type;
+				where_clause.order = where_clauses.length+1;
+				if(where_clauses.length>0)
+				{
+					//previouse where clause;
+					var previous_clause:WhereClause = where_clauses[where_clauses.length-1];
+					previous_clause.suffix = 'and';
+				}
+				where_clauses.addItem(where_clause);
+				}
+				
+			}
+
+
+			protected function remove_where_clause_clickHandler(event:MouseEvent):void
+			{
+				where_clauses.removeItemAt(lt_where_clauses.selectedIndex);
+			}
+
+
+			protected function save_method_info_clickHandler(event:MouseEvent):void
+			{
+				method_description.input_params = new Array;
+				method_description.input_params = input_params.source;
+				
+				//output - params to return object,ID,success boolean,param list
+				method_description.method_output.return_params_type = return_params_types.selectedValue.toString();
+				method_description.method_output.output_param_list = []; //reset list
+				method_description.method_output.output_param_list = output_params.source;
+				if(method_description.method_output.return_params_type == 'params')//is it a list of params?
+				{
+					method_description.method_output.output_param_list = output_params.source;
+				}
+				//output - return
+				method_description.method_output.number_to_output_type = return_number_to_output_types.selectedValue.toString()
+				method_description.method_output.output_num = output_set_num.value;
+				method_description.method_output.where_clauses = where_clauses.source;
+				//output - order
+				method_description.method_output.order_clauses = fields_to_order_by.source;
+				
+				/* var resultToSave:String = JSON.encode(method_description.object);
+				trace(resultToSave)
+				
+				//put it back together
+				var newMethDescription:CustomMethodDescription = new CustomMethodDescription;
+				newMethDescription.setJSON(resultToSave)
+				trace(newMethDescription.method_name); */
+				
+				var exists:Boolean;
+				if(added_methods != null)
+				{
+					for each (var cmd:CustomMethodDescription in AppModel.getInstance())
+					{
+						if(cmd.method_name == method_name.text)
+						{
+							cmd = method_description;
+							exists = true;
+							break;
+						}
+					}
+				}
+				if(!exists){
+					added_methods.addItem(method_description);
+				}
+				
+				
+			}
+
+	
+		
+			
+			private function cc():void
+			{
+			param_in_message_type.addEventListener(Event.CHANGE, 
+				function(evt:Event):void
+				{
+				selected_input_param.fail_message_type = param_in_message_type.selectedValue as String;
+				});
+			return_params_types.addEventListener(Event.CHANGE,
+				function(evt:Event):void
+				{
+					method_description.method_output.return_params_type = return_params_types.selectedValue as String;
+				});
+			
+			}
+			
+			protected function make_new_clickHandler(event:MouseEvent):void
+			{
+				makeNew();
+			}
+
+			protected function params_in_changeHandler(event:IndexChangeEvent):void
+			{
+				selected_input_param = params_in.selectedItem as MethodInputParam;
+			}
+			
+			public function load(md:CustomMethodDescription):void
+			{
+				
+				method_description = md;
+				var input_params2:ArrayCollection = new ArrayCollection(md.input_params);
+				var output_params2:ArrayCollection = new ArrayCollection(md.method_output.output_param_list);
+				var fields_to_order_by2:ArrayCollection = new ArrayCollection(md.method_output.order_clauses);
+				var where_clauses2:ArrayCollection = new ArrayCollection(md.method_output.where_clauses);
+				input_params = input_params2;
+				output_params = output_params2;
+				fields_to_order_by = fields_to_order_by2;
+				where_clauses = where_clauses2;
+				
+			}
+
+
+			
+
+			protected function add_ouput_param_clickHandler(event:MouseEvent):void
+			{
+				var fc:FieldChooser = new FieldChooser
+				fc.fields = fields;
+				PopUpManager.addPopUp(fc,this);
+				PopUpManager.centerPopUp(fc);
+				fc.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					PopUpManager.removePopUp(fc);
+				});
+				fc.addFunc = function(param_to_add:Field):void{
+					for each (var op:MethodOutputParam in output_params)
+					{
+						if(op.field_name == param_to_add.field_name)
+						{
+							Alert.show("Param already added");
+							return;
+						}
+					}
+					var output_param_to_add:MethodOutputParam = new MethodOutputParam;
+					output_param_to_add.field_name = param_to_add.field_name;
+					output_params.addItem(output_param_to_add);
+					
+				}
+				
+			}
+	
+			
+			
+			
+			
+			protected function remove_ouput_param_clickHandler(event:MouseEvent):void
+			{
+			output_params.removeItemAt(selected_output_params.selectedIndex);
+			}
+			protected function add_input_param_clickHandler(event:MouseEvent):void
+			{
+				var param_to_add:Field = available_fields.selectedItem as Field;
+				for each (var ip:MethodInputParam in input_params)
+				{
+					if(ip.field_name == param_to_add.field_name)
+					{
+						Alert.show("Param already added");
+						return;
+					}
+				}
+				var input_param_to_add:MethodInputParam = new MethodInputParam;
+				input_param_to_add.field_name = param_to_add.field_name;
+				input_param_to_add.field_type = param_to_add.field_type;
+				input_param_to_add.custom_input_rules = new ArrayCollection;
+				input_params.addItem(input_param_to_add);
+			}
+			protected function remove_input_param_clickHandler(event:MouseEvent):void
+			{
+				input_params.removeItemAt(params_in.selectedIndex);
+			}
+			
+			//-----------------
+			[Bindable]public var method_description:CustomMethodDescription;
+			[Bindable]public var input_params:ArrayCollection;//array in methodInputparams
+			[Bindable]public var output_params:ArrayCollection;//array of methodOutputParams
+			[Bindable]public var fields_to_order_by:ArrayCollection;
+			[Bindable]public var selected_input_param:MethodInputParam;
+			[Bindable]public var where_clauses:ArrayCollection;
+			[Bindable]public var searchable_fields:ArrayCollection;
+			[Bindable]public var fields:ArrayCollection = AppModel.getInstance().fields;
+			
+			[Bindable]private var name_validated:Boolean;
+			[Bindable]public var added_methods:ArrayCollection = AppModel.getInstance().added_methods;
+			[Bindable]public var generated_methods:ArrayCollection = AppModel.getInstance().generated_methods;
+			
+			public function makeNew():void
+			{
+				method_description = new CustomMethodDescription;
+				method_description.method_name = method_name.text;
+				method_description.method_type = method_types.selectedItem as String;
+				method_description.method_output = new MethodOutput;
+				input_params = new ArrayCollection;
+				output_params = new ArrayCollection;
+				fields_to_order_by = new ArrayCollection;
+				where_clauses = new ArrayCollection;
+				searchable_fields = new ArrayCollection(filterFieldsWhere(fields.source,'can_search_by', true))
+				vs.selectedIndex = 1;
+				name_validated = false;
+			}
+			
+			//labelFunction
+			private function getOrderLabel(obf:OrderByField):String
+			{
+				return "Order by "+obf.field_name+ " "+obf.order_dir;
+			}
+		
+			private function getInputRuleLabel(ir:MethodInputRule):String
+			{
+				return ir.field_name+" has a value "+ir.qualifier+" "+ir.value;
+			}
+		
+			protected function check_method_name_clickHandler(event:MouseEvent):void
+			{
+				method_name_changeHandler();
+			}
+			protected function method_name_changeHandler():void
+			{
+				name_validated = false;
+				
+				if(method_name.text.length > 4)
+				{
+				
+				if(added_methods != null)
+				{
+					for each (var cmd:CustomMethodDescription in AppModel.getInstance())
+					{
+						if(cmd.method_name == method_name.text)
+						{
+							name_validated = false;
+						}
+					}
+				}
+				if(generated_methods != null)
+				{
+					for each (var gm:Object in generated_methods)
+					{
+						if(gm.method_name == method_name.text)
+						{
+							name_validated = false;
+						}
+					}
+				}
+				name_validated = true;
+				}
+			}
+
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:RadioButtonGroup id="param_in_message_type"/><!--default or custom-->
+		<s:RadioButtonGroup id="return_params_types" selectedValue="{method_description.method_output.return_params_type}"/>
+		<s:RadioButtonGroup id="return_number_to_output_types" selectedValue="{method_description.method_output.number_to_output_type}"/>
+	</fx:Declarations>
+
+	<s:TabBar dataProvider="{vs}"/>
+	<mx:ViewStack width="100%" height="100%" id="vs">
+		<s:NavigatorContent width="100%" height="100%" label="Method Name">
+			<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+				<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+					<s:Label text="Choose Method type"/>
+					<s:DropDownList requireSelection="true" id="method_types" enabled="{name_validated}"  width="218" x="571">
+						<s:dataProvider>
+							<s:ArrayList>
+								<fx:String>Get</fx:String>
+								<fx:String>Add</fx:String>
+								<fx:String>Update</fx:String>
+								<fx:String>Remove</fx:String>
+							</s:ArrayList>
+						</s:dataProvider>
+					</s:DropDownList>
+					<s:TextInput id="method_name" width="342" x="509"/>
+					<s:Button id="check_method_name" enabled="{method_name.text.length &gt; 4}"  label="check_method_name" click="check_method_name_clickHandler(event)"/>
+				</s:VGroup>
+			
+				<s:HGroup horizontalAlign="right" width="100%">
+					<s:Button label="New" id="make_new" enabled="{name_validated &amp;&amp; method_types.selectedItem != null}"  click="make_new_clickHandler(event)"/>
+				</s:HGroup>
+			</s:VGroup>
+		</s:NavigatorContent>	
+		
+		<s:NavigatorContent  enabled="{method_description != null}"  width="100%" height="100%" label="Inputs">
+			<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+				<s:HGroup width="100%" height="100%">
+					
+					
+					<s:VGroup width="100%" height="100%">
+						<s:Label text="Available Inputs"/>
+						<s:List id="available_fields" width="100%" height="100%" dataProvider="{fields}" labelField="field_name">
+							<!--list of fields in sequence-->
+						</s:List>
+						<s:HGroup width="100%" horizontalAlign="right">
+							<s:Button enabled="{available_fields.selectedItem != null}" label="add_to_input_param_list" id="add_input_param" click="add_input_param_clickHandler(event)"/>
+						</s:HGroup>
+					</s:VGroup>
+					<mx:VDividedBox width="100%" height="100%">
+						
+					
+						<s:VGroup width="100%" height="100%">
+							
+						<s:Label text="Inputs expected"/>
+						<s:List id="params_in" width="100%" height="100%" labelField="field_name" dataProvider="{input_params}" change="params_in_changeHandler(event)">
+							
+						</s:List>
+						</s:VGroup>
+						<s:VGroup width="100%" height="100%">
+						<s:HGroup enabled="{params_in.selectedItem != null}"  width="100%">
+						<s:CheckBox id="param_is_required" selected="{selected_input_param.is_required}" label="param_is_required" change="{selected_input_param.is_required = param_is_required.selected}"/>
+							<s:HGroup width="100%" horizontalAlign="right">
+								<s:Button enabled="{params_in.selectedItem != null}" id="remove_input_param" label="Remove" click="remove_input_param_clickHandler(event)"/>
+							</s:HGroup>
+						</s:HGroup>
+						<s:VGroup width="100%" height="100%" enabled="{param_is_required.selected == true &amp;&amp; params_in.selectedItem != null}">
+							<s:TabBar dataProvider="{vs_params_in}"/>
+							<mx:ViewStack  id="vs_params_in" width="100%" height="100%">
+								<s:NavigatorContent label="Input param not supplied Message" width="100%" height="100%">
+									<s:VGroup width="100%" height="100%">
+										
+										<s:HGroup width="100%">
+											<s:RadioButton id="use_default_in_message" selected="{selected_input_param.fail_message_type == 'default'}" label="default" value="default" group="{param_in_message_type}"/>
+											<s:RadioButton id="use_custom_in_message"  selected="{selected_input_param.fail_message_type == 'custom'}"  label="custom" value="custom" group="{param_in_message_type}"/>
+										</s:HGroup>
+										<s:TextArea width="100%" height="100%" change="{selected_input_param.custom_fail_message_text = param_not_supplied_message.text}" text="{selected_input_param.custom_fail_message_text}" id="param_not_supplied_message" enabled="{use_custom_in_message.selected}"/>
+									</s:VGroup>
+								</s:NavigatorContent>
+								<s:NavigatorContent label="Input param rules">
+									<s:VGroup width="100%" height="100%">
+										<s:HGroup width="100%" horizontalAlign="right">
+											<s:DropDownList id="input_rule_qualifiers" requireSelection="true" dataProvider="{new ArrayList([MethodInputRule.EQUALS,MethodInputRule.GREATER_THAN, MethodInputRule.LESS_THAN])}"/>
+											<s:TextInput id="input_rule_value" />
+											<s:Button enabled="{input_rule_value.text.length &gt; 0}" label="Add" id="add_input_param_rule" click="{add_input_param_rule_clickHandler(String(input_rule_qualifiers.selectedItem),input_rule_value.text);input_rule_value.text= ''}"/>
+											<s:Button label="Remove" id="remove_input_param_rule" click="remove_input_param_rule_clickHandler(event)"/>
+											</s:HGroup>
+										<s:List dataProvider="{selected_input_param.custom_input_rules}" width="100%" height="80" id="selected_input_param_input_rules" labelFunction="getInputRuleLabel"/>
+										<s:VGroup width="100%" height="100%" enabled="{selected_input_param_input_rules.selectedItem != null}">
+											
+											<s:HGroup width="100%">
+												<s:RadioButton id="use_default_in_rule_message" selected="{selected_input_param_input_rules.selectedItem.fail_message_type == 'default'}" label="default" value="default" click="{selected_input_param_input_rules.selectedItem.fail_message_type = 'default'}"/>
+												<s:RadioButton id="use_custom_in_rule_message"  selected="{selected_input_param_input_rules.selectedItem.fail_message_type == 'custom'}"  label="custom" value="custom" click="{selected_input_param_input_rules.selectedItem.fail_message_type = 'custom'}"/>
+											</s:HGroup>
+											<s:TextArea width="100%" height="100%" change="{selected_input_param_input_rules.selectedItem.custom_fail_message_text = param_fail_rule_message.text}" text="{selected_input_param_input_rules.selectedItem.custom_fail_message_text}" id="param_fail_rule_message" enabled="{use_custom_in_rule_message.selected}"/>
+										</s:VGroup>
+									</s:VGroup>
+								</s:NavigatorContent>
+							</mx:ViewStack>
+							
+							
+						</s:VGroup>
+						</s:VGroup>
+					</mx:VDividedBox>
+				</s:HGroup>	
+				
+			</s:VGroup>
+		</s:NavigatorContent>
+		<s:NavigatorContent  enabled="{method_description != null}"  label="Output">
+			<s:VGroup width="100%" height="100%">
+				<s:VGroup width="100%">
+					<s:Label text="Return Parameters"/>
+					<s:HGroup width="100%">
+						<s:RadioButton label="object" value="object" toolTip="Whole Object" selected="true" id="output_object" group="{return_params_types}"/>
+						<s:RadioButton label="object ID" value="ID" id="output_object_id" group="{return_params_types}"/>
+						<s:RadioButton label="success_boolean" value="succ_boo" id="output_success_boolean" group="{return_params_types}"/>
+						<s:RadioButton label="object_params" value="params" id="output_object_params" group="{return_params_types}"/>
+						<mx:VRule height="24"/>
+						<s:Button visible="{output_object_params.selected}" label="Add" id="add_ouput_param" click="add_ouput_param_clickHandler(event)"/>
+					</s:HGroup>
+					<s:VGroup width="100%" height="100%"  includeInLayout="{output_object_params.selected}" visible="{output_object_params.selected}">
+						<s:List id="selected_output_params" width="100%" height="100%" dataProvider="{output_params}" labelField="field_name"  includeInLayout="{output_object_params.selected}" visible="{output_object_params.selected}"/>
+						<s:HGroup width="100%" paddingLeft="2" paddingRight="2"  includeInLayout="{output_object_params.selected}" visible="{output_object_params.selected}">
+							<s:HGroup width="100%" horizontalAlign="left">
+							</s:HGroup>	
+							<s:HGroup width="100%" horizontalAlign="right">
+								<s:Button enabled="{selected_output_params.selectedItem != null}" label="Remove" id="remove_ouput_param" click="remove_ouput_param_clickHandler(event)"/>
+							</s:HGroup>	
+						</s:HGroup>	
+						
+					</s:VGroup>
+				</s:VGroup>
+				<s:VGroup width="100%" height="100%" enabled="{method_description.method_type == 'Get'}">
+					<s:TabBar dataProvider="{vs_}"/>
+					<mx:ViewStack  id="vs_" width="100%" height="100%">
+						<s:NavigatorContent label="Return" width="100%" height="100%">
+							<s:VGroup width="100%" height="100%">
+								<s:Label text="Num to output"/>
+								<s:HGroup width="100%" paddingLeft="5">
+									<s:RadioButton group="{return_number_to_output_types}" label="single" value="single" id="output_num_one"/>
+									<s:RadioButton group="{return_number_to_output_types}" label="all" value="all" id="output_num_all" selected="true"/>
+									<s:RadioButton group="{return_number_to_output_types}" label="set" value="set" id="output_num_set"/>
+									<s:NumericStepper id="output_set_num" maximum="100" minimum="1"  value="{method_description.method_output.output_num}"  enabled="{output_num_set.selected == true}"/>
+								</s:HGroup>
+								<mx:HRule width="100%"/>
+								<s:Label text="Where Conditions"/>
+								<s:HGroup width="100%">
+								<s:DropDownList requireSelection="true" id="lt_searchable_fields" dataProvider="{searchable_fields}" labelField="field_name" width="300"/>
+								<s:Button label="+" enabled="{lt_searchable_fields.selectedItem != null}" id="add_where_clause" click="add_where_clause_clickHandler(event)"/>
+								<s:Button label="-" enabled="{lt_where_clauses.selectedItem != null}" id="remove_where_clause" click="remove_where_clause_clickHandler(event)"/>
+								</s:HGroup>
+								<s:List width="100%" height="100%" id="lt_where_clauses" dataProvider="{where_clauses}" itemRenderer="com.pbsmediatech.sequenceBuilder.views.components.renderer.WhereClauseRenderer">
+									<!--copy of inputs expected-->
+								</s:List>
+							</s:VGroup>
+						</s:NavigatorContent>
+						<s:NavigatorContent label="Order" width="100%" height="100%">
+							<s:VGroup width="100%" height="100%">
+								<s:HGroup width="100%">
+									<s:DropDownList id="order_fields" dataProvider="{fields}" labelField="field_name" requireSelection="true" width="300"/>
+									<s:DropDownList id="order_dirs" dataProvider="{new ArrayList([OrderByField.DESCENDING,OrderByField.ASCENDING])}" requireSelection="true"/>
+									<s:Button label="+" id="add_order_by_field" click="add_order_by_field_clickHandler(order_fields.selectedItem['field_name'], order_dirs.selectedItem as String)" enabled="{order_fields.selectedItem != null &amp;&amp; order_dirs.selectedItem != null }" />
+									<s:Button label="-" id="remove_order_by_field" click="remove_order_by_field_clickHandler(event)" enabled="{lt_fields_to_order_by.selectedItem != null}"/>
+								</s:HGroup>
+								<s:List id="lt_fields_to_order_by" width="100%" height="80" dataProvider="{fields_to_order_by}" labelFunction="getOrderLabel"/>
+						</s:VGroup>
+						</s:NavigatorContent>
+					</mx:ViewStack>
+					
+					
+				</s:VGroup>
+			</s:VGroup>
+		</s:NavigatorContent>
+		<s:NavigatorContent  enabled="{method_description != null}"  label="Do it">
+			<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+				<s:Button label="Add" id="save_method_info" click="save_method_info_clickHandler(event)"/>
+				<s:Button label="Generate"/>
+			</s:VGroup>
+		</s:NavigatorContent>
+		
+		
+	</mx:ViewStack>
+	
+	
+	
+
+</s:Group>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.code.method_builders.as3.makeAS3Form;
+			import com.pbsmediatech.code.method_builders.as3.makeAS3FormModel;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.get_domains_by_domain_label;
+			[Bindable]public var sequence_details_editor:SequenceDetails;
+			
+			[Bindable]private var as3_view_text:String;
+			[Bindable]private var as3_view_model_text:String;
+			protected function gen_forms_clickHandler(event:MouseEvent):void
+			{
+				if(AppModel.getInstance().loaded_sequence == null)return;
+				try
+				{
+				var fields:Array = AppModel.getInstance().fields.source;	
+				var object_name:String = sequence_details_editor.object_name.text;
+				var class_name:String = sequence_details_editor.class_name.text;
+				var package_root:String = get_domains_by_domain_label(AppModel.getInstance().loaded_sequence.sequence_domain)[0].domain_package_root;
+				as3_view_model_text = makeAS3FormModel(class_name,object_name,package_root);
+				as3_view_text = makeAS3Form(class_name,object_name,package_root,fields);
+				
+					
+					}
+				catch(e:Error)
+				{
+					trace(e);
+				}
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+
+					<s:VGroup width="100%" height="100%">
+						<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+                        		<s:HGroup width="100%" horizontalAlign="left">
+                        			
+						<s:TabBar dataProvider="{vs_forms}"/>
+                        		</s:HGroup>	
+                        		<s:HGroup width="100%" horizontalAlign="right">
+                        		<s:Button label="Generate Forms" id="gen_forms" click="gen_forms_clickHandler(event)"/>	
+                        		</s:HGroup>	
+                        	</s:HGroup>	
+                        
+						<mx:ViewStack  id="vs_forms" width="100%" height="100%">
+							<s:NavigatorContent label="AS3" width="100%" height="100%">
+								<s:VGroup width="100%" height="100%">
+								<s:TabBar dataProvider="{vs_as3}"/>
+								<mx:ViewStack id="vs_as3" width="100%" height="100%">
+									<s:NavigatorContent label="View">
+										<s:TextArea text="{as3_view_text}" width="100%" height="100%">
+											
+										</s:TextArea>
+									</s:NavigatorContent>
+									<s:NavigatorContent label="ViewModel">
+										<s:TextArea text="{as3_view_model_text}" width="100%" height="100%">
+											
+										</s:TextArea>
+									</s:NavigatorContent>
+								</mx:ViewStack>
+								</s:VGroup>
+							</s:NavigatorContent>
+						</mx:ViewStack>
+					</s:VGroup>
+			
+	
+	
+	
+	
+</s:Group>

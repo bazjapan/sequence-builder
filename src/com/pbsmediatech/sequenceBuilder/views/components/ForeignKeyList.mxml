@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			[Bindable]public var foreign_keys:ArrayCollection = new ArrayCollection;
+
+			public var addFKFunc:Function;
+			
+
+		]]>
+	</fx:Script>
+	<mx:DataGrid id="dg" width="100%" height="100%" dataProvider="{foreign_keys}">
+		<mx:columns>
+			<mx:DataGridColumn dataField="table_name"/>
+			<mx:DataGridColumn dataField="field_name"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<s:HGroup horizontalAlign="right" width="100%">
+		<s:Button enabled="{dg.selectedItem}" label="Add" id="add_fk" click="addFKFunc(dg.selectedItem)" />
+	</s:HGroup>
+</s:TitleWindow>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				autoDrawBackground="true" width="100%" height="50">
+	<fx:Declarations>
+		<s:RadioButtonGroup id="rgb1"/>
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import db.WhereClause;
+			import db.getAvailableClauseTypesbyFieldType;
+			
+			import mx.collections.ArrayCollection;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]public var where_clause:WhereClause;
+			
+			override public function set data(value:Object):void
+			{
+				if(value)
+				{
+					where_clause = value as WhereClause;
+				}
+			}
+
+			protected function clause_changeHandler(event:IndexChangeEvent):void
+			{
+				where_clause.clause = clause.selectedItem as String;
+			}
+
+
+			
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%">
+		
+	<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+    		<s:HGroup width="100%" horizontalAlign="left">
+    			<s:Label text="{where_clause.field_name}"/>
+    		</s:HGroup>	
+    		<s:HGroup width="100%" horizontalAlign="right">
+    			<s:DropDownList selectedIndex="0" id="clause" requireSelection="true" change="clause_changeHandler(event)" width="150" selectedItem="{where_clause.clause}" dataProvider="{new ArrayCollection(getAvailableClauseTypesbyFieldType(where_clause.field_type))}"/>
+    		</s:HGroup>	
+    </s:HGroup>	
+    <s:HGroup visible="{where_clause.suffix != null &amp;&amp; where_clause.suffix != ''}" includeInLayout="{where_clause.suffix != null &amp;&amp; where_clause.suffix != ''}" width="100%" verticalAlign="middle" horizontalAlign="right">
+		
+		<s:RadioButton click="{where_clause.suffix = 'and'}" selected="{where_clause.suffix == 'and'}" label="And" value="{'and'}" group="{rgb1}"/>
+		<s:RadioButton  click="{where_clause.suffix = 'or'}"  selected="{where_clause.suffix == 'or'}" label="Or" value="{'or'}"  group="{rgb1}"/>
+	</s:HGroup>
+	</s:VGroup>
+</s:ItemRenderer>

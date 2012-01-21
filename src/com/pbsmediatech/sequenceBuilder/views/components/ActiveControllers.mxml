@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:components="jp.unchained.views.components.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.dto.ControllerSequence;
+			import com.pbsmediatech.json.controllers.ControllerSequenceController;
+			import com.pbsmediatech.json.utils.ControllerSequenceResultHelper;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			
+			import mx.controls.Alert;
+			
+			public var load_sequence_func:Function;
+			
+			private var sequence_controller:ControllerSequenceController = new ControllerSequenceController(AppModel.getInstance().service_base_url);
+			protected function load_sequence_clickHandler(event:MouseEvent):void
+			{
+				if(dg.selectedItem["sequence_ID"] == '0' || dg.selectedItem["sequence_ID"] == 0)
+				{Alert.show("Controller has no sequence information"); return};
+				sequence_controller.get_controller_sequences_by_sequence_ID({sequence_ID:dg.selectedItem["sequence_ID"]},
+					function(evt:ResultEvent):void
+					{
+						var sequence:ControllerSequence = new ControllerSequenceResultHelper().resultToSingle_ControllerSequence(extractResult(evt));
+						if(sequence != null && load_sequence_func != null)
+						{
+							load_sequence_func(sequence);
+						}
+					});
+									
+			}
+
+
+			protected function test_controller_clickHandler(event:MouseEvent):void
+			{
+				
+				vs.selectedIndex = 1;
+				var domain:Domain = save_sequence_domain_chooser.selectedItem as Domain;
+				var active_controller:Object = dg.selectedItem;
+				data_tester.setUpTesting(domain, active_controller);
+			}
+
+		]]>
+	</fx:Script>
+	<mx:ViewStack width="100%" height="100%" id="vs">
+		
+	
+	<s:NavigatorContent width="100%" height="100%" label="Saved">
+		<s:VGroup width="100%" height="100%">
+			<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+
+				<fx:Script>
+					<![CDATA[
+						import com.pbsmediatech.dto.Domain;
+						import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+
+						
+						import com.pbsmediatech.json.controllers.DataStoreServiceController;
+						import com.pbsmediatech.json.utils.JSONResultHelper2;
+						import com.pbsmediatech.json.utils.extractResult;
+						
+						import mx.collections.ArrayCollection;
+						import mx.rpc.events.ResultEvent;
+						[Bindable]private var active_controllers:ArrayCollection = new ArrayCollection;
+						protected function get_active_controllers_clickHandler(event:MouseEvent):void
+						{
+							var selected_domain:Domain = save_sequence_domain_chooser.selectedItem as Domain;
+							getDataStoreServiceController(selected_domain.domain_label, AppModel.getInstance().dev).get_active_controller_info({},function(evt:ResultEvent):void
+							{
+								active_controllers.source = new JSONResultHelper2().resultToArray(extractResult(evt));
+							});
+						}
+						
+						
+					]]>
+				</fx:Script>
+
+				<s:HGroup width="100%" horizontalAlign="left">
+					<s:Button visible="{dg.selectedItem != null}" id="load_sequence" label="load_sequence" click="load_sequence_clickHandler(event)"/>
+					<s:Button visible="{dg.selectedItem != null}" id="test_controller" label="test_controller" click="test_controller_clickHandler(event)"/>
+					
+				</s:HGroup>	
+				<s:HGroup width="100%" horizontalAlign="right">
+					
+					<s:DropDownList prompt="Select Domain" width="250" requireSelection="true" dataProvider="{AppModel.getInstance().domains}" labelField="domain_label" id="save_sequence_domain_chooser"/>
+					<s:Button id="get_active_controllers" enabled="{save_sequence_domain_chooser.selectedItem != null}" label="get_active_controllers" click="get_active_controllers_clickHandler(event)"/>
+				</s:HGroup>	
+			</s:HGroup>	
+			
+			<mx:DataGrid width="100%" height="100%" id="dg" dataProvider="{active_controllers}">
+				
+			</mx:DataGrid>
+		</s:VGroup>
+	</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%">
+			<components1:DataViewer id="data_tester" width="100%" height="100%" closeFunc="{function():void{vs.selectedIndex = 0;}}">
+				
+			</components1:DataViewer>
+		</s:NavigatorContent>
+	</mx:ViewStack>
+</s:Group>

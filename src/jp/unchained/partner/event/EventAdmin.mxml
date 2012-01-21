@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" >
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			/* 
+			creationComplete="cc()"
+			
+			import jp.unchained.getServiceBaseURL;
+			import jp.unchained.json.controllers.partner.Events_Controller;
+			import jp.unchained.json.controllers.partner.dto.PartnerEvent;
+			import jp.unchained.json.controllers.partner.utils.PartnerEventResultHelper;
+			import jp.unchained.partner.PartnerSiteConstants;
+			
+			import com.pbsmediatech.json.utils.JSONResultHelper;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.ListEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import utils.date.now;
+			import utils.text.newLine;
+			import utils.timestamp.dateToTimestamp;
+			import utils.timestamp.timestampToDate;
+			
+			[Bindable]private var partner_events:ArrayCollection;
+			[Bindable]private var selected_event:PartnerEvent;
+			private var eventController:Events_Controller = new Events_Controller(getServiceBaseURL(PartnerSiteConstants.debbuging))
+			
+			private function cc():void
+			{
+			ta_log.text += "Service using controllers at "+getServiceBaseURL(PartnerSiteConstants.debbuging);
+			
+			}
+			private function getEvents():void
+			{
+			eventController.get_all_events(function(evt:ResultEvent):void
+			{
+				partner_events = new ArrayCollection;
+				partner_events.source = new PartnerEventResultHelper().resultToArray(evt.result as String);
+				ta_log.text += newLine()+partner_events.length+" Events returned";
+			});
+			
+			}
+			private function save():void
+			{
+				if(selected_event == null)return;
+				selected_event.event_title = ti_event_title.text;
+				selected_event.event_start = dateToTimestamp(df_event_reg_start.selectedDate);
+				selected_event.event_end = dateToTimestamp(df_event_end.selectedDate);
+				selected_event.event_community_start = dateToTimestamp(df_event_community_start.selectedDate);
+				selected_event.event_community_end = dateToTimestamp(df_event_community_end.selectedDate);
+				selected_event.event_reg_start = dateToTimestamp(df_event_reg_start.selectedDate);
+				selected_event.event_reg_end = dateToTimestamp(df_event_reg_end.selectedDate);
+				selected_event.event_floorplan = ti_event_floorplan.text;
+				selected_event.event_description = ta_event_description.text;
+				selected_event.event_website = ti_event_website.text;
+				selected_event.event_logo = ti_event_logo.text;
+				selected_event.event_city = ti_event_city.text;
+				selected_event.event_address = ti_event_address.text;
+				selected_event.event_location_lat = Number(ti_event_location_lat.text);
+				selected_event.event_location_long = Number(ti_event_location_long.text);
+			
+				if(isNaN(selected_event.event_ID))
+				{
+					eventController.add_event(selected_event, function(evt:ResultEvent):void
+					{
+						var theID:Number = Number(evt.result);
+						selected_event.event_ID = theID;
+						partner_events.addItem(selected_event);
+						ta_log.text += newLine()+"Event saved "+theID;
+					});
+										
+						
+				}
+				else
+				{
+					eventController.update_event(selected_event, function(evt:ResultEvent):void
+					{
+						ta_log.text += newLine()+"Event updated "+selected_event.event_ID;
+					});
+				}
+			}
+
+			
+			private function makeNew():void
+			{
+				selected_event = new PartnerEvent();
+			
+				
+			}
+
+
+			protected function dg_events_changeHandler(event:ListEvent):void
+			{
+				selected_event = dg_events.selectedItem as PartnerEvent;
+			}
+			private function removeItem():void
+			{
+				eventController.remove_event(selected_event, function(evt:ResultEvent):void
+				{
+					if(new PartnerEventResultHelper().removeResultGood(evt.result))
+					{
+					partner_events.removeItemAt(dg_events.selectedIndex);
+					selected_event = null;
+					ta_log.text += newLine()+"Event removed "+evt.result.toString();
+					}
+				});
+			} */
+
+		]]>
+	</fx:Script>
+	
+<!--	<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+    		<s:HGroup width="100%" horizontalAlign="left">
+    			
+    		</s:HGroup>	
+    		<s:HGroup width="100%" horizontalAlign="right">
+    			<s:Button label="Get Events" id="btn_getEvents" click="getEvents()"/>
+    		</s:HGroup>	
+    	</s:HGroup>	
+    
+	<mx:VDividedBox width="100%" height="100%">
+	
+		
+		<mx:DataGrid width="100%" height="30%" dataProvider="{partner_events}" id="dg_events" change="dg_events_changeHandler(event)"/>
+		<s:HGroup width="100%" height="100%">
+		
+		<mx:Form width="100%" height="100%">
+			<mx:FormItem label="Title"  width="100%" >
+				<s:TextInput id="ti_event_title" maxChars="100" width="100%" text="{selected_event.event_title}"/>
+			</mx:FormItem>
+			<mx:FormItem label="Event Start/End">
+				<s:HGroup>
+				<s:Label text="Start:"/>
+				<mx:DateField id="df_event_start" editable="true"   selectedDate="{timestampToDate(selected_event.event_start)}"/>
+				<s:Label text="End:"/>
+				<mx:DateField id="df_event_end"  selectedDate="{timestampToDate(selected_event.event_end)}"/>
+				</s:HGroup>
+			</mx:FormItem>
+			<mx:FormItem label="Registration Start/End">
+				<s:HGroup>
+				<s:Label text="Start:"/>
+				<mx:DateField id="df_event_reg_start" selectedDate="{timestampToDate(selected_event.event_reg_start)}"/>
+				<mx:DateField id="df_event_reg_end" selectedDate="{timestampToDate(selected_event.event_reg_end)}"/>
+				</s:HGroup>
+			</mx:FormItem>
+			<mx:FormItem label="Community Start/End">
+				<s:HGroup>
+				<s:Label text="Start:"/>
+				<mx:DateField id="df_event_community_start" selectedDate="{timestampToDate(selected_event.event_community_start)}"/>
+				<s:Label text="End:"/>
+				<mx:DateField id="df_event_community_end" selectedDate="{timestampToDate(selected_event.event_community_end)}"/>
+				</s:HGroup>
+			</mx:FormItem>
+			<mx:FormItem label="Floor Plan">
+				<s:TextInput id="ti_event_floorplan" text="{selected_event.event_floorplan}"/>
+			</mx:FormItem>
+			<s:HGroup width="100%">
+				<mx:FormItem label="Event Description">
+					<s:TextArea id="ta_event_description" text="{selected_event.event_description}"/>
+				</mx:FormItem>
+				<mx:FormItem label="Event Details">
+					<s:TextArea id="ta_event_details" text="{selected_event.event_details}"/>
+				</mx:FormItem>
+			</s:HGroup>
+		
+			<mx:FormItem label="Web Site">
+				<s:TextInput id="ti_event_website" text="{selected_event.event_website}"/>
+			</mx:FormItem>
+			<mx:FormItem label="event_logo">
+				<s:TextInput id="ti_event_logo" text="{selected_event.event_logo}"/>
+			</mx:FormItem>
+			<mx:FormItem label="event_city">
+				<s:TextInput id="ti_event_city" text="{selected_event.event_city}"/>
+			</mx:FormItem>
+			<mx:FormItem label="event_country">
+				<s:TextInput id="ti_event_country" text="{selected_event.event_country}"/>
+			</mx:FormItem>
+			<mx:FormItem label="event_address">
+				<s:TextInput id="ti_event_address" text="{selected_event.event_address}"/>
+			</mx:FormItem>
+			<mx:FormItem label="event_location_lat">
+				<s:TextInput id="ti_event_location_lat" text="{selected_event.event_location_lat}"/>
+			</mx:FormItem>
+			<mx:FormItem label="event_location_long">
+				<s:TextInput id="ti_event_location_long" text="{selected_event.event_location_long}"/>
+			</mx:FormItem>
+		
+		</mx:Form>
+			<s:VGroup width="250" height="100%">
+				<s:TextArea id="ta_log" width="100%" height="100%"/>
+			</s:VGroup>
+		</s:HGroup>
+	</mx:VDividedBox>
+		<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+        		<s:HGroup width="100%" horizontalAlign="left">
+					<s:Button label="New" click="makeNew()"/>
+					<s:Button label="Remove" click="removeItem()"/>
+        		</s:HGroup>	
+        		<s:HGroup width="100%" horizontalAlign="right">
+        			<s:Button label="Save" click="save()"/>
+        		</s:HGroup>	
+        	</s:HGroup>	
+        -->
+
+
+	
+	
+	
+</s:Group>

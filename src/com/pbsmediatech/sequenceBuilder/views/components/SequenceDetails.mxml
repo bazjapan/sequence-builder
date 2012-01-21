@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.pbsmediatech.dto.ControllerSequence;
+			import com.pbsmediatech.dto.Domain;
+			import com.pbsmediatech.json.utils.JSONResultHelper2;
+			import com.pbsmediatech.json.utils.extractResult;
+			import com.pbsmediatech.json.utils.extractResultMessage;
+			
+			import db.field.Field;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.findFieldByName;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getNumRecords;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.events.TextOperationEvent;
+			
+			import utils.object.listParams;
+			
+			[Bindable]private var _loaded_sequence:ControllerSequence;
+			private var _loaded_sequence_store_info:Object;
+			private var selected_domain:Domain;
+			[Bindable]private var domains:ArrayCollection = AppModel.getInstance().domains;
+			[Bindable]private var domain_stores:ArrayCollection = new ArrayCollection;
+
+			
+			public function get loaded_sequence():ControllerSequence
+			{
+				return _loaded_sequence;
+				
+			}
+
+			public function set loaded_sequence(value:ControllerSequence):void
+			{
+				
+				dd_domain_stores.selectedIndex = -1;
+				dd_domain_stores.prompt = "Select Store";
+				cb_uses_store.selected = false;
+				_loaded_sequence = value;
+				
+				//version
+				sequence_version.value =  loaded_sequence.sequence_version;
+				//sequence controller name
+				controller_name.text = loaded_sequence.sequence_controller_name;
+				//domain
+				for (var i:int = 0; i < domains.length; i++)
+				{
+					if(domains[i]["domain_label"] == loaded_sequence.sequence_domain)
+					{
+						selected_domain = domains[i] 
+						domain_name.selectedItem = selected_domain;
+						break;
+					}
+				}
+				
+				//object and class names
+				var infoObject:Object = JSON.decode(loaded_sequence.sequence_info);
+				object_name.text = infoObject.object_name;
+				class_name.text = infoObject.class_name; 
+				
+				//desc
+				controller_description.text = infoObject.controller_description;
+				sequence_version.value = loaded_sequence.sequence_version;
+				
+				if(selected_domain){
+					
+					fillDomainStores();
+					if(loaded_sequence.sequence_store_info != ""){
+						_loaded_sequence_store_info = JSON.decode(loaded_sequence.sequence_store_info);
+						for(var j:int = 0; j<domain_stores.length; j++){
+							var store:Object = domain_stores[j];
+							if(store['name'] === _loaded_sequence_store_info['name']){
+								dd_domain_stores.selectedIndex = j;
+								break;
+							}
+						}
+						}
+					
+					}
+				
+			}
+			
+			public function save():void
+			{
+
+				//version
+				loaded_sequence.sequence_version = sequence_version.value;
+				//sequence controller name
+				loaded_sequence.sequence_controller_name = controller_name.text;
+				//domain
+				loaded_sequence.sequence_domain = domain_name.selectedItem["domain_label"];
+					
+				
+			
+				
+				//notes
+				loaded_sequence.sequence_notes = sequence_notes.text;
+				
+				//class and object name and desc
+				var infoObject:Object = new Object;
+				infoObject.controller_description = controller_description.text;
+				infoObject.object_name = object_name.text;
+				infoObject.class_name = class_name.text;
+				loaded_sequence.sequence_info = JSON.encode(infoObject);
+			
+				
+			}
+
+
+			protected function domain_name_changeHandler(event:IndexChangeEvent):void
+			{
+				selected_domain = domains[event.newIndex];
+				fillDomainStores();
+			}
+			private function fillDomainStores():void{
+				
+				try{
+				domain_stores.source = selected_domain.domain_stores==''?[]:JSON.decode(selected_domain['domain_stores'])
+				}
+				catch(e:Error){
+					trace(e);
+				}
+			}
+
+
+			protected function cb_uses_store_changeHandler(event:Event):void
+			{
+				loaded_sequence.sequence_uses_store = cb_uses_store.selected?1:0;
+				if(loaded_sequence.sequence_uses_store == false){
+					loaded_sequence.sequence_table_name = "";
+					loaded_sequence.sequence_table_version = 0;
+					loaded_sequence.sequence_store_info = "";
+				}else{
+					if(dd_domain_stores.selectedItem != null){
+						loaded_sequence.sequence_store_info = JSON.encode(dd_domain_stores.selectedItem);
+					}
+				}
+			
+				
+			}
+
+
+			protected function dd_domain_stores_changeHandler(event:IndexChangeEvent):void
+			{
+				if(dd_domain_stores.selectedItem != null){
+					loaded_sequence.sequence_store_info = JSON.encode(dd_domain_stores.selectedItem);
+				}
+			}
+			
+			protected function get_table_info_clickHandler(event:MouseEvent):void
+			{
+				popTableEditor(null);
+			}
+			
+			private var tableEditor:TableEditor;
+			private function popTableEditor(f:Field = null):void
+			{
+				if(!tableEditor)
+				{
+					tableEditor = new TableEditor;
+					
+					tableEditor.height =400;
+					tableEditor.width = 800;
+					tableEditor.addEventListener(FieldEvent.EVENT_ADD_FIELD_TO_SEQUENCE,
+						function(evt:FieldEvent):void{
+							AppModel.getInstance().fields.addItem(evt.field);
+						});
+					tableEditor.addEventListener(FieldEvent.EVENT_UPDATE_FIELD_IN_SEQUENCE,
+						function(evt:FieldEvent):void{
+							var fields:ArrayCollection = AppModel.getInstance().fields;
+							var field_to_update:Field = findFieldByName(evt.field.field_name);
+							if(field_to_update != null){field_to_update = evt.field};
+						});
+					tableEditor.addEventListener(FieldEvent.EVENT_REMOVE_FIELD_FROM_SEQUENCE,
+						function(evt:FieldEvent):void{
+							var fields:ArrayCollection = AppModel.getInstance().fields;
+							fields.removeItemAt(fields.getItemIndex(evt.field));
+						});
+					
+					tableEditor.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+					{
+						PopUpManager.removePopUp(tableEditor);
+						
+					})
+				}
+				tableEditor.domain_label = AppModel.getInstance().loaded_sequence.sequence_domain;
+				tableEditor.title = table_name.text;
+				tableEditor.table_name = table_name.text;
+				tableEditor.selected_field = f;
+				tableEditor.validateField();
+				
+				PopUpManager.addPopUp(tableEditor,this,true);
+				PopUpManager.centerPopUp(tableEditor);
+			}
+
+			[Bindable]private var tables:ArrayCollection = new ArrayCollection;
+			private var store_name:String;
+			private function getTablesForDomain():void
+			{
+				tables.removeAll();
+				getDataStoreServiceController(selected_domain.domain_label, AppModel.getInstance().dev).get_table_names(function(evt:ResultEvent):void
+				{
+					store_name = extractResultMessage(evt);
+					var results:Array = new JSONResultHelper2().resultToArray(extractResult(evt));
+					for each (var obj:Object in results)
+					{
+						tables.addItem(listParams(obj)[0]);
+					}
+				});
+				
+			}
+			protected function refresh_available_tables_clickHandler(event:MouseEvent):void
+			{
+				getTablesForDomain()
+			}
+
+
+			protected function btn_use_table_clickHandler(event:MouseEvent):void
+			{
+				table_name.text = dd_available_tables.selectedItem as String;
+				loaded_sequence.sequence_table_name = table_name.text;
+			}
+
+
+			protected function table_name_changeHandler(event:TextOperationEvent):void
+			{
+				loaded_sequence.sequence_table_name = table_name.text;
+			}
+
+
+			protected function table_version_changeHandler(event:Event):void
+			{
+				loaded_sequence.sequence_table_version = table_version.value;
+			}
+
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%" horizontalAlign="left">
+		<s:Label text="Domain"/>
+		<s:DropDownList id="domain_name" requireSelection="true"  dataProvider="{domains}" labelField="domain_label" width="300" change="domain_name_changeHandler(event)"/>
+		<s:Label text="Stores"/>
+		<s:DropDownList prompt="Select Store" id="dd_domain_stores" enabled="{cb_uses_store.selected &amp;&amp; _loaded_sequence != null}"  dataProvider="{domain_stores}" change="dd_domain_stores_changeHandler(event)" labelField="name" width="300"/>
+		<s:CheckBox enabled="{_loaded_sequence != null}" id="cb_uses_store" selected="{_loaded_sequence.sequence_uses_store==1?true:false}" label="Uses Store"  change="cb_uses_store_changeHandler(event)"/>
+	</s:HGroup>	
+	<s:HGroup visible="{cb_uses_store.selected}" includeInLayout="{cb_uses_store.selected}" width="100%">
+		<s:VGroup width="100%" >
+			<s:Label text="Table Name"/>
+			<s:HGroup width="100%">
+				<s:DropDownList id="dd_available_tables" dataProvider="{tables}" prompt="Tables/Schema" width="250"/> 
+				<s:Button label="r" id="refresh_available_tables" toolTip="Refresh Available Tables" click="refresh_available_tables_clickHandler(event)" width="26"/>
+				<s:Button label=">" id="btn_use_table" toolTip="Use Selected Table" click="btn_use_table_clickHandler(event)" width="30"/>
+				<s:TextInput id="table_name" maxChars="50"  width="100%" text="{AppModel.getInstance().loaded_sequence.sequence_table_name}" change="table_name_changeHandler(event)"/>	
+				<s:Button label="i" id="get_table_info" toolTip="Show Table Info" click="get_table_info_clickHandler(event)" width="26"/>
+			</s:HGroup>
+		</s:VGroup>
+		
+		<s:VGroup>
+			<s:Label text="Num Records"/>
+			<s:Button label="000" toolTip="Get Number of Records" id="get_num_records" click="{getNumRecords(table_name.text, function(num:Object):void{get_num_records.label = num.toString()})}" />
+		</s:VGroup>
+		<s:VGroup>
+			<s:Label text="Table Version"/>
+			<s:NumericStepper id="table_version" change="table_version_changeHandler(event)" stepSize="0.1" value="{AppModel.getInstance().loaded_sequence.sequence_table_version}" maximum="99" minimum="0"/>
+		</s:VGroup>
+	</s:HGroup>
+	<mx:HRule width="100%"/>
+		<s:VGroup width="100%" enabled="{_loaded_sequence != null}">
+		<s:HGroup width="100%" enabled="{_loaded_sequence != null}">
+			<s:VGroup width="100%">
+				<s:HGroup width="100%">
+					<s:Label text="Sequence Name"/>
+					<s:TextInput id="controller_name" toolTip="Sequence_Name" maxChars="50"  width="100%"/>
+				</s:HGroup>
+				<s:HGroup width="100%">
+					<s:Label text="Sequence Ver"/>
+					<s:NumericStepper id="sequence_version" maximum="99" minimum="0" stepSize="0.01"/>
+					<!--
+					<s:TextInput id="sequence_version" maxChars="4"  width="100%" restrict=". 0-9" />-->
+				</s:HGroup>
+			</s:VGroup>
+			<s:HGroup width="100%">
+				<s:Label text="Controller Desc"/>
+				<s:TextArea id="controller_description" maxChars="200" height="50"  width="100%"/>
+				
+			</s:HGroup>
+			
+		</s:HGroup>
+		
+		<s:HGroup width="100%">
+			<s:HGroup width="100%">
+				<s:Label text="Object Name"/>
+				<s:TextInput id="object_name" maxChars="50" toolTip="object_name"  width="100%"/>
+			</s:HGroup>
+			<s:HGroup width="100%" height="100%">
+				<s:Label text="Class Name"/>
+				<s:TextInput id="class_name" maxChars="50" toolTip="ClassName"  width="100%"/>
+			</s:HGroup>
+		</s:HGroup>
+	</s:VGroup>
+	<mx:HRule width="100%"/>
+	<s:VGroup width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingBottom="5">
+		
+	<s:TextArea id="sequence_notes" text="{_loaded_sequence.sequence_notes}" width="100%" height="100%">
+		
+	</s:TextArea>
+	</s:VGroup>
+</s:Group>

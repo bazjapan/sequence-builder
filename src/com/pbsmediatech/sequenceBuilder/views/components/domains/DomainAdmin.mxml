@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*">
+	<s:layout>
+		<s:VerticalLayout verticalAlign="middle" horizontalAlign="center" />
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import app.popMessage;
+			
+			import com.pbsmediatech.DomainSettings;
+			import com.pbsmediatech.dto.Domain;
+			import com.pbsmediatech.json.controllers.DomainController;
+			import com.pbsmediatech.json.utils.DomainResultHelper;
+			import com.pbsmediatech.json.utils.extractResult;
+			import com.pbsmediatech.json.utils.extractResultMessage;
+			import com.pbsmediatech.json.utils.extractResultResult;
+			import com.pbsmediatech.json.utils.resultIsGood;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			[Bindable]private var show_get:Boolean = false;
+			[Bindable]private var domains:ArrayCollection = AppModel.getInstance().domains;
+			[Bindable]private var selected_domain:Domain;
+			
+			private var domainController:DomainController = new DomainController(AppModel.getInstance().service_base_url);
+			
+			private function cc():void
+			{
+				
+				this.addEventListener(KeyboardEvent.KEY_DOWN,onKeyDown);
+			}
+			
+			private function onKeyDown(event:KeyboardEvent):void
+			{
+				if(event.ctrlKey && event.shiftKey && event.keyCode == 83)
+				{
+					save_clickHandler();
+				}
+				if(event.ctrlKey && event.shiftKey && event.keyCode == 78)
+				{
+					add_domain_clickHandler();
+				}
+			}
+			
+			protected function dg_domains_changeHandler(event:ListEvent):void
+			{
+				selected_domain = dg_domains.selectedItem as Domain;
+			}
+			protected function save_clickHandler(event:MouseEvent = null):void
+			{
+				//fill params from form here
+				if(selected_domain == null){return};
+				selected_domain.domain_stores = dg_domain_stores.jsonArray;
+				
+				if(isNaN(selected_domain.domain_ID))
+				{
+					popMessage("Adding domain.");
+					domainController.add_domain(selected_domain,function(evt:ResultEvent):void
+					{
+						if(resultIsGood(evt))
+						{
+							selected_domain.domain_ID = extractResultResult(evt) as Number;
+							domains.addItem(selected_domain);
+						}
+						else
+						{
+						}
+						popMessage(extractResultMessage(evt),500);
+					});
+				}
+				else{
+					popMessage("Updating domain.");
+					domainController.update_domains_by_domain_ID(selected_domain,function(evt:ResultEvent):void
+					{
+						if(resultIsGood(evt))
+						{
+						}
+						else
+						{
+						}
+						popMessage(extractResultMessage(evt),500);
+					});
+				};
+			}
+			
+			protected function add_domain_clickHandler(event:MouseEvent = null):void
+			{
+				selected_domain = new Domain();
+			}
+			protected function remove_domain_clickHandler(event:MouseEvent):void
+			{
+				if(selected_domain == null){return};
+				if(isNaN(selected_domain.domain_ID)){selected_domain = null};
+				Alert.show("Are you sure you wish to remove this item?", "Remove Item?", Alert.YES|Alert.NO, null, 
+					function(ce:CloseEvent):void{
+						if(ce.detail == Alert.YES)
+						{
+							popMessage("Removing domain");
+							domainController.remove_domains_by_domain_ID(selected_domain, function(evt:ResultEvent):void
+							{
+								popMessage(extractResultMessage(evt));
+								if(resultIsGood(evt))
+								{
+									domains.removeItemAt(domains.getItemIndex(selected_domain));
+									selected_domain = null;
+								}
+							});
+						}
+					});
+			}
+		]]>
+	</fx:Script>
+	<mx:HDividedBox width="100%" height="100%">
+		<mx:DataGrid dataProvider="{domains}" width="360" height="100%" id="dg_domains" change="dg_domains_changeHandler(event)">
+			<mx:columns>
+				<mx:DataGridColumn dataField="domain_ID" width="50"/>
+				<mx:DataGridColumn dataField="domain_label" width="200"/>
+			</mx:columns>
+		</mx:DataGrid> 
+		<s:VGroup paddingLeft="20" paddingRight="20" width="100%" height="100%" >
+			<s:HGroup width="100%"  paddingBottom="20">
+				<s:HGroup width="100%" horizontalAlign="left">
+			<!--		<s:Button enabled="{selected_domain != null}" label="Remove" id="remove_domain" click="remove_domain_clickHandler(event)"/>
+					<s:Button label="Add" id="add_domain" click="add_domain_clickHandler(event)"/>-->
+				</s:HGroup>	
+				<s:HGroup  width="100%" horizontalAlign="right">
+					<s:Button enabled="{selected_domain != null}" label="Save Selected Domain" id="save" click="save_clickHandler(event)"/>
+				</s:HGroup>	
+			</s:HGroup>	
+		
+				<s:VGroup enabled="{selected_domain != null}" width="100%">
+					<s:HGroup width="100%">
+						<s:Label  text="ID" width="120"/>
+						<s:Label id="domain_ID" text="{isNaN(selected_domain.domain_ID)?'New':selected_domain.domain_ID}"/>
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Label text="domain_label" width="120"/>
+						<s:TextInput id="domain_label" width="200" text="{selected_domain.domain_label}"/>
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Label text="domain_api_url" width="120"/>
+						<s:TextInput id="domain_api_url" width="200" text="{selected_domain.domain_api_url}"/>
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Label text="domain_dev_api_url" width="120"/>
+						<s:TextInput id="domain_dev_api_url" width="200" text="{selected_domain.domain_dev_api_url}"/>
+					</s:HGroup>
+			
+					<s:HGroup width="100%">
+						<s:Label text="domain_code_url" width="120"/>
+						<s:TextInput id="domain_code_url" width="200" text="{selected_domain.domain_code_url}"/>
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Label text="domain_code_root" width="120"/>
+						<s:TextInput id="domain_code_root" width="200" text="{selected_domain.domain_code_root}"/>
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Label text="domain_package_root" width="120"/>
+						<s:TextInput id="domain_package_root" width="200" text="{selected_domain.domain_package_root}"/>
+					</s:HGroup>
+					<s:HGroup width="100%">
+						<s:Label text="domain_api_lang" width="120"/>
+						<s:TextInput id="domain_api_lang" width="200" text="{selected_domain.domain_api_lang}"/>
+					</s:HGroup>
+					<s:VGroup width="100%">
+						<s:Label text="domain_stores" width="120"/>
+						<components1:JSONArrayGrid width="100%" height="100%" id="dg_domain_stores" jsonArray="{selected_domain.domain_stores}"/>
+					</s:VGroup>
+				</s:VGroup>
+			</s:VGroup>
+	</mx:HDividedBox>
+</s:Group>

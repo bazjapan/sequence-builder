@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc(event)">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+	
+			
+
+
+			
+
+		]]>
+	</fx:Script>
+
+
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.pbsmediatech.json.utils.extractResult;
+			import com.pbsmediatech.json.utils.extractResultResult;
+			import com.pbsmediatech.json.utils.extractStatus;
+			
+			import com.pbsmediatech.code.method_builders.utils.MethodTypes;
+			
+			import mx.controls.Alert;
+			import mx.events.DataGridEvent;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.object.toString;
+			import utils.timestamp.dateToTimestamp;
+			protected function btn_close_clickHandler(event:MouseEvent):void
+			{
+				if(closeFunc != null){
+					closeFunc();
+				}
+			}
+
+			
+			protected function btn_call_method_clickHandler(event:MouseEvent):void
+			{
+				if(selected_method_info == null){return}
+				the_result.removeAll();
+				var vo:Object = new Object;
+				
+				for each (var inputObj:Object in form_inputs)
+				{
+					if(inputObj.inputter.text != ""){
+						
+						vo[inputObj.field] = inputObj.inputter.text;
+					}
+				}
+				
+				
+				method_caller_service.url = domain.domain_api_url+active_controller.name+"/"+selected_method_info.name;
+				
+				method_caller_service_start = new Date().time;
+				method_caller_service.send(vo);
+			}
+
+			protected function cc(event:FlexEvent):void
+			{
+				
+				method_info_service.addEventListener(ResultEvent.RESULT,function(evt:ResultEvent):void{
+					try{
+					var result:Object = extractResultResult(evt);	
+					for each (var o:Object in result)
+						{
+						method_infos.addItem(new SequenceMethodInfo(o));	
+						}
+						
+						if(result == null){
+							showError();
+						}else{
+							successes++;
+							//lt_methods.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, 1, null, 0, null, null, 0));
+						}
+					}catch(e:Error){
+						
+						showError()
+						
+					}
+					function showError():void{
+						successes--;
+						Alert.show("Controller is old version, please update.")
+					}
+					
+					
+				});
+				field_info_service.addEventListener(ResultEvent.RESULT,function(evt:ResultEvent):void{
+					try{
+						var result:Object = extractResultResult(evt);	
+						for each (var o:Object in result)
+						{
+							field_infos.addItem(o);	
+						}
+						if(result == null){
+							showError();
+						}else{
+						successes++;}
+					}catch(e:Error){
+						successes--;
+						showError()
+						
+					}
+					function showError():void{
+						Alert.show("Controller is old version, please update.")
+					}
+					
+					
+				});
+				
+				method_caller_service.addEventListener(ResultEvent.RESULT,function(evt:ResultEvent):void{
+					
+					try{
+						var result:Object = JSON.decode(extractResult(evt));
+						txt_status.text = result.status;
+						txt_message.text = result.message;
+						if(selected_method_info.type != MethodTypes.GET){
+						txt_result.text = result.result.toString();
+						}
+						//txt_sver.text = result.sver;
+						method_caller_service_end = new Date().time;
+						txt_lastResultDate.text = (method_caller_service_end-method_caller_service_start).toString()+" ms";
+					
+						for (var i:int = 0; i < result.result.length; i++)
+						{
+							the_result.addItem(result.result[i]);
+							
+						}
+						
+						if(result == null){
+							showError();
+						}else{
+							
+						}
+					}catch(e:Error){
+						
+						showError()
+						
+					}
+					function showError():void{
+						Alert.show("Unable to call method")
+					}
+					
+					
+				});
+				method_caller_service.addEventListener(FaultEvent.FAULT,function(evt:FaultEvent):void{
+					trace(evt)	
+				})
+				method_caller_service.useProxy = false;
+				method_caller_service.method = "POST";
+				method_caller_service.resultFormat = "text";
+				
+			
+			}
+
+
+		
+
+
+			
+
+
+			
+
+			protected function lt_output_fields_clickHandler(event:MouseEvent):void
+			{
+				if(!lt_output_fields.selectedItem){return};
+				var field_name:String = lt_output_fields.selectedItem.toString();
+				for each (var field_info:Object in field_infos)
+				{
+					if(field_name == field_info['field_name']){
+						
+						ta_fieldInfo.text = utils.object.toString(field_info);
+					}
+				}
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.TextInput;
+			import mx.containers.FormItem;
+			import com.pbsmediatech.code.method_builders.utils.SequenceMethodInfo;
+			import com.pbsmediatech.dto.ControllerSequence;
+			import com.pbsmediatech.dto.Domain;
+			
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.HTTPService;
+			
+			public var closeFunc:Function;
+			public var domain:Domain;
+			public var active_controller:Object;
+			
+			[Bindable]
+			private var the_result:ArrayCollection = new ArrayCollection;
+			
+			[Bindable]
+			private var successes:int = 0;
+			private var successes_needed:int = 2;
+			//need 2
+			
+			[Bindable]
+			private var method_infos:ArrayCollection = new ArrayCollection;
+			private var field_infos:ArrayCollection = new ArrayCollection;
+			
+			
+			[Bindable]
+			private var selected_method_info:SequenceMethodInfo;
+			
+			private var method_info_service:HTTPService = new HTTPService();
+			private var field_info_service:HTTPService = new HTTPService();
+			private var method_caller_service:HTTPService = new HTTPService();
+			private var method_caller_service_start:Number = 0;
+			private var method_caller_service_end:Number = 0;
+
+			
+			public function setUpTesting(domain:Domain, active_controller:Object):void
+			{
+				if(this.active_controller == null || this.active_controller.sequence_ID != active_controller.sequence_ID){ 
+				successes = 0;
+				method_infos.removeAll();
+				
+				this.domain = domain;
+				
+				selected_method_info = null;
+				
+				
+				this.active_controller = active_controller;
+				
+				method_info_service.url = domain.domain_api_url+active_controller.name+"/get_method_info"
+				method_info_service.send(new Object());
+				field_info_service.url = domain.domain_api_url+active_controller.name+"/get_field_info"
+				field_info_service.send(new Object());
+				}
+				
+			
+			}
+			protected function lt_methods_clickHandler(event:MouseEvent):void
+			{
+				selected_method_info =lt_methods.selectedItem as SequenceMethodInfo;
+				view_method();
+			}
+			
+			private var form_inputs:Array;
+			protected function view_method():void
+			{
+				form_inputs = [];
+				frm_input.removeAllElements();
+				if(selected_method_info == null){return}
+				lt_output_fields.dataProvider = new ArrayCollection(selected_method_info.output.fields);
+				for each (var inputPair:Object in selected_method_info.input)
+				{
+					
+					var formItem:FormItem = new FormItem();
+					formItem.label = inputPair['field'];
+					formItem.required = inputPair['required'];
+					formItem.setStyle("labelWidth", 150);
+					
+					var ti:TextInput = new TextInput();
+					ti.id = inputPair['field'];
+					if(inputPair['required']){
+					ti.setStyle("contentBackgroundColor", "#CCFF99");
+					}else{
+					ti.setStyle("contentBackgroundColor", "#CCCCCC");	
+					}
+					
+					formItem.addElement(ti);
+					
+					frm_input.addElement(formItem);
+					form_inputs.push({field:inputPair['field'], inputter:ti});
+				}
+				
+			}
+
+			
+			//active_controller
+			
+			//{"name":"View_Components",
+			//"sequence_version":"0.1",
+			//"sequence_ID":"101",
+			//"description":"Components to add to module",
+			//"methods":["version","sequence_ID","get_all_view_components",etc]
+			//}
+			
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%">
+	<s:HGroup width="100%" horizontalAlign="left">
+		<s:Button id="btn_close" click="btn_close_clickHandler(event)" label="Back to List"/>
+	</s:HGroup>
+	<s:HGroup width="100%" height="100%" horizontalAlign="right">
+	
+	</s:HGroup>
+	</s:HGroup>
+	<s:TabBar dataProvider="{vs}"/>
+	<mx:ViewStack width="100%" height="100%" id="vs" enabled="{successes === successes_needed}" creationPolicy="all">
+		<s:NavigatorContent width="100%" height="100%" label="Method Info">
+			<mx:HDividedBox width="100%" height="100%">
+				<s:DataGrid height="100%" width="100%" dataProvider="{method_infos}" id="lt_methods" click="lt_methods_clickHandler(event)">
+					<s:columns>
+						<s:ArrayList>
+							<s:GridColumn dataField="name" headerText="Name" minWidth="200"/>
+							<s:GridColumn dataField="type" headerText="Type" width="75"/>
+							<s:GridColumn dataField="auto_gen" headerText="Auto Gen" width="75"/>
+						</s:ArrayList>
+					</s:columns>
+				</s:DataGrid>
+				<s:VGroup width="100%" height="100%">
+					<s:Label text="Expected Output" fontWeight="bold" fontSize="14"/>
+					<s:Label text="Number Returned"/>
+					<mx:Text width="100%" text="{selected_method_info.output.num}"/>
+					<s:Label text="Fields"/>
+					<s:List id="lt_output_fields"  width="100%" height="100%" click="lt_output_fields_clickHandler(event)">
+					</s:List>
+					<s:TextArea id="ta_fieldInfo" width="100%">
+					</s:TextArea>
+				</s:VGroup>
+			</mx:HDividedBox>
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="Method Results">
+			<mx:HDividedBox width="100%" height="100%">
+			
+				<s:VGroup width="400" height="100%" name="Input">
+					<s:HGroup width="100%">
+					<s:Label text="Expected Input" fontWeight="bold" fontSize="14" width="190"/>
+					<s:Button enabled="{selected_method_info != null}" id="btn_call_method" label="Call Method" click="btn_call_method_clickHandler(event)" width="200"/>
+					</s:HGroup>
+					<s:Form id="frm_input">
+						
+					</s:Form>
+				</s:VGroup>
+				<s:VGroup width="100%" height="100%" name="Results">
+					<s:HGroup width="100%">
+						<s:Label text="Results" fontWeight="bold" fontSize="14" />
+						<s:Label text="{selected_method_info.name}" />
+					</s:HGroup>
+					<s:HGroup>
+						<mx:Text id="txt_lastResultDate"/>
+						<mx:Text id="txt_status"/>
+						<mx:Text id="txt_message"/>
+						<mx:Text id="txt_result"/>
+					</s:HGroup>
+					<s:DataGrid dataProvider="{the_result}" width="100%" height="100%" sortableColumns="true" >
+						
+					</s:DataGrid>
+					
+				</s:VGroup>
+		
+			</mx:HDividedBox>
+		</s:NavigatorContent>
+		
+		
+	</mx:ViewStack>
+	
+</s:Group>
