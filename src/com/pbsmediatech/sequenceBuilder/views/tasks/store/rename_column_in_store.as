@@ -1,16 +1,16 @@
 package com.pbsmediatech.sequenceBuilder.views.tasks.store
 {
 	import com.pbsmediatech.code.method_builders.sql.makeSQLUpdateColumnScript;
+	import com.pbsmediatech.sequenceBuilder.AppModel;
+	import com.pbsmediatech.sequenceBuilder.views.components.EnterNamePop;
+	import com.pbsmediatech.sequenceBuilder.views.tasks.convertMySQLRowToField;
 	
 	import db.MySQLRow;
 	import db.field.Field;
 	
 	import flash.display.DisplayObject;
 	
-	import com.pbsmediatech.sequenceBuilder.AppModel;
-	import com.pbsmediatech.sequenceBuilder.views.components.EnterNamePop;
-	import com.pbsmediatech.sequenceBuilder.views.tasks.convertMySQLRowToField;
-	
+	import mx.controls.Alert;
 	import mx.events.CloseEvent;
 	import mx.managers.PopUpManager;
 
@@ -24,6 +24,7 @@ package com.pbsmediatech.sequenceBuilder.views.tasks.store
 		namePop.minLength = AppModel.getInstance().MIN_COL_NAME_LENGTH;
 		namePop.happy = function(field_name:String):void
 		{
+			if(field_name.indexOf(" ")>-1){Alert.show("Illegal Characters, please try again"); return}
 			var old_field_name:String = selected_row.Field;
 			if(field_name == old_field_name){removePop()}else{
 				var converted:Field = convertMySQLRowToField(selected_row);

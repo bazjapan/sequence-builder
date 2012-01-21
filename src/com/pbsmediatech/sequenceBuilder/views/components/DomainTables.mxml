@@ -14,14 +14,14 @@
 			import com.pbsmediatech.json.utils.JSONResultHelper2;
 			import com.pbsmediatech.json.utils.extractResult;
 			import com.pbsmediatech.json.utils.extractResultMessage;
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.store.rename_column_in_store;
 			
 			import database.mySQL.getMySQLIllegalCharacters;
 			
 			import db.MySQLRow;
-			
-			import com.pbsmediatech.sequenceBuilder.AppModel;
-			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
-			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
 			
 			import mx.collections.ArrayCollection;
 			import mx.rpc.events.ResultEvent;
@@ -133,25 +133,7 @@
 			}
 			protected function rename_column_in_store_clickHandler(event:MouseEvent):void
 			{
-				var namePop:EnterNamePop= new EnterNamePop;
-				PopUpManager.addPopUp(namePop, this, true);
-				PopUpManager.centerPopUp(namePop);
-				namePop.title = "Enter New Column Name for "+selected_row.Field;
-				namePop.minLength = AppModel.getInstance().MIN_COL_NAME_LENGTH;;
-				namePop.happy = function(field_name:String):void
-				{
-					if(field_name.indexOf(" ")>-1){Alert.show("Illegal Characters, please try again"); return}
-					var old_field_name:String = selected_row.Field;
-					var converted:Field = convertMySQLRowToField(selected_row);
-					var sql:String = makeSQLUpdateColumnScript(selected_table_name,old_field_name,field_name,converted.field_type,converted.field_size, converted.is_last_mod);
-					commit_command_to_store(sql);
-					PopUpManager.removePopUp(namePop);
-					
-				}
-				namePop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
-				{
-					PopUpManager.removePopUp(namePop);
-				});
+				com.pbsmediatech.sequenceBuilder.views.tasks.store.rename_column_in_store(this, selected_row, selected_table_name, commit_command_to_store);
 			}
 			
 			[Bindable]private var allow_create_table:Boolean = true;

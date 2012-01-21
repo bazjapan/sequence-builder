@@ -10,6 +10,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
 			import com.adobe.serialization.json.JSON;
 			import com.pbsmediatech.dto.ControllerSequence;
 			import com.pbsmediatech.dto.Domain;

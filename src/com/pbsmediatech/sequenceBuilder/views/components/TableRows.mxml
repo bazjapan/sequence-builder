@@ -8,6 +8,7 @@
 
 	<fx:Script>
 		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
 			import com.adobe.serialization.json.JSON;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLAddColumnToTable;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLRemoveColumnFromTableScript;
