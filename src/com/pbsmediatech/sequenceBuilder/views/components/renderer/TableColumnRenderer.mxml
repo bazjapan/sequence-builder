@@ -13,19 +13,20 @@
 		<![CDATA[
 			import com.pbsmediatech.json.utils.JSONResultHelper2;
 			import com.pbsmediatech.json.utils.extractResult;
-			
-			import db.Datastore;
-			import db.MySQLRow;
-			import db.field.Field;
-			import db.field.IDFieldSize;
-			
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
 			import com.pbsmediatech.sequenceBuilder.views.components.NoteTaker2;
 			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.compareFieldToMySQLRow;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.field.set_field_default_value;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.field.set_field_validation;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVaraibleLengthProperty;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
+			
+			import db.Datastore;
+			import db.MySQLRow;
+			import db.field.Field;
+			import db.field.IDFieldSize;
 			
 			import mx.collections.ArrayCollection;
 			import mx.core.Application;
@@ -353,34 +354,19 @@
 			protected function field_default_value_clickHandler(event:MouseEvent):void
 			{
 				
-				var noteTaker:NoteTaker2 = new NoteTaker2;
-				noteTaker.width = 300;
-				noteTaker.height = 200;
-				noteTaker.text = field.default_value;
-				noteTaker.title = "Default for "+field.field_name;
-				PopUpManager.addPopUp(noteTaker,Application.application as DisplayObject,true);
-				PopUpManager.centerPopUp(noteTaker);
-				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
-				{
-					field.default_value = noteTaker.text;
-					PopUpManager.removePopUp(noteTaker);
+				set_field_default_value(field, this, function(field:Field):void{
+					
+					
 				})
 			}
 			protected function field_validation_clickHandler(event:MouseEvent):void
 			{
 				
-				var noteTaker:NoteTaker2 = new NoteTaker2;
-				noteTaker.width = 300;
-				noteTaker.height = 200;
-				noteTaker.text = field.validation;
-				noteTaker.title = "Validation for "+field.field_name;
-				PopUpManager.addPopUp(noteTaker,Application.application as DisplayObject,true);
-				PopUpManager.centerPopUp(noteTaker);
-				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
-				{
-					field.validation = noteTaker.text;
-					PopUpManager.removePopUp(noteTaker);
+				set_field_validation(field, this, function(field:Field):void{
+					
+					
 				})
+				
 			}
 			protected function field_prompt_clickHandler(event:MouseEvent):void
 			{
