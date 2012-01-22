@@ -23,7 +23,7 @@
 		<s:HGroup width="100%">
 			
 		<s:TextInput id="key_name" toolTip="Name of Key" width="100%"/>
-		<s:Button label="ok" enabled="{table_name.text.length+1 &gt; minTableNameLength &amp;&amp; key_name.text.length &gt; minTableKeyLength}" click="{happy(table_name.text, key_name.text)}"/>
+		<s:Button label="ok" enabled="{table_name.text.length+1 &gt; minTableNameLength &amp;&amp; key_name.text.length+1 &gt; minTableKeyLength}" click="{happy(table_name.text, key_name.text)}"/>
 		</s:HGroup>
 	</s:VGroup>
 	
