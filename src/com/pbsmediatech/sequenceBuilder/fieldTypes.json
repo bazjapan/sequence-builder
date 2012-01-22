@@ -1,0 +1,52 @@
+{"fields":{
+"nvarchar":{
+"name":"nvarchar",
+"available_validators":["pattern" , "minLength" , "maxLength", "oneOfTheseValues"]
+},
+"datetime":{
+"name":"datetime",
+"available_validators":["after" , "before"]
+},
+"decimal":{
+"name":"decimal",
+"available_validators":["min", "max"]
+},
+"Text":{"name":"Text",
+"available_validators":["minLength" , "maxLength"]
+},
+"int":{
+"name":"int",
+"available_validators":["min", "max"]
+},
+"list":{
+"name":"list",
+"available_validators":["minItems", "maxItems","oneOfTheseValues"]
+},
+
+"json_array":{
+"name":"json_array",
+"available_validators":["minItems", "maxItems"]
+}
+},
+"validators":{
+"min":{"value":"int"},
+"max":{"value":"int"},
+"pattern" :{"value":"nvarchar"},
+"matches" :{"value":"nvarchar"},
+"minLength":{"value":"int"},
+"maxLength":{"value":"int"},
+"minItems":{"value":"int"},
+"maxItems":{"value":"int"},
+"notEmpty":{},
+"oneOfTheseValues":{"values":"list"},
+"after":{"value":"datetime"},
+"before":{"value":"datetime"}
+}
+
+}
+
+
+
+
+
+

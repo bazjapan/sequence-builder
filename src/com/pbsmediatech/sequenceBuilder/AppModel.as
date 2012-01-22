@@ -3,6 +3,7 @@ package com.pbsmediatech.sequenceBuilder
 	
 	
 	import com.pbsmediatech.dto.ControllerSequence;
+	import com.pbsmediatech.sequenceBuilder.views.components.field.validation.FieldValidation;
 	
 	import db.Datastore;
 	import db.field.Field;
@@ -47,6 +48,9 @@ package com.pbsmediatech.sequenceBuilder
 		//application version
 		public var sequence_maker_version:Number = 0;
 		public var view_maker_version:Number = 0;
+		
+		//initialDate
+		public var fieldValidation:FieldValidation = new FieldValidation();
 		
 		//RULES
 		//Datastore

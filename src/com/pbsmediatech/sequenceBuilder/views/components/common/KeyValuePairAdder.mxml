@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="444" height="300">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
+			public var saveFunc:Function
+			
+			[Bindable]
+			public var allowed_keys:ArrayCollection = new ArrayCollection;
+			[Bindable]
+			public var key_header:String = "The Key";
+			[Bindable]
+			public var value_header:String = "The Value";
+			
+			[Bindable]
+			public var keys:ArrayCollection = new ArrayCollection;
+			
+
+			protected function btn_add_clickHandler(event:MouseEvent):void
+			{
+				var kv:KeyValuePair = new KeyValuePair({key : cb_key.selectedItem as String ,value : ti_value.text});
+				keys.addItem(kv);
+			}
+
+
+			protected function btn_save_clickHandler(event:MouseEvent):void
+			{
+				if(saveFunc){
+					
+					saveFunc(keys);
+				}
+			}
+
+		]]>
+	</fx:Script>
+	
+	
+<s:VGroup width="100%" height="100%">
+	<s:HGroup width="100%">
+		<s:ComboBox id="cb_key" dataProvider="{allowed_keys}"/>
+		<s:TextInput id="ti_value"/>
+		<s:Button id="btn_add" label="Add" click="btn_add_clickHandler(event)" enabled="{cb_key.textInput.text.length &gt; 0 &amp;&amp; ti_value.text.length &gt; 0}"/>
+		<s:Button id="btn_save" label="Save" click="btn_save_clickHandler(event)"/>
+	</s:HGroup>
+	<s:DataGrid dataProvider="{keys}" width="100%" height="100%" editable="true">
+		<s:columns>
+			<s:ArrayList>
+				<s:GridColumn dataField="key"  headerText="{key_header}"/>
+				<s:GridColumn dataField="value"  headerText="{value_header}"/>
+			</s:ArrayList>
+		</s:columns>
+	</s:DataGrid>
+	
+</s:VGroup>	
+	
+	
+	
+	
+	
+</s:TitleWindow>
