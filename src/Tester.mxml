@@ -10,19 +10,46 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
-			import com.pbsmediatech.dto.ActiveController;
+			import com.maccherone.json.JSON;
+			import com.pbsmediatech.sequenceBuilder.views.components.common.KeyValuePair;
+			import com.pbsmediatech.sequenceBuilder.views.components.common.KeyValuePairAdder;
+			import com.pbsmediatech.sequenceBuilder.views.components.field.validation.FieldValidation;
+			import com.pbsmediatech.sequenceBuilder.views.components.field.validation.ValidationSetter;
 			
-			import utils.object.inspect;
-			import utils.object.listParams;
-			import utils.type.newInstance;
-			private function cc():void{
-				var obj:Object = new Object;
-				obj.name = "Fred";
-				var classIntance:Object = newInstance(ActiveController, [obj]);
+			import mx.collections.ArrayCollection;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.validators.IValidator;
+			
+			public function cc():void{
 				
-				trace(inspect(classIntance))
+				var myValidation : Object = new Object();
+				myValidation.maxLength = {value:100};
+				myValidation.pattern = {value:"blah blah"};
 				
+				
+				var context:DisplayObject = this;
+				var fv:FieldValidation = new FieldValidation(
+				function():void{
+					var vs:ValidationSetter = new ValidationSetter();
+					PopUpManager.addPopUp(vs,context);
+					vs.validationConfig = fv;
+					vs.setFieldType("varchar");
+					vs.saveFunc = function(validators:Object):void{
+						trace(JSON.encode(validators,true));
+					};
+					vs.setCurrentValidation(myValidation);
+					
+					
+				}
+				);
+				
+			
+				
+			
+			
 			}
+			
 		]]>
 	</fx:Script>
 	

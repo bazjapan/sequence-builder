@@ -39,11 +39,11 @@
 			import utils.string.replace;
 			import utils.text.newLine;
 
-
+			
 
 			private function cc():void
 			{
-				AppModel.getInstance().sequence_maker_version = 0.93
+				AppModel.getInstance().sequence_maker_version = 0.95
 				//0.2 Domain Tales
 				//0.3 Deploy PHP controller
 				//0.4 Fields can be moved up and down;
@@ -57,6 +57,8 @@
 				//0.92 Json Array Datagrid and ViewProjects Admin added
 				//0.921 PHP controller maker now being give methodInfo object
 			    //0.93 Generating light Sequence Object Config
+				//0.94 refactored to pbsmediatech 
+					//0.95 Validation and Default Value to Field Adders
 					
 				AppModel.getInstance().datastore.fields = new ArrayCollection;
 				
