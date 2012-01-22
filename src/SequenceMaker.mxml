@@ -16,14 +16,14 @@
 			import com.pbsmediatech.json.utils.DomainResultHelper;
 			import com.pbsmediatech.json.utils.JSONResultHelper2;
 			import com.pbsmediatech.json.utils.extractResult;
-			
-			import db.MySQLRow;
-			
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			import com.pbsmediatech.sequenceBuilder.views.components.ForeignKeyList;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.loadSequenceToModel;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.sequences.loadSavedSequncesForDomainToModel;
+			import com.pbsmediatech.sequenceBuilder.views.user.UserLogin;
+			
+			import db.MySQLRow;
 			
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
@@ -43,7 +43,7 @@
 
 			private function cc():void
 			{
-				AppModel.getInstance().sequence_maker_version = 0.95
+				AppModel.getInstance().sequence_maker_version = 0.96
 				//0.2 Domain Tales
 				//0.3 Deploy PHP controller
 				//0.4 Fields can be moved up and down;
@@ -59,14 +59,35 @@
 			    //0.93 Generating light Sequence Object Config
 				//0.94 refactored to pbsmediatech 
 					//0.95 Validation and Default Value to Field Adders
+					//0.96 Added Login Component
 					
+				var login_screen:UserLogin = new UserLogin;
+				PopUpManager.addPopUp(login_screen,this,true);
+				PopUpManager.centerPopUp(login_screen);
+				login_screen.onComplete = function():void{
+				login_screen.lb_message.text = "Loading Data Domains";
+				
 				AppModel.getInstance().datastore.fields = new ArrayCollection;
 				
+				var IDs:String = AppModel.getInstance().User_current.managed_domain_ids;
+				if(IDs == "*"){
 				new DomainController(AppModel.getInstance().service_base_url).get_all_domains(function(evt:ResultEvent):void
 				{
 					var results:Array = new DomainResultHelper().resultToArray(extractResult(evt));
 					AppModel.getInstance().domains.source = results;
+					PopUpManager.removePopUp(login_screen);
+					login_screen = null;
+				}); 
+				}else{
+				new DomainController(AppModel.getInstance().service_base_url).get_domains_by_domain_IDs({domain_IDs:IDs},function(evt:ResultEvent):void
+				{
+					var results:Array = new DomainResultHelper().resultToArray(extractResult(evt));
+					AppModel.getInstance().domains.source = results;
+					PopUpManager.removePopUp(login_screen);
+					login_screen = null;
 				});
+				}
+				}
 				
 			}
 

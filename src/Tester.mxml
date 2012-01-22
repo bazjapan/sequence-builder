@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
-			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" creationComplete="cc()">
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" creationComplete="cc()" xmlns:user="com.pbsmediatech.sequenceBuilder.views.user.*">
 	<s:layout>
 		<s:VerticalLayout/>
 	</s:layout>
@@ -23,27 +23,7 @@
 			
 			public function cc():void{
 				
-				var myValidation : Object = new Object();
-				myValidation.maxLength = {value:100};
-				myValidation.pattern = {value:"blah blah"};
-				
-				
-				var context:DisplayObject = this;
-				var fv:FieldValidation = new FieldValidation(
-				function():void{
-					var vs:ValidationSetter = new ValidationSetter();
-					PopUpManager.addPopUp(vs,context);
-					vs.validationConfig = fv;
-					vs.setFieldType("varchar");
-					vs.saveFunc = function(validators:Object):void{
-						trace(JSON.encode(validators,true));
-					};
-					vs.setCurrentValidation(myValidation);
-					
-					
-				}
-				);
-				
+			
 			
 				
 			
@@ -52,6 +32,8 @@
 			
 		]]>
 	</fx:Script>
-	
+	<user:UserLogin>
+		
+	</user:UserLogin>
 	
 </s:Application>

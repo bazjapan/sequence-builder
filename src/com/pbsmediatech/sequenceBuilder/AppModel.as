@@ -3,6 +3,7 @@ package com.pbsmediatech.sequenceBuilder
 	
 	
 	import com.pbsmediatech.dto.ControllerSequence;
+	import com.pbsmediatech.dto.User;
 	import com.pbsmediatech.sequenceBuilder.views.components.field.validation.FieldValidation;
 	
 	import db.Datastore;
@@ -57,6 +58,8 @@ package com.pbsmediatech.sequenceBuilder
 		public var MIN_COL_NAME_LENGTH:int  = 2;
 		public var MIN_TABLE_NAME_LENGTH:int  = 2;
 		public var MIN_TABLE_KEY_LENGTH:int  = 2;
+		
+		public var User_current:User;
 	
 
 		
