@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"  width="100%" minWidth="400" height="100%" xmlns:datetime="datetime.*">
+<s:layout>
+	<s:VerticalLayout/>
+</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import spark.events.TextOperationEvent;
+			protected function btn_save_clickHandler(event:MouseEvent):void
+			{
+				if(saveFunc != null){
+					var validators:Object = {};
+					for each (var vw:ValidationWrapper in available_validators)
+					{
+						if(vw.show){
+							validators[vw.validator["name"]] = {};
+							validators[vw.validator["name"]]["value"] = vw.initialValue;
+						}
+					}
+					
+					
+					saveFunc(validators);
+				}
+			}
+			
+			//handlers ----
+			protected function cb_min_changeHandler(event:Event):void
+			{
+				min.show = CheckBox(event.currentTarget).selected;
+			}
+			
+			protected function ns_min_changeHandler(event:Event):void
+			{
+				min.initialValue = ns_min.value;
+			}
+
+
+			protected function cb_max_changeHandler(event:Event):void
+			{
+				max.show = CheckBox(event.currentTarget).selected;
+			}
+			protected function ns_max_changeHandler(event:Event):void
+			{
+				max.initialValue = ns_max.value;
+			}
+
+
+			protected function cb_minLength_changeHandler(event:Event):void
+			{
+				minLength.show = CheckBox(event.currentTarget).selected;
+			}
+
+
+			protected function ns_minLength_changeHandler(event:Event):void
+			{
+				minLength.initialValue = ns_minLength.value;
+			}
+
+
+			protected function cb_maxLength_changeHandler(event:Event):void
+			{
+				maxLength.show = CheckBox(event.currentTarget).selected;
+			}
+
+
+			protected function ns_maxLength_changeHandler(event:Event):void
+			{
+				maxLength.initialValue = ns_maxLength.value;
+			}
+
+
+			protected function cb_minItems_changeHandler(event:Event):void
+			{
+				minItems.show = CheckBox(event.currentTarget).selected;
+			}
+
+
+			protected function ns_minItems_changeHandler(event:Event):void
+			{
+				minItems.initialValue = ns_minItems.value;
+			}
+
+
+			protected function cb_maxItems_changeHandler(event:Event):void
+			{
+				maxItems.show = CheckBox(event.currentTarget).selected;
+			}
+
+
+			protected function ns_maxItems_changeHandler(event:Event):void
+			{
+				maxItems.initialValue = ns_maxItems.value;
+			}
+
+
+			protected function cb_pattern_changeHandler(event:Event):void
+			{
+				pattern.show = CheckBox(event.currentTarget).selected;
+			}
+
+
+			protected function ti_pattern_changeHandler(event:TextOperationEvent):void
+			{
+				pattern.initialValue = TextInput(event.currentTarget).text;
+			}
+
+
+			protected function cb_matches_changeHandler(event:Event):void
+			{
+				matches.show = CheckBox(event.currentTarget).selected;
+			}
+
+
+			protected function ti_matches_changeHandler(event:TextOperationEvent):void
+			{
+				matches.initialValue = TextInput(event.currentTarget).text;
+			}
+
+
+			protected function cb_before_changeHandler(event:Event):void
+			{
+				before.show = CheckBox(event.currentTarget).selected;
+			}
+
+
+			protected function dtp_before_changeHandler(event:Event):void
+			{
+				if(before != null)
+				before.initialValue = DateTimePicker(event.currentTarget).selectedDate;
+			}
+
+
+			protected function cb_after_changeHandler(event:Event):void
+			{
+				after.show = CheckBox(event.currentTarget).selected;
+			}
+
+
+			protected function dtp_after_changeHandler(event:Event):void
+			{
+				if(after != null)
+				after.initialValue = DateTimePicker(event.currentTarget).selectedDate;
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import utils.object.hasProperties;
+			import db.field.validators.After;
+			import db.field.validators.Before;
+			import db.field.validators.Matches;
+			import db.field.validators.Max;
+			import db.field.validators.MaxItems;
+			import db.field.validators.MaxLength;
+			import db.field.validators.Min;
+			import db.field.validators.MinItems;
+			import db.field.validators.MinLength;
+			import db.field.validators.Pattern;
+			
+			
+			public var validationConfig:FieldValidation;
+			private var available_validation_types:Object;
+			public var saveFunc:Function;
+			
+			public var available_validators:Array = [];
+			
+			[Bindable]
+			private var min:ValidationWrapper;
+			[Bindable]
+			private var max:ValidationWrapper;
+			[Bindable]
+			private var minLength:ValidationWrapper;
+			[Bindable]
+			private var maxLength:ValidationWrapper;
+			[Bindable]
+			private var pattern:ValidationWrapper;
+			[Bindable]
+			private var matches:ValidationWrapper;
+			[Bindable]
+			private var minItems:ValidationWrapper;
+			[Bindable]
+			private var maxItems:ValidationWrapper;
+			[Bindable]
+			private var after:ValidationWrapper;
+			[Bindable]
+			private var before:ValidationWrapper;
+			
+			
+			public function setFieldType(ft:String):void{
+				available_validation_types = validationConfig.getAvailableValidatorsByFieldName(ft);
+				var contentHeight:int = 0;
+				for each (var val_type:String in available_validation_types)
+				{
+					switch(val_type){
+						case "min" :
+						min = new ValidationWrapper(new db.field.validators.Min);
+						available_validators.push(min);
+						contentHeight += 30;
+						break;
+						case "max" :
+						max = new ValidationWrapper(new db.field.validators.Max);
+						available_validators.push(min);
+						contentHeight += 30;
+						break;
+						case "pattern" :
+						pattern = new ValidationWrapper(new db.field.validators.Pattern);
+						available_validators.push(pattern);
+						contentHeight += 30;
+						break;
+						case "matches" :
+						matches = new ValidationWrapper(new db.field.validators.Matches);
+						available_validators.push(matches);
+						contentHeight += 30;
+						break;
+						case "minLength" :
+						minLength = new ValidationWrapper(new db.field.validators.MinLength);
+						available_validators.push(minLength);
+						contentHeight += 30;
+						break;
+						case "maxLength" :
+						maxLength = new ValidationWrapper(new db.field.validators.MaxLength);
+						available_validators.push(maxLength);
+						contentHeight += 30;
+						break;
+						case "minItems" :
+						minItems = new ValidationWrapper(new db.field.validators.MinItems);
+						available_validators.push(minItems);
+						contentHeight += 30;
+						break;
+						case "maxItems" :
+						maxItems = new ValidationWrapper(new db.field.validators.MaxItems);
+						available_validators.push(maxItems);
+						contentHeight += 30;
+						break;
+						case "after" :
+						after = new ValidationWrapper(new db.field.validators.After);
+						available_validators.push(after);
+						contentHeight += 30;
+						break;
+						case "before" :
+						before = new ValidationWrapper(new db.field.validators.Before);
+						available_validators.push(before);
+						contentHeight += 30;
+						break;
+					}
+				}
+		
+				
+				content.height = contentHeight;
+				
+			}
+			
+			public function setCurrentValidation(validation:Object):void
+			{
+				if(validation == null)return;
+				for each (var vw:ValidationWrapper in available_validators)
+				{
+					if(validation.hasOwnProperty(vw.validator["name"])){
+						vw.show = true;
+						vw.initialValue = validation[vw.validator["name"]]["value"];
+					}else{
+						vw.show = false;
+					}
+					
+				}
+				
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<s:VGroup id="content" width="100%" paddingTop="10" paddingBottom="15" paddingRight="5" paddingLeft="5">
+		<s:HGroup id="hg_min" visible="{min != null}" includeInLayout="{min != null}" width="100%">
+			<s:HGroup   width="23" horizontalAlign="left">
+			<s:CheckBox  selected="{min.show}" id="cb_min" change="cb_min_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Minimum Value" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_min.selected}"  width="100%" horizontalAlign="right">
+				<s:NumericStepper id="ns_min" maximum="1000" change="ns_min_changeHandler(event)" value="{min.initialValue || 0}"/>
+			</s:HGroup>
+		</s:HGroup>
+		
+		<s:HGroup id="hg_max" visible="{max != null}" includeInLayout="{max != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox  selected="{max.show}" id="cb_max" change="cb_max_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Maximum Value" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_max.selected}"  width="100%" horizontalAlign="right">
+				<s:NumericStepper id="ns_max" maximum="1000" change="ns_max_changeHandler(event)" value="{max.initialValue || 0}"/>
+			</s:HGroup>
+		</s:HGroup>
+		<s:HGroup id="hg_minLength" visible="{minLength != null}" includeInLayout="{minLength != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox selected="{minLength.show}" id="cb_minLength" change="cb_minLength_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Minimum Length" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_minLength.selected}"  width="100%" horizontalAlign="right">
+				<s:NumericStepper id="ns_minLength" maximum="1000" change="ns_minLength_changeHandler(event)" value="{minLength.initialValue || 0}"/>
+			</s:HGroup>
+		</s:HGroup>
+		<s:HGroup id="hg_maxLength" visible="{maxLength != null}" includeInLayout="{maxLength != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox selected="{maxLength.show}"  id="cb_maxLength" change="cb_maxLength_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Maximum Length" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_maxLength.selected}"  width="100%" horizontalAlign="right">
+				<s:NumericStepper id="ns_maxLength" maximum="1000" change="ns_maxLength_changeHandler(event)"  value="{maxLength.initialValue || 0}"/>
+			</s:HGroup>
+		</s:HGroup>
+		<!--list items-->
+		<s:HGroup id="hg_minItems" visible="{minItems != null}" includeInLayout="{minItems != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox selected="{minItems.show}"  id="cb_minItems" change="cb_minItems_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Minimum Num Items" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_minItems.selected}"  width="100%" horizontalAlign="right">
+				<s:NumericStepper id="ns_minItems" maximum="1000" change="ns_minItems_changeHandler(event)"   value="{minItems.initialValue || 0}"/>
+			</s:HGroup>
+		</s:HGroup>
+		<s:HGroup id="hg_maxItems" visible="{maxItems != null}" includeInLayout="{maxItems != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox  selected="{maxItems.show}"   id="cb_maxItems" change="cb_maxItems_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Maximum Num Items" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_maxItems.selected}"  width="100%" horizontalAlign="right">
+				<s:NumericStepper id="ns_maxItems" maximum="1000" change="ns_maxItems_changeHandler(event)"   value="{maxItems.initialValue || 0}"/>
+			</s:HGroup>
+		</s:HGroup>
+		
+		<s:HGroup id="hg_pattern" visible="{pattern != null}" includeInLayout="{pattern != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox  selected="{pattern.show}" id="cb_pattern" change="cb_pattern_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Pattern" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_pattern.selected}"  width="100%" horizontalAlign="right">
+				<s:TextInput id="ti_pattern" width="100%" change="ti_pattern_changeHandler(event)" text="{pattern.initialValue || ''}"/>
+			</s:HGroup>
+		</s:HGroup>
+		<s:HGroup id="hg_matches" visible="{matches != null}"  includeInLayout="{matches != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox  selected="{matches.show}"   id="cb_matches" change="cb_matches_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Matches" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_matches.selected}"  width="100%" horizontalAlign="right">
+				<s:TextInput id="ti_matches" width="100%" change="ti_matches_changeHandler(event)"  text="{matches.initialValue || ''}"/>
+			</s:HGroup>
+		</s:HGroup>
+		<s:HGroup id="hg_before" visible="{before != null}" includeInLayout="{before != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox  selected="{before.show}"   id="cb_before" change="cb_before_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Before Date" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_before.selected}"  width="100%" horizontalAlign="right">
+				<datetime:DateTimePicker  height="30" id="dtp_before" change="dtp_before_changeHandler(event)"  selectedDate="{before.initialValue || before.validator['value']}"/>
+			</s:HGroup>
+		</s:HGroup>
+		<s:HGroup id="hg_after" visible="{after != null}"  includeInLayout="{after != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox  selected="{after.show}"  id="cb_after" change="cb_after_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="After Date" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_after.selected}"  width="100%" horizontalAlign="right">
+				<datetime:DateTimePicker  height="30" id="dtp_after" change="dtp_after_changeHandler(event)"  selectedDate="{after.initialValue || after.validator['value']}"/>
+			</s:HGroup>
+		</s:HGroup>
+	</s:VGroup>
+	
+	<s:HGroup id="controlBar" width="100%" paddingBottom="10">
+		<s:HGroup  width="23" horizontalAlign="left">
+		</s:HGroup>
+		<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+		</s:HGroup>
+		<s:HGroup  width="100%" horizontalAlign="right">
+			<s:Button label="Save" id="btn_save" click="btn_save_clickHandler(event)"/>
+		</s:HGroup>
+	</s:HGroup>
+</s:TitleWindow>

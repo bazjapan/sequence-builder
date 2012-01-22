@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="100%">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import datetime.DateTimePicker;
+			
+			import db.field.Field;
+			
+			import mx.controls.Text;
+			import mx.controls.TextInput;
+			
+			import spark.components.NumericStepper;
+			import spark.components.TextArea;
+			
+			import utils.object.isNull;
+			import utils.timestamp.timestampToDate;
+			
+			public var saveFunc:Function;
+			protected function btn_save_clickHandler(event:MouseEvent):void
+			{
+				if(saveFunc != null){
+					saveFunc(myValue);
+				}
+			}
+			private var myValue:Object;
+			public function setField(f:Field):void
+			{
+				myValue = f.default_value;
+				
+				switch(f.field_type){
+					case "varchar" :
+						addTextInput(isNull(myValue)?"":myValue, f.field_size);
+						break;
+					case "datetime" :
+						addDateTimePicker(isNull(myValue)?"2012-01-01":myValue);
+						break;
+					case "decimal" :
+						addNumericStepper(isNull(myValue)?0:myValue);
+						break;
+					case "int" :
+						addNumericStepper(isNull(myValue)?0:myValue);
+						break;
+					case "Text" :
+						addTextArea(isNull(myValue)?"":myValue);
+						break;
+					default :
+						addTextInput(isNull(myValue)?"":myValue, 100)
+						break;
+				}
+				
+				
+				
+			}
+			
+			
+			private function addTextInput(v:Object, m:Number):void{
+			var ti:TextInput = new TextInput;
+			content.addElement(ti);
+			ti.text = String(v);
+			ti.maxChars = m;
+			content.height = 30;
+			ti.height = content.height;
+			ti.width = content.width;
+			ti.addEventListener(Event.CHANGE,function(e:Event):void
+			{
+				myValue = TextInput(e.currentTarget).text;
+			})
+			}
+			private function addDateTimePicker(v:Object):void{
+				var ti:DateTimePicker = new DateTimePicker;
+				content.addElement(ti);
+				if(v.length>0){
+				ti.selectedDate = timestampToDate(String(v));
+				}
+				content.height = 30;
+				ti.height = content.height;
+				ti.width = content.width;
+				ti.addEventListener(Event.CHANGE,function(e:Event):void
+				{
+					myValue = DateTimePicker(e.currentTarget).selectedDate;
+				})
+			
+			}
+			private function addNumericStepper(v:Object):void{
+				var ti:NumericStepper = new NumericStepper;
+				content.addElement(ti);
+				ti.value = Number(v) || 0;
+				content.height = 30;
+				ti.height = content.height;
+				ti.width = content.width;
+				ti.addEventListener(Event.CHANGE,function(e:Event):void
+				{
+					myValue = NumericStepper(e.currentTarget).value;
+				})
+			}
+			private function addTextArea(v:Object):void{
+				var ti:TextArea = new TextArea;
+				content.addElement(ti);
+				ti.text = String(v);
+				content.height = 60;
+				ti.height = content.height;
+				ti.width = content.width;
+				ti.addEventListener(Event.CHANGE,function(e:Event):void
+				{
+					myValue = TextArea(e.currentTarget).text;
+				})
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	
+	
+	
+<s:VGroup width="100%" height="100%" id="content">
+	
+</s:VGroup>	
+	
+	<s:HGroup id="controlBar" width="100%" paddingBottom="10">
+		<s:HGroup  width="23" horizontalAlign="left">
+		</s:HGroup>
+		<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+		</s:HGroup>
+		<s:HGroup  width="100%" horizontalAlign="right">
+			<s:Button label="Save" id="btn_save" click="btn_save_clickHandler(event)"/>
+		</s:HGroup>
+	</s:HGroup>	
+	
+</s:TitleWindow>
