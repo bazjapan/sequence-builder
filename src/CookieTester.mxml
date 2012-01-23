@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import de.aggro.utils.CookieUtil;
+		]]>
+	</fx:Script>
+	
+
+	
+	<mx:Label x="10" y="10" text="Name:"/>
+	<mx:TextInput x="111" y="8" id="ti_sname"/>
+	<mx:Label x="10" y="38" text="Value:"/>
+	<mx:TextInput x="111" y="36" id="ti_svalue"/>
+	<mx:Label x="10" y="66" text="Time To live:"/>
+	<mx:TextInput x="111" y="64" id="ti_stime"/>
+	<mx:Button x="226" y="94" label="Set" buttonDown="CookieUtil.setCookie(ti_sname.text, ti_svalue.text, int(ti_stime.text))"/>
+	<mx:Label x="10" y="152" text="Name:"/>
+	<mx:TextInput x="111" y="150" id="ti_gname"/>
+	<mx:Button x="225" y="180" label="Get" buttonDown="Alert.show(CookieUtil.getCookie(ti_gname.text).toString())"/>
+</s:Application>

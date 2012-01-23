@@ -39,11 +39,11 @@
 			import utils.string.replace;
 			import utils.text.newLine;
 
-			
-
+			[Bindable]
+			private var dev_history:ArrayCollection = new ArrayCollection;
 			private function cc():void
 			{
-				AppModel.getInstance().sequence_maker_version = 0.96
+				
 				//0.2 Domain Tales
 				//0.3 Deploy PHP controller
 				//0.4 Fields can be moved up and down;
@@ -58,8 +58,20 @@
 				//0.921 PHP controller maker now being give methodInfo object
 			    //0.93 Generating light Sequence Object Config
 				//0.94 refactored to pbsmediatech 
-					//0.95 Validation and Default Value to Field Adders
-					//0.96 Added Login Component
+				//0.95 Validation and Default Value to Field Adders
+				//0.96 Added Login Component
+				//0.961 Improved Login Panel
+				//0.962 Cookie added to user_login
+					
+				
+				dev_history.addItem({ver:0.95, summary : "Validation and Default Value to Field Adders"});
+				dev_history.addItem({ver:0.96, summary : "Added Login Component"});
+				dev_history.addItem({ver:0.961, summary : "Improved Login Panel"});
+				dev_history.addItem({ver:0.962, summary : "Cookie added to user_login"});
+				dev_history.addItem({ver:0.963, summary : "Added Enter Key Handler to Login"});
+				
+				AppModel.getInstance().sequence_maker_version = Number(dev_history.getItemAt(dev_history.length-1)["ver"]);
+			
 					
 				var login_screen:UserLogin = new UserLogin;
 				PopUpManager.addPopUp(login_screen,this,true);
@@ -604,20 +616,8 @@
 				
 			</components1:CodeAdmin>
         </s:NavigatorContent>
-        <s:NavigatorContent label="Clipboard">
-			<s:HGroup width="100%" height="100%">
-				<s:TextArea id="ta_copy_area" text="{AppModel.getInstance().copy_area_text}" change="{AppModel.getInstance().copy_area_text = ta_copy_area.text}" width="100%" height="100%" fontSize="14">
-					
-				</s:TextArea>
-			</s:HGroup>
-		</s:NavigatorContent>
-		<s:NavigatorContent label="Log">
-			<s:HGroup width="100%" height="100%">
-				<s:TextArea id="ta_log_area" text="{AppModel.getInstance().session_log_text}"  width="100%" height="100%" fontSize="14">
-					
-				</s:TextArea>
-			</s:HGroup>
-		</s:NavigatorContent>
+      
+		
 	
 		<s:NavigatorContent width="100%" height="100%" label="Operational">
 		
@@ -626,7 +626,7 @@
 			</components1:ActiveControllers>
 	
 		</s:NavigatorContent>
-		<s:NavigatorContent label="Data Store">
+		<s:NavigatorContent label="Data Stores">
 			<components1:DomainTables width="100%" height="100%">
 				
 			</components1:DomainTables>
@@ -643,6 +643,33 @@
 			</components1:ViewProjectAdmin>
 			
 		</s:NavigatorContent>
-		
+		<s:NavigatorContent label="Utils">
+			<mx:TabNavigator width="100%" height="100%">
+				<s:NavigatorContent label="Clipboard">
+					<s:HGroup width="100%" height="100%">
+						<s:TextArea id="ta_copy_area" text="{AppModel.getInstance().copy_area_text}" change="{AppModel.getInstance().copy_area_text = ta_copy_area.text}" width="100%" height="100%" fontSize="14">
+							
+						</s:TextArea>
+					</s:HGroup>
+				</s:NavigatorContent>
+				<s:NavigatorContent label="Log">
+					<s:HGroup width="100%" height="100%">
+						<s:TextArea id="ta_log_area" text="{AppModel.getInstance().session_log_text}"  width="100%" height="100%" fontSize="14">
+							
+						</s:TextArea>
+					</s:HGroup>
+				</s:NavigatorContent>
+				<s:NavigatorContent label="Dev History">
+					<s:DataGrid width="100%" height="100%" dataProvider="{dev_history}">
+						<s:columns>
+							<s:ArrayList>
+								<s:GridColumn dataField="ver" headerText="Ver" width="50"/>
+								<s:GridColumn dataField="summary" headerText="Summary"/>
+							</s:ArrayList>
+						</s:columns>
+					</s:DataGrid>
+				</s:NavigatorContent>
+			</mx:TabNavigator>
+		</s:NavigatorContent>
 	</mx:ViewStack>
 </s:Application>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="100%" title="Login">
+		 xmlns:mx="library://ns.adobe.com/flex/mx" keyDown="titlewindow1_keyDownHandler(event)" width="320" height="100%" title="Login" creationComplete="cc()">
 	<s:layout>
 		<s:VerticalLayout/>
 	</s:layout>
@@ -17,9 +17,16 @@
 			import com.pbsmediatech.json.utils.extractResultResult;
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			
+			import de.aggro.utils.CookieUtil;
+			
 			import mx.rpc.events.ResultEvent;
 			protected function btn_login_clickHandler(event:MouseEvent):void
 			{
+				if(ti_user_login.text == '' || ti_user_pass.text == ''){
+					
+					return;
+				}
+				btn_login.enabled = false;
 				new UserController(DomainSettings.API_URL).login({user_login : ti_user_login.text, user_pass : ti_user_pass.text}, function(evt:ResultEvent):void
 				{
 					var result:Object = extractResultResult(evt);
@@ -28,22 +35,47 @@
 						AppModel.getInstance().User_current = new User(result);
 						if(onComplete != null){
 							
+							
+							CookieUtil.setCookie("user_login", ti_user_login.text, 30);
 							onComplete();
 						}
 					}else{
 						
 						lb_message.text = extractResultMessage(evt);
+						btn_login.enabled = true;
 					}
 				})
 			}
 			public var onComplete:Function;
 			public var onFail:Function;
 
-			protected function form1_keyDownHandler(event:KeyboardEvent):void
-			{
-				trace(event.ctrlKey)
-				trace(event.keyCode)
+		
+			
+			private function cc():void{
+				try{
+				var cookie_user_login:Object = CookieUtil.getCookie("user_login").toString();
+				if(cookie_user_login != null){
+					ti_user_login.text = cookie_user_login as String;
+					
+				}
+				else{
+					trace("User Unknown");
+				}
+				}catch(e:Error){
+					trace("Cookie not set");
+					
+				}
+			
 			}
+			
+			private function titlewindow1_keyDownHandler(event:KeyboardEvent):void
+			{
+				if (event.keyCode == Keyboard.ENTER)
+					btn_login.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+			}
+
+
+			
 
 		]]>
 	</fx:Script>
@@ -51,16 +83,23 @@
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-<s:Form width="100%" keyDown="form1_keyDownHandler(event)">
-	<s:FormItem label="User Name" required="true">
+
+<s:Form width="100%">
+	<s:FormItem label="Name" required="true">
 		<s:TextInput id="ti_user_login" />
 	</s:FormItem>
-	<s:FormItem label="User Password" required="true">
+	<s:FormItem label="Password" required="true">
 		<s:TextInput id="ti_user_pass" displayAsPassword="true"/>
 	</s:FormItem>
+	<s:HGroup width="100%">
+		
+	<s:HGroup horizontalAlign="left">
+	<s:Label text="{'Current Ver : '+AppModel.getInstance().sequence_maker_version}"/>
+	</s:HGroup>
 	<s:HGroup width="100%" horizontalAlign="right">
 		<s:Label textAlign="center" width="100%" id="lb_message" color="#943030"/>
-		<s:Button label="Login" id="btn_login" click="btn_login_clickHandler(event)"/>
+		<s:Button label="Login" id="btn_login" click="btn_login_clickHandler(event)" enabled="{ti_user_login.text != '' &amp;&amp; ti_user_pass.text != ''}"/>
+	</s:HGroup>
 	</s:HGroup>
 	
 </s:Form>
