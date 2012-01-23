@@ -6,6 +6,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.adobe.serialization.json.JSON;
+			import com.pbsmediatech.sequenceBuilder.AppModel;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.TextInput;
@@ -19,6 +20,7 @@
 			import utils.ac.moveItemDown;
 			import utils.ac.moveItemUp;
 			import utils.object.isEmpty;
+			import utils.text.newLine;
 	
 			
 			[Bindable]
@@ -32,6 +34,8 @@
 			[Bindable]
 			public var allowAddParam:Boolean = true;
 			[Bindable]
+			public var allowRemoveParam:Boolean = true;//not using yet
+			[Bindable]
 			public var selectionMode:String = "singleRow";
 			[Bindable]
 			private var ac:ArrayCollection = new ArrayCollection;
@@ -40,8 +44,14 @@
 			
 			public function set jsonArray(jsonA:String):void
 			{
+				try{
 				if(jsonA == ""){jsonA = "[]"};
 				ac.source = JSON.decode(jsonA);
+				}
+				catch(e:Error){
+					AppModel.getInstance().session_log_text += e+newLine();
+					
+				}
 			}
 			public function get jsonArray():String{
 				var array:Array = removeEmpties(ac.source);
@@ -191,6 +201,12 @@
 						PopUpManager.addPopUp(tw, this);
 			}
 
+
+			protected function btn_remove_param_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
 		]]>
 	</fx:Script>
 
@@ -208,5 +224,6 @@
 		<s:Button label="u" visible="{selected_object != null}" id="btn_move_up" click="btn_move_up_clickHandler(event)" toolTip="Move Item Up"  width="24" icon="{AssetLib.JSONARRAY_GRID_UP}"/>
 		<s:Button label="d" visible="{selected_object != null}" id="btn_move_down" click="btn_move_down_clickHandler(event)" toolTip="Move Item Down"  width="24" icon="{AssetLib.JSONARRAY_GRID_DOWN}"/>
 		<s:Button label="a" visible="{selected_object != null  &amp;&amp; allowAddParam}" id="btn_add_param" click="btn_add_param_clickHandler(event)" toolTip="Add Column"  width="24" includeInLayout="{allowAddParam}" icon="{AssetLib.JSONARRAY_GRID_ADD_COLUMN}"/>
+		<!--<s:Button label="r" visible="{selected_object != null  &amp;&amp; allowRemoveParam}" id="btn_remove_param" click="btn_remove_param_clickHandler(event)" toolTip="Remove Column"  width="24" includeInLayout="{allowRemoveParam}" icon="{AssetLib.JSONARRAY_GRID_REMOVE_COLUMN}"/>-->
 	</s:HGroup>
 </s:Group>

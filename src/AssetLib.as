@@ -15,6 +15,8 @@ package
 		public static var JSONARRAY_GRID_UP:Class;
 		[Embed(source="/assets/app-icons/iconsets/diagona/add2.png")]
 		public static var JSONARRAY_GRID_ADD_COLUMN:Class;
+		[Embed(source="/assets/app-icons/iconsets/diagona/minus.png")]
+		public static var JSONARRAY_GRID_REMOVE_COLUMN:Class;
 		
 	}
 }
