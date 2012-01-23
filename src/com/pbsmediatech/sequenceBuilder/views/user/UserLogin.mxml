@@ -26,6 +26,7 @@
 					
 					return;
 				}
+				lb_message.text = "Verifying Login";
 				btn_login.enabled = false;
 				new UserController(DomainSettings.API_URL).login({user_login : ti_user_login.text, user_pass : ti_user_pass.text}, function(evt:ResultEvent):void
 				{
