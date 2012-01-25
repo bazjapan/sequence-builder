@@ -1,0 +1,17 @@
+{
+"sb_types":{
+"varchar":{
+
+"lang":{
+"mySql" :{ "type":"varchar"},
+"js" :{ "type":"String"},
+"as" :{ "type":"String"}
+
+
+]
+
+}
+
+}
+
+
