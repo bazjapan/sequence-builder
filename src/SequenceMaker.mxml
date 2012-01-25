@@ -452,7 +452,7 @@
 			{
 				var s:ControllerSequence = AppModel.getInstance().loaded_sequence;
 				var c:Object = {};
-				c.home = s.sequence_domain+"."+s.sequence_controller_name;
+				c.path = s.sequence_domain+"."+s.sequence_controller_name;
 				c.fields = [];
 				
 				for (var i:int = 0; i < AppModel.getInstance().fields.length; i++)
@@ -468,13 +468,12 @@
 					if(!f.updateable)fc.updateable = false;
 					if(f.is_required)fc.is_required = true;
 					if(f.is_unique)fc.is_unique = true;
-					if(f.field_type== Field.JSONOBJ && !isEmpty(f.json_labels))fc.json_labels = f.json_labels;
+					if((f.field_type== Field.JSONOBJ || f.field_type== Field.JSONARR) && !isEmpty(f.json_labels))fc.json_labels = f.json_labels;
 					if(!isEmpty(f.default_value))fc.default_value = f.default_value;
 					if(!isEmpty(f.prompt))fc.prompt = f.prompt;
 					if(!isEmpty(f.validation))fc.validation = f.validation
 					fc.name = f.field_name;
 					c.fields.push(fc);
-					trace(f.json_labels)
 					
 				}
 				var infoObject:Object = JSON.decode(s.sequence_info);
