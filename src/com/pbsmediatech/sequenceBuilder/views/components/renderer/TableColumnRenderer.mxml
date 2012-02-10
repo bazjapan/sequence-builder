@@ -435,6 +435,9 @@
 												  horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_fields_types}" change="field_type_changeHandler(event)">
 					
 				</components1:FieldTypeDropDownList>
+				<s:HGroup includeInLayout="{field.is_FK}">
+					<s:Label text="Hello"/>
+				</s:HGroup>	
 				<s:HGroup visible="{field_type.selectedItem == Field.DATE_TIME}">
 					<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Last Modified Date" source="{IconLib.CLOCK_24}" id="is_last_mod" click="is_last_mod_clickHandler(event)" alpha="{field.is_last_mod?1:0.3}"/>
 					<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Date Created" source="{IconLib.CLOCK_GREEN_24}" id="is_insert_date" click="is_insert_date_clickHandler(event)" alpha="{field.is_insert_date?1:0.3}"/>

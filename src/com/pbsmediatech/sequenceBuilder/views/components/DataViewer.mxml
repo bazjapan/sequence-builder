@@ -6,26 +6,15 @@
 		<s:VerticalLayout/>
 	</s:layout>
 
-	<fx:Script>
-		<![CDATA[
-	
-			
-
-
-			
-
-		]]>
-	</fx:Script>
 
 
 	<fx:Script>
 		<![CDATA[
 			import com.adobe.serialization.json.JSON;
+			import com.pbsmediatech.code.method_builders.utils.MethodTypes;
 			import com.pbsmediatech.json.utils.extractResult;
 			import com.pbsmediatech.json.utils.extractResultResult;
 			import com.pbsmediatech.json.utils.extractStatus;
-			
-			import com.pbsmediatech.code.method_builders.utils.MethodTypes;
 			
 			import mx.controls.Alert;
 			import mx.events.DataGridEvent;
@@ -225,6 +214,9 @@
 			[Bindable]
 			private var selected_method_info:SequenceMethodInfo;
 			
+			[Bindable]
+			private var selected_object:Object;
+			
 			private var method_info_service:HTTPService = new HTTPService();
 			private var field_info_service:HTTPService = new HTTPService();
 			private var method_caller_service:HTTPService = new HTTPService();
@@ -291,14 +283,11 @@
 			}
 
 			
-			//active_controller
-			
-			//{"name":"View_Components",
-			//"sequence_version":"0.1",
-			//"sequence_ID":"101",
-			//"description":"Components to add to module",
-			//"methods":["version","sequence_ID","get_all_view_components",etc]
-			//}
+			protected function dg_the_result_clickHandler(event:MouseEvent):void
+			{
+				selected_object = dg_the_result.selectedItem;
+			}
+
 			
 		]]>
 	</fx:Script>
@@ -344,7 +333,6 @@
 					<s:Button enabled="{selected_method_info != null}" id="btn_call_method" label="Call Method" click="btn_call_method_clickHandler(event)" width="200"/>
 					</s:HGroup>
 					<s:Form id="frm_input">
-						
 					</s:Form>
 				</s:VGroup>
 				<s:VGroup width="100%" height="100%" name="Results">
@@ -358,7 +346,7 @@
 						<mx:Text id="txt_message"/>
 						<mx:Text id="txt_result"/>
 					</s:HGroup>
-					<s:DataGrid dataProvider="{the_result}" width="100%" height="100%" sortableColumns="true" >
+					<s:DataGrid dataProvider="{the_result}" width="100%" height="100%" sortableColumns="true" id="dg_the_result" click="dg_the_result_clickHandler(event)">
 						
 					</s:DataGrid>
 					
