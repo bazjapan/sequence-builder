@@ -70,5 +70,10 @@ package com.pbsmediatech.sequenceBuilder.assets
 	public static var NEW_24:Class;
 	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/load_24.png")]
 	public static var LOAD_24:Class;
+	
+	
+	
+	[Embed(source="/assets/app-icons/iconsets/fugue/control-cursor.png")]
+	public static var FIELD_NICENAME:Class;
 	}
 }

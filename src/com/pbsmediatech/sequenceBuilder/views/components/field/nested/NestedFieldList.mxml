@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.pbsmediatech.code.method_builders.sql.makeSQLAddColumnToTable;
+			import com.pbsmediatech.code.method_builders.sql.makeSQLRemoveColumnFromTableScript;
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.components.renderer.NestedFieldRenderer;
+			import com.pbsmediatech.sequenceBuilder.views.components.renderer.TableColumnRenderer;
+			import com.pbsmediatech.sequenceBuilder.views.components.table.KeyFieldList;
+			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
+			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVaraibleLengthProperty;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.findFieldByName;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getDefaultFieldSizeByFieldType;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getFieldInfo;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.getNumRecords;
+			
+			import db.field.Field;
+			import db.field.IDFieldSize;
+			import db.getFieldTypeLength;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.containers.TitleWindow;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.ac.moveItemDown;
+			import utils.ac.moveItemUp;
+			import utils.events.CallbackEvent;
+			
+			
+			[Bindable]public var fields:ArrayCollection;
+			private function cc():void
+			{
+				lt_fields.addEventListener("TRASH_FIELD", onTRASH_FIELD);
+				lt_fields.addEventListener("EVENT_CHECK_ONLY_ID_FIELD", onEVENT_CHECK_ONLY_ID_FIELD);
+				
+			}
+			
+			public var saveFunc:Function;
+			public var cancelFunc:Function;
+			
+			
+			
+			
+			protected function btn_cancel_clickHandler(event:MouseEvent):void
+			{
+				if(cancelFunc != null){
+					cancelFunc()
+				}
+			}
+		
+			protected function btn_save_clickHandler(event:MouseEvent):void
+			{
+				if(saveFunc != null){
+					saveFunc(fields)
+				}
+			}
+		
+	
+			
+			
+			
+			private function onEVENT_CHECK_ONLY_ID_FIELD(event:CallbackEvent):void
+			{
+				for each (var field:Field in fields)
+				{
+					
+					if(field.is_ID)
+					{
+						Alert.show("Only one ID field allowed");
+						event.callback(false);
+						return;
+					}
+				}
+				event.callback(true);
+			}
+			
+			
+			private function onTRASH_FIELD(event:Event):void
+			{
+				var renderer:NestedFieldRenderer = NestedFieldRenderer(event.target);
+				fields.removeItemAt(fields.getItemIndex(renderer.field));
+			}
+			
+			protected function sort_by_field_name_clickHandler(event:MouseEvent):void
+			{
+				doSort("field_name", fields, false);
+			}
+			
+			private function doSort(field:String, ac:ArrayCollection, isDescending:Boolean = true):void
+			{
+				var sortField:SortField = new SortField;
+				sortField.name = field;
+				sortField.descending = isDescending;
+				var sort:Sort = new Sort();
+				//sort.reverse();
+				sort.fields = [sortField];
+				ac.sort = sort;
+				ac.refresh();
+			}
+			protected function sort_by_is_ID_clickHandler(event:MouseEvent):void
+			{
+				doSort("is_ID", fields);
+			}
+			
+			
+			protected function sort_by_updateable_clickHandler(event:MouseEvent):void
+			{
+				doSort("updateable", fields);
+			}
+			
+			
+			protected function sort_by_can_search_by_clickHandler(event:MouseEvent):void
+			{
+				doSort("can_search_by", fields);
+			}
+			
+			
+			protected function sort_by_can_update_by_clickHandler(event:MouseEvent):void
+			{
+				doSort("can_update_by", fields);
+			}
+			
+			
+			protected function sort_by_can_remove_by_clickHandler(event:MouseEvent):void
+			{
+				doSort("can_remove_by", fields);
+			}
+			
+			
+			protected function add_row_clickHandler(event:MouseEvent):void
+			{
+				var fieldToAdd:Field = new Field;
+				fieldToAdd.field_name = field_name.text;
+				field_name.text = "";
+				fieldToAdd.field_type = String(field_type.selectedItem);
+				fieldToAdd.field_size = getFieldTypeLength(fieldToAdd.field_type, field_size.value);	
+				
+				fieldToAdd.is_ID = is_ID.selected;
+				
+				//check only id field
+				if(fieldToAdd.is_ID)
+				{
+					for each (var field:Field in fields)
+					{
+						
+						if(field.is_ID)
+						{
+							Alert.show("Only one ID field allowed");
+							return;
+						}
+					}
+				}
+				
+				
+				//check exists
+				var exists:Boolean;
+				for (var i:int = 0; i < fields.length; i++)
+				{
+					if(Field(fields[i]).field_name == fieldToAdd.field_name)
+					{
+						exists = true;
+						break;
+					} 
+				}
+				if(exists)
+				{
+					Alert.show("Field with the same name already exists");
+					return;
+				}
+				else
+				{
+					
+					
+					
+					if(fieldToAdd.is_ID)
+					{
+						fieldToAdd.can_remove_by = true;
+						fieldToAdd.can_search_by = true;
+						fieldToAdd.can_update_by = true;
+					}
+					is_ID.selected = false;
+					
+					//fieldToAdd.can_remove_by = can_remove_by.selected;
+					//can_remove_by.selected = false;
+					//fieldToAdd.can_search_by = can_search_by.selected;
+					//can_search_by.selected = false;
+					//fieldToAdd.can_update_by = can_update_by.selected;
+					//can_update_by.selected = false;
+					//fieldToAdd.updateable = updateable.selected;
+					//updateable.selected = false;
+					//fieldToAdd.json_labels = json_labels.text;
+					
+					if(fieldToAdd.field_type == Field.DATE_TIME)
+					{
+						fieldToAdd.is_insert_date = is_insert_date.selected;
+						fieldToAdd.is_last_mod = is_last_mod.selected;
+						/* if(is_last_mod.selected)
+						{
+						fieldToAdd.field_type = Field.TIMESTAMP;
+						} */
+					}
+					
+					fields.addItem(fieldToAdd);
+				}
+			}
+			
+			
+		
+			protected function field_type_changeHandler(event:IndexChangeEvent):void
+			{
+				field_size.value = getDefaultFieldSizeByFieldType(String(field_type.selectedItem), field_size.value);
+			}
+			
+			
+			
+			
+			
+			
+			
+			protected function lt_fields_changeHandler(event:IndexChangeEvent):void
+			{
+				
+			}
+			
+			private function moveUp():void
+			{
+				var selected_field:Field = lt_fields.selectedItem;
+				if(selected_field == null){return;};
+				moveItemUp(selected_field,fields);
+				fields.refresh();
+				lt_fields.selectedItem = selected_field;
+				
+			}
+			
+			private function moveDown():void
+			{
+				var selected_field:Field = lt_fields.selectedItem;
+				if(selected_field == null){return;};
+				moveItemDown(selected_field,fields);
+				fields.refresh();
+				lt_fields.selectedItem = selected_field;
+				
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+			
+	
+	
+	<mx:HRule width="100%"/>
+	<s:HGroup width="100%">
+		<s:TextInput id="field_name" toolTip="field_name" maxChars="50"  width="100%" />
+		<components1:FieldTypeDropDownList id="field_type" toolTip="field_type" width="100%"
+										   requireSelection="true"
+										   horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_nested_fields_types}" change="field_type_changeHandler(event)" >
+			
+		</components1:FieldTypeDropDownList>
+		<s:NumericStepper  enabled="{fieldHasVaraibleLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="0.1" minimum="0" maximum="5000" toolTip="field_size"/>
+		<mx:VRule height="24"/>
+		<s:HGroup width="100%" includeInLayout="{field_type.selectedItem == Field.DATE_TIME}" visible="{field_type.selectedItem == Field.DATE_TIME}" horizontalAlign="right">
+			<s:CheckBox toolTip="Date created" label="Creation Date" id="is_insert_date" click="{if(is_insert_date.selected)is_last_mod.selected = false}"/>
+			<s:CheckBox toolTip="Last modified date" label="Last Modified" id="is_last_mod" click="{if(is_last_mod.selected)is_insert_date.selected = false}"/>
+			<mx:VRule height="24"/>
+		</s:HGroup>
+		<s:CheckBox label="is ID" id="is_ID" />
+		<s:Button label="Add" id="add_row" click="add_row_clickHandler(event)"/>
+		<!--<s:Button enabled="{AppModel.getInstance().loaded_sequence != null}" width="50" label="K" toolTip="show store keys" id="show_store_keys" click="show_foreign_keys_clickHandler(event)"/>-->
+		<s:Button width="50" label="New" id="do_new" click="{field_name.text = ''; field_size.value = 0; is_ID.selected = false;}"/>
+		
+	</s:HGroup>
+	<s:HGroup width="100%" paddingLeft="3">
+		<s:Label text="Sort by  " fontWeight="bold" height="100%" verticalAlign="middle"/>
+		<s:Button label="field_name" id="sort_by_field_name" click="sort_by_field_name_clickHandler(event)"/>
+		<s:Button label="is_ID" id="sort_by_is_ID" click="sort_by_is_ID_clickHandler(event)"/>
+		<s:Button label="updateable" id="sort_by_updateable" click="sort_by_updateable_clickHandler(event)"/>
+		<s:Button label="can_search_by" id="sort_by_can_search_by" click="sort_by_can_search_by_clickHandler(event)"/>
+		<s:Button label="can_update_by" id="sort_by_can_update_by" click="sort_by_can_update_by_clickHandler(event)"/>
+		<s:Button label="can_remove_by" id="sort_by_can_remove_by" click="sort_by_can_remove_by_clickHandler(event)"/>
+		<s:HGroup width="100%" horizontalAlign="right">
+			<s:Button enabled="{lt_fields.selectedItem != null}" label="Up" toolTip="Move Field Down" click="{moveUp()}"/>
+			<s:Button enabled="{lt_fields.selectedItem != null}" label="Down" toolTip="Move Field Up" click="{moveDown()}"/>
+		</s:HGroup>
+
+			
+
+	</s:HGroup>
+	
+	<s:List change="lt_fields_changeHandler(event)" useVirtualLayout="true" id="lt_fields" width="100%" height="100%" dataProvider="{fields}" itemRenderer="com.pbsmediatech.sequenceBuilder.views.components.renderer.NestedFieldRenderer">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+	</s:List>
+	<mx:ControlBar width="100%">
+		<s:HGroup width="100%" height="100%">
+			<s:HGroup width="100%" height="100%">
+				<s:Button label="Cancel" id="btn_cancel" click="btn_cancel_clickHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup width="100%" height="100%" horizontalAlign="right">
+				<s:Button label="Save &amp; Close" id="btn_save" click="btn_save_clickHandler(event)"/>	
+			</s:HGroup>	
+		</s:HGroup>
+	</mx:ControlBar>
+</s:Group>

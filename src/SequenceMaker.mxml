@@ -69,6 +69,7 @@
 				dev_history.addItem({ver:0.961, summary : "Improved Login Panel"});
 				dev_history.addItem({ver:0.962, summary : "Cookie added to user_login"});
 				dev_history.addItem({ver:0.963, summary : "Added Enter Key Handler to Login"});
+				dev_history.addItem({ver:0.964, summary : "Added Field.nicename"});
 				
 				AppModel.getInstance().sequence_maker_version = Number(dev_history.getItemAt(dev_history.length-1)["ver"]);
 			
@@ -194,7 +195,6 @@
 						AppModel.getInstance().datastore.fields.addItem(new MySQLRow(obj));
 						
 					}
-					trace("get_table_info complete " +AppModel.getInstance().datastore.fields.length)
 					dispatchEvent(new Event("EVENT_DATASTORE_TABLES_UPDATED",true));
 				}
 				);
@@ -220,7 +220,6 @@
 						{
 							//fail
 							Alert.show("Unable to Save, please try again");
-							
 						}
 						else
 						{
@@ -528,7 +527,7 @@
 				</s:HGroup>					
 				<s:Label text="{'Sequence ID: '+AppModel.getInstance().loaded_sequence.sequence_ID}"/>
 				</s:VGroup>
-	<s:Button label="Save" toolTip="Save Sequennce" id="save_controller_sequence" visible="{AppModel.getInstance().loaded_sequence != null}" click="save_controller_sequence_clickHandler(event)"/>
+	<s:Button label="Save" toolTip="Save Sequence" id="save_controller_sequence" visible="{AppModel.getInstance().loaded_sequence != null}" click="save_controller_sequence_clickHandler(event)"/>
     			
     		</s:HGroup>	
     	</s:HGroup>	

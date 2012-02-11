@@ -69,7 +69,6 @@
 				var renderer:TableColumnRenderer = TableColumnRenderer(event.target);
 				var field:Field = renderer.field;
 				 popTableEditor(field);
-				trace(field.field_name)
 			}
 
 			private function onEVENT_ADD_FIELD_TO_STORE(event:Event):void
@@ -108,7 +107,6 @@
 				tableEditor.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
 				{
 					PopUpManager.removePopUp(tableEditor);
-					
 				})
 				}
 				tableEditor.domain_label = AppModel.getInstance().loaded_sequence.sequence_domain;
@@ -437,7 +435,6 @@
 		<s:layout>
 			<s:VerticalLayout/>
 		</s:layout>
-		
 	</s:List>
 	
 </s:Group>
