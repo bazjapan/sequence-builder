@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<actionScriptProperties mainApplicationPath="Main.mxml" projectUUID="18d827bc-a070-4ca7-9c85-007844c94885" version="6">
+  <compiler additionalCompilerArguments="-locale en_US" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderLocation="C:/temp/debug/sequence-builder" outputFolderPath="bin-debug" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+    <compilerSourcePath/>
+    <libraryPath defaultLinkType="0">
+      <libraryPathEntry kind="4" path="">
+        <excludedEntries>
+          <libraryPathEntry kind="3" linkType="1" path="${PROJECT_FRAMEWORKS}/libs/flex.swc" useDefaultLinkType="false"/>
+        </excludedEntries>
+      </libraryPathEntry>
+      <libraryPathEntry kind="1" linkType="1" path="libs"/>
+      <libraryPathEntry kind="3" linkType="1" path="S:/dropbox/Dropbox/sites/com.pbsmediatech/com/wp-content/uploads/libs/ServiceLib/bin/ServiceLib.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="/AS3UtilsLib/bin/AS3UtilsLib.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="/FlexUILib/bin/FlexUILib.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="/AS3UsefulLib/bin/AS3UsefulLib.swc" useDefaultLinkType="false"/>
+    </libraryPath>
+    <sourceAttachmentPath/>
+  </compiler>
+  <applications>
+    <application path="ViewModelBuilder.mxml"/>
+    <application path="Temp.mxml"/>
+    <application path="PartnerUserAdmin.mxml"/>
+    <application path="TemplateTester.mxml"/>
+    <application path="SequenceMaker.mxml"/>
+    <application path="PartnerEventAdmin2.mxml"/>
+    <application path="UpdateVars.mxml"/>
+    <application path="ServiceTester.mxml"/>
+    <application path="Main.mxml"/>
+    <application path="MethodBuilderApp.mxml"/>
+    <application path="VisitorHomePage.mxml"/>
+    <application path="SequenceTester.mxml"/>
+    <application path="PartnerEventAdmin.mxml"/>
+    <application path="ScriptLoadTest.mxml"/>
+    <application path="Tester.mxml"/>
+    <application path="CookieTester.mxml"/>
+  </applications>
+  <modules/>
+  <buildCSSFiles/>
+</actionScriptProperties>

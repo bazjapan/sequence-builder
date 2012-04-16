@@ -8,6 +8,9 @@
 	<fx:Script>
 		<![CDATA[
 			import spark.events.TextOperationEvent;
+			
+			import utils.timestamp.dateToTimestamp;
+			import utils.timestamp.timestampToDate;
 			protected function btn_save_clickHandler(event:MouseEvent):void
 			{
 				if(saveFunc != null){
@@ -128,7 +131,7 @@
 			protected function dtp_before_changeHandler(event:Event):void
 			{
 				if(before != null)
-				before.initialValue = DateTimePicker(event.currentTarget).selectedDate;
+				before.initialValue = dateToTimestamp(DateTimePicker(event.currentTarget).selectedDate);
 			}
 
 
@@ -141,7 +144,39 @@
 			protected function dtp_after_changeHandler(event:Event):void
 			{
 				if(after != null)
-				after.initialValue = DateTimePicker(event.currentTarget).selectedDate;
+				after.initialValue = dateToTimestamp(DateTimePicker(event.currentTarget).selectedDate);
+			}
+			
+			
+
+			protected function cb_beforeT_changeHandler(event:Event):void
+			{
+				beforeT.show = CheckBox(event.currentTarget).selected;
+			}
+			
+			
+			protected function tp_beforeT_changeHandler(event:Event):void
+			{
+				if(beforeT != null)
+					beforeT.initialValue = TimePicker(event.target).selectedTime;
+			}
+			
+			
+			protected function cb_afterT_changeHandler(event:Event):void
+			{
+				afterT.show = CheckBox(event.currentTarget).selected;
+			}
+			
+			
+			protected function tp_afterT_changeHandler(event:Event):void
+			{
+				if(afterT != null)
+					afterT.initialValue = TimePicker(event.target).selectedTime;
+			}
+			protected function cb_isUnique_changeHandler(event:Event):void
+			{
+				isUnique.show = cb_isUnique.selected;
+				isUnique.initialValue = true;
 			}
 
 		]]>
@@ -152,6 +187,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import db.field.validators.IsUnique;
 			import utils.object.hasProperties;
 			import db.field.validators.After;
 			import db.field.validators.Before;
@@ -168,6 +204,9 @@
 			public var validationConfig:FieldValidation;
 			private var available_validation_types:Object;
 			public var saveFunc:Function;
+			
+			[Bindable]
+			private var type:String;
 			
 			public var available_validators:Array = [];
 			
@@ -191,11 +230,18 @@
 			private var after:ValidationWrapper;
 			[Bindable]
 			private var before:ValidationWrapper;
+			[Bindable]
+			private var afterT:ValidationWrapper;
+			[Bindable]
+			private var beforeT:ValidationWrapper;
+			[Bindable]
+			private var isUnique:ValidationWrapper;
 			
 			
 			public function setFieldType(ft:String):void{
 				available_validation_types = validationConfig.getAvailableValidatorsByFieldName(ft);
 				var contentHeight:int = 0;
+				type = ft;
 				for each (var val_type:String in available_validation_types)
 				{
 					switch(val_type){
@@ -247,6 +293,21 @@
 						case "before" :
 						before = new ValidationWrapper(new db.field.validators.Before);
 						available_validators.push(before);
+						contentHeight += 30;
+						break;
+						case "afterT" :
+						afterT = new ValidationWrapper(new db.field.validators.AfterT);
+						available_validators.push(afterT);
+						contentHeight += 30;
+						break;
+						case "beforeT" :
+						beforeT = new ValidationWrapper(new db.field.validators.BeforeT);
+						available_validators.push(beforeT);
+						contentHeight += 30;
+						break;
+						case "isUnique" :
+						isUnique = new ValidationWrapper(new db.field.validators.IsUnique);
+						available_validators.push(isUnique);
 						contentHeight += 30;
 						break;
 					}
@@ -376,7 +437,7 @@
 				<s:Label text="Before Date" fontWeight="bold" fontSize="14" height="100%"/>
 			</s:HGroup>
 			<s:HGroup visible="{cb_before.selected}"  width="100%" horizontalAlign="right">
-				<datetime:DateTimePicker  height="30" id="dtp_before" change="dtp_before_changeHandler(event)"  selectedDate="{before.initialValue || before.validator['value']}"/>
+				<datetime:DateTimePicker show_date="{type == 'date' || type == 'datetime'}" show_time="{type == 'time'}"  height="30" id="dtp_before" change="dtp_before_changeHandler(event)"  selectedDate="{timestampToDate(before.initialValue) || timestampToDate(before.validator['value'])}"/>
 			</s:HGroup>
 		</s:HGroup>
 		<s:HGroup id="hg_after" visible="{after != null}"  includeInLayout="{after != null}" width="100%">
@@ -387,7 +448,42 @@
 				<s:Label text="After Date" fontWeight="bold" fontSize="14" height="100%"/>
 			</s:HGroup>
 			<s:HGroup visible="{cb_after.selected}"  width="100%" horizontalAlign="right">
-				<datetime:DateTimePicker  height="30" id="dtp_after" change="dtp_after_changeHandler(event)"  selectedDate="{after.initialValue || after.validator['value']}"/>
+				<datetime:DateTimePicker show_date="{type == 'date' || type == 'datetime'}" show_time="{type == 'time'}" height="30" id="dtp_after" change="dtp_after_changeHandler(event)"  selectedDate="{timestampToDate(after.initialValue)|| timestampToDate(after.validator['value']) }"/>
+			</s:HGroup>
+		</s:HGroup>
+		
+		
+		<s:HGroup id="hg_beforeT" visible="{beforeT != null}" includeInLayout="{beforeT != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox  selected="{beforeT.show}"   id="cb_beforeT" change="cb_beforeT_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Before Time" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_beforeT.selected}"  width="100%" horizontalAlign="right">
+				<datetime:TimePicker  height="30" id="tp_beforeT" change="tp_beforeT_changeHandler(event)"  selectedTime="{beforeT.initialValue || beforeT.validator['value']}"/>
+			</s:HGroup>
+		</s:HGroup>
+		<s:HGroup id="hg_afterT" visible="{afterT != null}"  includeInLayout="{afterT != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox  selected="{afterT.show}"  id="cb_afterT" change="cb_afterT_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="After Time" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup visible="{cb_afterT.selected}"  width="100%" horizontalAlign="right">
+				<datetime:TimePicker  height="30" id="tp_afterT" change="tp_afterT_changeHandler(event)"  selectedTime="{afterT.initialValue || afterT.validator['value']}"/>
+			</s:HGroup>
+		</s:HGroup>
+		<s:HGroup id="hg_isUnique" visible="{isUnique != null}"  includeInLayout="{isUnique != null}" width="100%">
+			<s:HGroup  width="23" horizontalAlign="left">
+				<s:CheckBox  selected="{isUnique.show}"  id="cb_isUnique" change="cb_isUnique_changeHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup  width="100%" horizontalAlign="center"  verticalAlign="middle">
+				<s:Label text="Items are Unique" fontWeight="bold" fontSize="14" height="100%"/>
+			</s:HGroup>
+			<s:HGroup   width="100%" horizontalAlign="right">
+				
 			</s:HGroup>
 		</s:HGroup>
 	</s:VGroup>

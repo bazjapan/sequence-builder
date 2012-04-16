@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>sequence-builder</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.adobe.flexbuilder.project.flexbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.adobe.flexbuilder.project.flexnature</nature>
+		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>bin-debug</name>
+			<type>2</type>
+			<location>C:/temp/debug/sequence-builder</location>
+		</link>
+		<link>
+			<name>bin-release</name>
+			<type>2</type>
+			<location>I:/dev/sites/pbsmediatech.com/code/sequence_builder</location>
+		</link>
+		<link>
+			<name>src/assets</name>
+			<type>2</type>
+			<location>I:/dev/assets</location>
+		</link>
+	</linkedResources>
+</projectDescription>

@@ -10,21 +10,20 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
-			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
 			import com.adobe.serialization.json.JSON;
 			import com.pbsmediatech.dto.ControllerSequence;
 			import com.pbsmediatech.dto.Domain;
 			import com.pbsmediatech.json.utils.JSONResultHelper2;
 			import com.pbsmediatech.json.utils.extractResult;
 			import com.pbsmediatech.json.utils.extractResultMessage;
-			
-			import db.field.Field;
-			
 			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
 			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.findFieldByName;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getNumRecords;
+			
+			import db.field.Field;
 			
 			import mx.collections.ArrayCollection;
 			import mx.events.CloseEvent;
@@ -35,6 +34,7 @@
 			import spark.events.TextOperationEvent;
 			
 			import utils.object.listParams;
+			import utils.timestamp.dateToTimestamp;
 			
 			[Bindable]private var _loaded_sequence:ControllerSequence;
 			private var _loaded_sequence_store_info:Object;
@@ -104,6 +104,7 @@
 
 				//version
 				loaded_sequence.sequence_version = sequence_version.value;
+				loaded_sequence.sequence_last_modified = dateToTimestamp(new Date());
 				//sequence controller name
 				loaded_sequence.sequence_controller_name = controller_name.text;
 				//domain

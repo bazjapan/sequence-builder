@@ -78,7 +78,7 @@
 				showAlert("Are you sure you want to add this column from remote store?", function():void{
 					
 					var sql_Text:String = makeSQLAddColumnToTable(table_name,
-						selected_field.field_name,selected_field.field_type, selected_field.field_size, selected_field.is_last_mod); 
+						selected_field.field_name,selected_field.field_type, selected_field.field_size, selected_field.is_last_mod, selected_field.default_value); 
 					
 					commit_command_to_store(sql_Text);
 					allow_add_field_to_store = false;
@@ -330,7 +330,7 @@
 		<s:Label width="50" text="{num_records}" height="100%" verticalAlign="middle"/>
 	</s:HGroup>
 	<s:HGroup width="100%">
-		<s:Button label="get_table_version" toolTip="Get Curre Table Version" id="get_table_version" click="get_table_version_clickHandler(event)" />
+		<s:Button label="get_table_version" toolTip="Get Current Table Version" id="get_table_version" click="get_table_version_clickHandler(event)" />
 		<s:NumericStepper value="{table_version_value}" id="table_version"  maximum="99" minimum="0" stepSize="0.01"/>
 		<s:Button label="set_table_version" toolTip="Set table to version" id="set_table_version" click="set_table_version_clickHandler(event)" />
 		<s:Button visible="{table_name.length &gt; 3 &amp;&amp; allow_create_table}" includeInLayout="{table_name != '' &amp;&amp; allow_create_table}" label="Create Table" toolTip="Create New Table" id="create_table" click="create_table_clickHandler(event)" />

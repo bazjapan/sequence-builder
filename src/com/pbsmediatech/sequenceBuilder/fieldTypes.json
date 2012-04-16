@@ -1,6 +1,6 @@
 {"fields":{
-"nvarchar":{
-"name":"nvarchar",
+"varchar":{
+"name":"varchar",
 "available_validators":["pattern" , "minLength" , "maxLength", "oneOfTheseValues"]
 },
 "datetime":{
@@ -20,12 +20,12 @@
 },
 "list":{
 "name":"list",
-"available_validators":["minItems", "maxItems","oneOfTheseValues"]
+"available_validators":["minItems", "maxItems","oneOfTheseValues", "isUnique"]
 },
 
 "json_array":{
 "name":"json_array",
-"available_validators":["minItems", "maxItems"]
+"available_validators":["minItems", "maxItems", "isUnique"]
 }
 },
 "validators":{
@@ -40,7 +40,8 @@
 "notEmpty":{},
 "oneOfTheseValues":{"values":"list"},
 "after":{"value":"datetime"},
-"before":{"value":"datetime"}
+"before":{"value":"datetime"},
+"isUnique":{"value":"boolean"}
 }
 
 }

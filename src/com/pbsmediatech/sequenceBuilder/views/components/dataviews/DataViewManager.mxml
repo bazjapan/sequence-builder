@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="400" creationComplete="cc()">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			
+			import db.dataview.DataView;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.ColorPickerEvent;
+			
+			//private var selected_dataview:DataView
+			public var view_reomoved_func:Function;
+			public var cancel_func:Function;
+			//public var save_func:Function;
+			
+			[Bindable]
+			private var dataviews:ArrayCollection = AppModel.getInstance().data_views;
+			
+			private function cc():void
+			{
+				
+			}
+			
+			protected function btn_save_clickHandler(event:MouseEvent):void
+			{
+				
+			}
+
+			protected function btn_close_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+		
+			protected function btn_add_clickHandler(event:MouseEvent):void
+			{
+				var view:DataView = new DataView({name:ti_name.text, color : view_color.selectedColor})
+				dataviews.addItem(view);
+				//cleanup
+				ti_name.text = "";
+			}
+
+			protected function view_color_changeHandler(event:ColorPickerEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+
+			protected function dg_views_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			
+
+
+			protected function btn_remove_clickHandler(event:MouseEvent):void
+			{
+				if(dg_views.selectedIndex > -1){
+					dataviews.removeItemAt(dg_views.selectedIndex);
+					
+				}
+				
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:VGroup width="100%" height="100%">
+		<s:HGroup width="100%">
+			<s:TextInput id="ti_name" width="300"/>
+			<mx:ColorPicker id="view_color" change="view_color_changeHandler(event)"/>
+			<s:Button label="Add" id="btn_add" click="btn_add_clickHandler(event)" enabled="{ti_name.text.length>0}"/>
+			
+		</s:HGroup>
+		<s:DataGrid dataProvider="{dataviews}" width="100%" height="100%" id="dg_views" click="dg_views_clickHandler(event)">
+			<s:columns>
+				<s:ArrayList>
+					<s:GridColumn dataField="view_name" width="120"/>
+					<s:GridColumn dataField="view_color" width="50"/>
+				</s:ArrayList>
+			</s:columns>
+		
+		</s:DataGrid>
+		<s:HGroup width="100%">
+			<s:HGroup width="100%" height="100%">
+				<s:Button label="Close" id="btn_close" click="btn_close_clickHandler(event)"/>				
+			</s:HGroup>
+			<s:HGroup width="100%">
+				<s:Button label="Remove" id="btn_remove" click="btn_remove_clickHandler(event)" enabled="{dg_views.selectedIndex &gt; -1}"/>
+				<s:Button label="Save" id="btn_save" click="btn_save_clickHandler(event)"/>				
+			</s:HGroup>
+		</s:HGroup>
+		
+	</s:VGroup>
+</s:Group>

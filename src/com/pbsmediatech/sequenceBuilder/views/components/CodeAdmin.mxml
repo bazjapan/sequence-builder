@@ -5,41 +5,45 @@
 	<s:layout>
 		<s:VerticalLayout/>
 	</s:layout>
+
+
+
 	
 
 	<fx:Script>
 		<![CDATA[
-			
 			import com.maccherone.json.JSON;
 			import com.pbsmediatech.code.method_builders.CustomMethod;
 			import com.pbsmediatech.code.method_builders.LangCodePair;
-			import com.pbsmediatech.code.method_builders.as3.makeAS3Controller;
-			import com.pbsmediatech.code.method_builders.custom_methods.CustomMethodDescription;
-			import com.pbsmediatech.code.method_builders.js.makeJSController;
 			import com.pbsmediatech.code.method_builders.as3.makeAS3Class;
+			import com.pbsmediatech.code.method_builders.as3.makeAS3Controller;
 			import com.pbsmediatech.code.method_builders.as3.makeAS3Event;
 			import com.pbsmediatech.code.method_builders.as3.makeAS3JSONResultHelper;
 			import com.pbsmediatech.code.method_builders.as3.makeAS3Utils;
+			import com.pbsmediatech.code.method_builders.custom_methods.CustomMethodDescription;
+			import com.pbsmediatech.code.method_builders.js.makeJSController;
 			import com.pbsmediatech.code.method_builders.php.makePHPController;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLScript;
 			import com.pbsmediatech.code.method_builders.utils.makeMethodInfos;
 			import com.pbsmediatech.dto.ControllerSequence;
 			import com.pbsmediatech.dto.Domain;
+			import com.pbsmediatech.json.controllers.config.SequenceToConfigJSON;
 			import com.pbsmediatech.json.utils.JSONResultHelper2;
 			import com.pbsmediatech.json.utils.extractResultMessage;
 			import com.pbsmediatech.json.utils.extractResultResult;
 			import com.pbsmediatech.json.utils.resultIsGood;
-			
-			import db.field.Field;
-			import db.field.getFieldOptions;
-			
-			import flash.utils.describeType;
-			
 			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.dataview.getFieldsForDataView;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDefaultGeneratedMethodNames;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.get_domains_by_domain_label;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.saveFile;
+			
+			import db.dataview.DataView;
+			import db.field.Field;
+			import db.field.getFieldOptions;
+			
+			import flash.utils.describeType;
 			
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
@@ -60,10 +64,22 @@
 			
 			protected function make_clickHandler(event:MouseEvent):void
 			{
-				var mis:Object = makeMethodInfos(sequence_details_editor.object_name.text, AppModel.getInstance().fields.source,getCustomLangPairs(), AppModel.getInstance().excludes)
+				var dvs:Array =[];
+				for each (var dv:DataView in AppModel.getInstance().data_views)
+				{
+					var o:Object = {name:dv.name};
+					o.fields = getFieldsForDataView(dv.name);
+					if(o.fields.length>1){
+						
+						dvs.push(o);
+					}
+						
+				}
+				
+				var mis:Object = makeMethodInfos(sequence_details_editor.object_name.text, AppModel.getInstance().fields.source,getCustomLangPairs(), AppModel.getInstance().excludes, dvs)
 				ta_build_info.text = com.maccherone.json.JSON.encode(mis,true);
 				prepareSQL();
-				preparePHPController(mis);
+				preparePHPController(mis, dvs);
 				prepareAS3Controller(mis);
 				prepareJSController(mis);
 				prepareAS3Class();
@@ -111,7 +127,7 @@
 			}
 		
 			
-			private function preparePHPController(mis:Object):void
+			private function preparePHPController(mis:Object, dvs:Array):void
 			{
 				AppModel.getInstance().php_controller_text = makePHPController(getIDField(),
 					sequence_details_editor.controller_name.text,
@@ -122,7 +138,7 @@
 					AppModel.getInstance().loaded_sequence.sequence_version,
 					AppModel.getInstance().loaded_sequence.sequence_table_name,
 					AppModel.getInstance().loaded_sequence.sequence_table_version,
-					AppModel.getInstance().fields.source,getCustomLangPairs(), AppModel.getInstance().excludes, mis);
+					AppModel.getInstance().fields.source,getCustomLangPairs(), AppModel.getInstance().excludes, mis, dvs);
 			}
 			private function prepareAS3Controller(mis:Object):void{
 				
@@ -360,7 +376,13 @@
 				var controller_name:String = sequence_details_editor.controller_name.text.toLowerCase()+"_controller";
 				saveFile(AppModel.getInstance().js_controller_text,controller_name+".js");
 			}
-
+			
+			protected function save_json_clickHandler(event:MouseEvent):void
+			{
+				var class_name:String = sequence_details_editor.class_name.text.toLowerCase();;
+				saveFile(AppModel.getInstance().json_text,class_name+".json");
+			}
+	
 			
 			
 			
@@ -400,9 +422,8 @@
 			}
 			private function prepareJSON():void
 			{
-				
 				if(AppModel.getInstance().loaded_sequence != null){
-					var seq:ControllerSequence = AppModel.getInstance().loaded_sequence;
+					/* var seq:ControllerSequence = AppModel.getInstance().loaded_sequence;
 					var jsonSafe:Object = new Object;
 					jsonSafe.store_type = "mongo";
 					jsonSafe.sequence_domain = seq.sequence_domain;
@@ -411,8 +432,17 @@
 					jsonSafe.sequence_last_modified = seq.sequence_last_modified;
 					jsonSafe.sequence_fields = JSON.decode(seq.sequence_fields);
 					jsonSafe.sequence_info = JSON.decode(seq.sequence_info);
-					var encoded:String = JSON.encode(jsonSafe)
-					AppModel.getInstance().json_text = encoded;
+					var encoded:String = JSON.encode(jsonSafe) */
+					var d:Domain;
+					var seq:ControllerSequence = AppModel.getInstance().loaded_sequence;
+					for each (var domain:Domain in AppModel.getInstance().domains)
+					{
+					if(domain.domain_label === seq.sequence_domain){
+						d = domain;
+						break;
+					}}
+					AppModel.getInstance().json_text = JSON.encode(SequenceToConfigJSON(seq,AppModel.getInstance().fields.source,d),true);
+						//encoded;
 				}
 					//makeSQLScript(AppModel.getInstance().loaded_sequence.sequence_version, getIDField(),
 					//AppModel.getInstance().loaded_sequence.sequence_table_name,
@@ -428,7 +458,10 @@
 			{
 				php_controller_deployed = false;
 				var content:String = AppModel.getInstance().php_controller_text;
-				var escaped:String = encodePluses(escape(content));
+				//var escaped:String = encodePluses(escape(content));//updated to send json mar 23 2012
+				var escaped:String = JSON.encode(content);
+					
+					
 				getDataStoreServiceController(Domain(ddlt_domains.selectedItem).domain_label,
 					AppModel.getInstance().dev).deploy_php_api_controller({controller_name:sequence_details_editor.controller_name.text.toLowerCase(),
 					controller_content:escaped},function(evt:ResultEvent):void
@@ -440,6 +473,8 @@
 						php_controller_deployed = true;
 						
 					}); 
+				
+				
 							
 			}
 			
@@ -457,7 +492,8 @@
 				var controller_name:String = sequence_details_editor.controller_name.text.toLowerCase()+"_controller";
 				var domain_code_root:String = selected_domain.domain_code_root+controller_folder;
 				
-				var escaped:String = encodePluses(escape(content));
+				var escaped:String = JSON.encode(content);
+				
 				getDataStoreServiceController(domain_label,
 					AppModel.getInstance().dev).deploy_js_controller({controller_name:controller_name,
 						controller_content:escaped, domain_code_root:domain_code_root},function(evt:ResultEvent):void
@@ -701,6 +737,9 @@
 							</s:NavigatorContent>
 							<s:NavigatorContent label="JSON" width="100%" height="100%">
 								<s:VGroup width="100%" height="100%">
+									<s:HGroup width="100%" horizontalAlign="right">
+										<s:Button id="save_json" label="Download" click="save_json_clickHandler(event)"/>
+									</s:HGroup>
 									<s:HGroup width="100%" height="100%">
 										<s:TextArea id="ta_json" text="{AppModel.getInstance().json_text}" width="100%" height="100%" fontSize="14"/>
 									</s:HGroup>

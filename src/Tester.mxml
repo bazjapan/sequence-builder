@@ -21,10 +21,18 @@
 			import mx.managers.PopUpManager;
 			import mx.validators.IValidator;
 			
+			import utils.string.replace;
+			
 			public function cc():void{
 				
-			
-			
+			var texty:String = "I'cool";
+			var one:String = utils.string.replace(texty,"'", "\\'");
+			trace(one);
+			var myObj:Object = {text : texty};
+			var two:String = JSON.encode(myObj);
+			trace(two);
+			var three:String = utils.string.replace(two,"'", "\\'");
+			trace(three);
 				
 			
 			

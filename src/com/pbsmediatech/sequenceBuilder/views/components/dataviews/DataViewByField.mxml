@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import db.field.Field;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.TitleWindow;
+			import mx.core.Application;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.array.arrayContainsValue;
+			import utils.array.removeItem;
+			[Bindable]public var fields:ArrayCollection;
+
+			protected function lt_fields_changeHandler(event:IndexChangeEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+		
+			private var managerWinddow:TitleWindow;
+			private var manager:DataViewManager
+			protected function btn_open_manager_clickHandler(event:MouseEvent):void
+			{
+				if(!managerWinddow){
+					manager = new DataViewManager();
+					managerWinddow = new TitleWindow();
+					managerWinddow.showCloseButton = true;
+					managerWinddow.addEventListener(CloseEvent.CLOSE, close);
+					managerWinddow.addElement(manager);
+					
+					manager.cancel_func = function():void{
+						close();
+					}
+					manager.view_reomoved_func = function(view_name):void{
+					for(var i = 0; i<fields.length; i++){
+						var f:Field = fields[i];
+						removeItem(f.dataviews, view_name);
+					}		
+							
+					}
+					managerWinddow.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+					{
+						close()
+					});
+					managerWinddow.height = 60;
+				}
+				
+				function close(evt:CloseEvent = null):void{
+					PopUpManager.removePopUp(managerWinddow);
+				}
+				
+				managerWinddow.title = "Manage Views"
+			
+				PopUpManager.addPopUp(managerWinddow,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(managerWinddow);
+				
+				
+				
+			}
+			
+
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%">
+		<s:HGroup width="100%">
+			<s:HGroup width="100%">
+				
+			</s:HGroup>
+			<s:HGroup width="100%">
+				<s:Button id="btn_open_manager" click="btn_open_manager_clickHandler(event)"/>
+			</s:HGroup>
+		</s:HGroup>
+	<s:List change="lt_fields_changeHandler(event)" itemRenderer="com.pbsmediatech.sequenceBuilder.views.components.dataviews.ViewsInFieldRenderer" useVirtualLayout="true" id="lt_fields" width="100%" height="100%" dataProvider="{fields}">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+	</s:List>
+	</s:VGroup>
+	
+	
+</s:Group>

@@ -41,6 +41,8 @@ package com.pbsmediatech.sequenceBuilder.assets
 		public static var FIELD_DEFAULT_24:Class;
 		[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/prompt.png")]
 		public static var FIELD_PROMPT_24:Class;
+		[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/custom_type.png")]
+		public static var CUSTOM_TYPE_24:Class;
 		[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/json.png")]
 		public static var FIELD_JSON_LABELS_24:Class;
 		[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/index.png")]
@@ -71,9 +73,14 @@ package com.pbsmediatech.sequenceBuilder.assets
 	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/load_24.png")]
 	public static var LOAD_24:Class;
 	
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/tick24.png")]
+	public static var TICK24:Class;
+	
 	
 	
 	[Embed(source="/assets/app-icons/iconsets/fugue/control-cursor.png")]
 	public static var FIELD_NICENAME:Class;
+	[Embed(source="/assets/app-icons/iconsets/fugue/control-cursor-g.png")]
+	public static var FIELD_NICENAME_GOOD:Class;
 	}
 }

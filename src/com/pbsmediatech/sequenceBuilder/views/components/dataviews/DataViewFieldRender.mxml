@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				autoDrawBackground="true" xmlns:image="image.*" width="100%">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.field.setDataView;
+			
+			import db.field.Field;
+			
+			import mx.binding.utils.BindingUtils;
+			
+			import utils.array.arrayContainsValue;
+			import utils.object.isNull;
+			[Bindable]
+			public var field:Field;
+			[Bindable]
+			public var inView:Boolean;
+			
+			
+			
+			
+			override public function set data(value:Object):void
+			{
+				field = value as Field;
+				inView = isInView();
+			}
+			
+			
+			private function isInView():Boolean{
+				if(!isNull(AppModel.getInstance().selected_view)){
+					if(field.is_ID){ return true}; 
+				return arrayContainsValue(field.dataviews, AppModel.getInstance().selected_view.name);
+				}
+				return false;
+			}
+				
+
+			protected function inViewIcon_clickHandler(event:MouseEvent):void
+			{
+				if(!isNull(AppModel.getInstance().selected_view)){
+				var exists:Boolean = isInView();
+				setDataView(field,AppModel.getInstance().selected_view.name,exists);
+				inView = isInView();
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<s:BorderContainer width="100%" height="40" enabled="{!field.is_ID}">
+		<s:HGroup width="100%">
+		<s:HGroup paddingLeft="10" height="100%" verticalAlign="middle" width="50">
+		<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.TICK24}" id="inViewIcon" toolTip="Include in View" click="inViewIcon_clickHandler(event)" faded="{!inView}"/>
+		</s:HGroup>
+		<mx:VRule height="35"/>
+		<s:HGroup height="100%" fontWeight="bold" verticalAlign="middle" fontSize="14">
+			<s:Label text="{field.field_name}" />
+		</s:HGroup>
+		</s:HGroup>
+	</s:BorderContainer>	
+</s:ItemRenderer>

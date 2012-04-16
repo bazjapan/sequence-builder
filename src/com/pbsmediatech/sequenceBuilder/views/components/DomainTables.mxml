@@ -22,6 +22,7 @@
 			import database.mySQL.getMySQLIllegalCharacters;
 			
 			import db.MySQLRow;
+			import db.field.Field;
 			
 			import mx.collections.ArrayCollection;
 			import mx.rpc.events.ResultEvent;
@@ -77,6 +78,7 @@
 						rows.addItem(new MySQLRow(obj));
 						status_text = results.length+" rows loaded";
 					}
+					markRowInSequence();
 					
 				}); 
 			}
@@ -171,7 +173,7 @@
 					});
 					
 					PopUpManager.removePopUp(namePop);
-					allow_create_table = false;
+					//allow_create_table = false;
 				}
 				namePop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
 				{
@@ -244,7 +246,7 @@
 				showAlert("Are you sure you want to add "+selected_field.field_name+" to remote store?", function():void{
 					
 					var sql_Text:String = makeSQLAddColumnToTable(selected_table_name,
-						selected_field.field_name,selected_field.field_type, selected_field.field_size, selected_field.is_last_mod); 
+						selected_field.field_name,selected_field.field_type, selected_field.field_size, selected_field.is_last_mod, selected_field.default_value); 
 					
 					commit_command_to_store(sql_Text, true);
 					allow_add_field_to_store = false;
@@ -311,6 +313,28 @@
 				{
 					PopUpManager.removePopUp(namePop);
 				});
+			}
+
+
+			protected function btn_show_excess_fields_clickHandler(event:MouseEvent):void
+			{
+				markRowInSequence();
+			}
+			private function markRowInSequence():void{
+				
+				for each (var row:MySQLRow in rows)
+				{
+					var exists:Boolean = false;
+					for each (var f:Field in AppModel.getInstance().fields)
+					{
+						if(f.field_name === row.Field){
+							exists = true;
+							break;
+						}
+					}
+					row.inSequence = exists;	
+				}
+				
 			}
 
 		]]>
@@ -481,6 +505,9 @@
 			<components1:FadedImage useHandCursor="true"  source="{IconLib.REMOVE_22}"  width="24" height="24"  visible="{selected_domain != null &amp;&amp; ddlt_tables.selectedItem != null &amp;&amp; allow_drop_table}" includeInLayout="{selected_domain != null &amp;&amp; allow_drop_table}" toolTip="{'Drop '+selected_table_name+'on Domain '+selected_domain.domain_label}" id="drop_table" click="drop_table_clickHandler(event)" />
 			<components1:FadedImage useHandCursor="true" source="{IconLib.RENAME_24}" width="24" height="24"  id="rename_table_in_store" enabled="{ddlt_tables.selectedItem != null}" toolTip="Rename Table" click="rename_table_in_store_clickHandler(event)"/>
 		</s:HGroup>
+		<s:HGroup width="100%" horizontalAlign="right">
+			<s:Button label="Show" toolTip="Show Fields not in Sequence" id="btn_show_excess_fields" click="btn_show_excess_fields_clickHandler(event)"/>
+		</s:HGroup>
 	</s:HGroup>
 	<mx:HRule width="100%"/>
 	
@@ -502,6 +529,7 @@
 									</s:HGroup>	
 									<mx:DataGrid width="100%" height="100%" change="dg_table_rows_changeHandler(event)" id="dg_table_rows" dataProvider="{rows}">
 										<mx:columns>
+											<mx:DataGridColumn dataField="inSequence" width="20"/>
 											<mx:DataGridColumn dataField="Field" width="280"/>
 											<mx:DataGridColumn dataField="Type" width="100"/>
 											<mx:DataGridColumn dataField="Null" width="50"/>

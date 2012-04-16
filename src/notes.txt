@@ -1,0 +1,9 @@
+Adding Validation
+
+1 Add to fieldTypes.json
+
+Add to setFieldType in ValidationSetter
+
+
+Add field type
+

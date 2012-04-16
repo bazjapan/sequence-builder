@@ -2,11 +2,11 @@ package com.pbsmediatech.sequenceBuilder.views.tasks
 {
 	import com.adobe.serialization.json.JSON;
 	import com.pbsmediatech.dto.ControllerSequence;
-	
-	import db.field.Field;
-	import db.view.DataView;
-	
 	import com.pbsmediatech.sequenceBuilder.AppModel;
+	
+	import db.dataview.DataView;
+	import db.field.Field;
+
 
 	public function loadSequenceToModel(seq:ControllerSequence):ControllerSequence
 	{
@@ -31,7 +31,7 @@ package com.pbsmediatech.sequenceBuilder.views.tasks
 		for each (var dwJson:Object in data_views_array)
 		{
 			trace("dwJson "+dwJson)
-			var dw:DataView = new DataView(dwJson);
+			var dw:db.dataview.DataView = new DataView(dwJson);
 			AppModel.getInstance().data_views.addItem(dw);
 		}
 		

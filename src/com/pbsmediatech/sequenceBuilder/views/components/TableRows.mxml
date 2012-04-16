@@ -8,24 +8,23 @@
 
 	<fx:Script>
 		<![CDATA[
-			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
 			import com.adobe.serialization.json.JSON;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLAddColumnToTable;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLRemoveColumnFromTableScript;
-			
-			import db.field.Field;
-			import db.field.IDFieldSize;
-			import db.getFieldTypeLength;
-			
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			import com.pbsmediatech.sequenceBuilder.views.components.renderer.TableColumnRenderer;
 			import com.pbsmediatech.sequenceBuilder.views.components.table.KeyFieldList;
+			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
 			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
-			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVaraibleLengthProperty;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVariableLengthProperty;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.findFieldByName;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDefaultFieldSizeByFieldType;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getFieldInfo;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getNumRecords;
+			
+			import db.field.Field;
+			import db.field.IDFieldSize;
+			import db.getFieldTypeLength;
 			
 			import mx.collections.Sort;
 			import mx.collections.SortField;
@@ -378,6 +377,7 @@
 			}
 			
 
+
 		]]>
 	</fx:Script>
 
@@ -401,7 +401,7 @@
 										  horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_fields_types}" change="field_type_changeHandler(event)" >
 			
 		</components1:FieldTypeDropDownList>
-		<s:NumericStepper  enabled="{fieldHasVaraibleLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="0.1" minimum="0" maximum="5000" toolTip="field_size"/>
+		<s:NumericStepper  enabled="{fieldHasVariableLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="0.1" minimum="0" maximum="5000" toolTip="field_size"/>
 		<mx:VRule height="24"/>
 		<s:HGroup width="100%" includeInLayout="{field_type.selectedItem == Field.DATE_TIME}" visible="{field_type.selectedItem == Field.DATE_TIME}" horizontalAlign="right">
 			<s:CheckBox toolTip="Date created" label="Creation Date" id="is_insert_date" click="{if(is_insert_date.selected)is_last_mod.selected = false}"/>

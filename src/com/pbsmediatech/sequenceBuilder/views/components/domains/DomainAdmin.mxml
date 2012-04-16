@@ -10,6 +10,7 @@
 		<![CDATA[
 			import app.popMessage;
 			
+			import com.maccherone.json.JSON;
 			import com.pbsmediatech.DomainSettings;
 			import com.pbsmediatech.dto.Domain;
 			import com.pbsmediatech.json.controllers.DomainController;
@@ -18,14 +19,19 @@
 			import com.pbsmediatech.json.utils.extractResultMessage;
 			import com.pbsmediatech.json.utils.extractResultResult;
 			import com.pbsmediatech.json.utils.resultIsGood;
-			
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
+			import mx.controls.TextArea;
 			import mx.events.CloseEvent;
 			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
+			
+			import spark.components.TitleWindow;
+			
+			import utils.object.isEmpty;
 			
 			[Bindable]private var show_get:Boolean = false;
 			[Bindable]private var domains:ArrayCollection = AppModel.getInstance().domains;
@@ -117,6 +123,59 @@
 						}
 					});
 			}
+
+			protected function btn_show_store_config_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var stores:Array = [];
+				var config:Object = {};
+				for each (var d:Domain in domains)
+				{
+					if(!isEmpty(d.domain_stores)){
+					var ss:Array = JSON.decode(d.domain_stores);
+					for (var i:int = 0; i < ss.length; i++)
+						{
+							stores.push(ss[i]);
+						}
+					}
+				}
+				for (var j:int = 0; j < stores.length; j++)
+				{
+					var store:Object = stores[j] as Object;
+					config[store.name] = store;
+				}
+				
+				var ready:String = JSON.encode(config,true);
+				var pop:TitleWindow = new TitleWindow();
+				var vg:VGroup = new VGroup();
+				pop.addElement(vg)
+				var ta:TextArea = new TextArea;
+				ta.width = 500;
+				ta.height = 500;
+				vg.addElement(ta);
+				var hg:HGroup = new HGroup();
+				var butt:Button = new Button();
+				butt.label = "Copy";
+				butt.addEventListener(MouseEvent.CLICK, function(evt:Event):void{
+					System.setClipboard(ta.text);
+				});
+				hg.height = 40;
+				hg.addElement(butt);
+				vg.addElement(ta);
+				vg.addElement(hg);
+				
+				
+				ta.text = ready;
+				
+				
+				pop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					PopUpManager.removePopUp(pop);
+				});
+				pop.title = "DataStore JSON"
+				PopUpManager.addPopUp(pop, this,false);
+			}
+
 		]]>
 	</fx:Script>
 	<mx:HDividedBox width="100%" height="100%">
@@ -133,6 +192,7 @@
 					<s:Button label="Add" id="add_domain" click="add_domain_clickHandler(event)"/>-->
 				</s:HGroup>	
 				<s:HGroup  width="100%" horizontalAlign="right">
+					<s:Button label="View Stores Config" id="btn_show_store_config" click="btn_show_store_config_clickHandler(event)"/>
 					<s:Button enabled="{selected_domain != null}" label="Save Selected Domain" id="save" click="save_clickHandler(event)"/>
 				</s:HGroup>	
 			</s:HGroup>	

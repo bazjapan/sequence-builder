@@ -11,17 +11,20 @@
 	<fx:Script>
 	
 		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.maccherone.json.JSON;
 			import com.pbsmediatech.json.utils.JSONResultHelper2;
 			import com.pbsmediatech.json.utils.extractResult;
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
 			import com.pbsmediatech.sequenceBuilder.views.components.NoteTaker2;
+			import com.pbsmediatech.sequenceBuilder.views.components.field.custom.CustomFieldSetter;
 			import com.pbsmediatech.sequenceBuilder.views.components.field.nested.NestedFieldList;
 			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.compareFieldToMySQLRow;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.field.set_field_default_value;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.field.set_field_validation;
-			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVaraibleLengthProperty;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVariableLengthProperty;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
 			
 			import db.Datastore;
@@ -42,6 +45,7 @@
 			import utils.events.CallbackEvent;
 			import utils.object.isEmpty;
 			import utils.object.isNull;
+			import utils.string.replace;
 
 			[Bindable]private var allow_add_to_store:Boolean = true;
 			[Bindable]private var allow_update_store:Boolean = true;
@@ -356,7 +360,7 @@
 			protected function field_default_value_clickHandler(event:MouseEvent):void
 			{
 				
-				set_field_default_value(field, this, function(field:Field):void{
+				set_field_default_value(field, this.parent, function(field:Field):void{
 					
 					
 				})
@@ -364,7 +368,7 @@
 			protected function field_validation_clickHandler(event:MouseEvent):void
 			{
 				
-				set_field_validation(field, this, function(field:Field):void{
+				set_field_validation(field, this.parent, function(field:Field):void{
 					
 					
 				})
@@ -384,6 +388,8 @@
 				{
 					field.prompt = noteTaker.text;
 					PopUpManager.removePopUp(noteTaker);
+					
+					
 				})
 			}
 			
@@ -398,6 +404,7 @@
 					nestedFieldEditor.addElement(nfl);
 					nfl.saveFunc = function(fields:ArrayCollection):void{
 						field.json_labels = fields.source;
+						field_json_labels.faded = isEmpty(field.json_labels);
 						close();
 					}
 					nfl.cancelFunc = function():void{
@@ -418,6 +425,7 @@
 					
 				
 				nfl.fields = new ArrayCollection(field.json_labels);
+				
 				PopUpManager.addPopUp(nestedFieldEditor,Application.application as DisplayObject,true);
 				PopUpManager.centerPopUp(nestedFieldEditor);
 					
@@ -439,7 +447,49 @@
 			}
 
 
-			
+			private var customSetterWindow:TitleWindow;
+			private var customsetter:CustomFieldSetter;
+			protected function custom_type_clickHandler(event:MouseEvent):void
+			{
+					if(!customSetterWindow){
+					customsetter = new CustomFieldSetter();
+					customSetterWindow = new TitleWindow();
+					customSetterWindow.addElement(customsetter);
+					customsetter.save_func = function():void{
+						field.custom = customsetter.getCustomType();
+						var fields:Array = [];
+						if(field.custom === "address"){
+						var fs:Array = com.adobe.serialization.json.JSON.decode('[{ 		"prompt" : null, 		"field_exists" : false, 		"field_name" : "zip_code", 		"field_size" : 10, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : null },{ 		"prompt" : "Please enter a country.", 		"field_exists" : false, 		"field_name" : "country", 		"field_size" : 50, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "Country" }, { 		"prompt" : "Please enter a postal code.", 		"field_exists" : false, 		"field_name" : "zip_code", 		"field_size" : 10, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "Postal Code" 	}, { 		"prompt" : null, 		"field_exists" : false, 		"field_name" : "province", 		"field_size" : 100, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "Province" 	}, { 		"prompt" : null, 		"field_exists" : false, 		"field_name" : "locality", 		"field_size" : 100, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "City" 	}, { 		"prompt" : null, 		"field_exists" : false, 		"field_name" : "dep_locality", 		"field_size" : 100, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "Address 1" 	}, { 		"prompt" : null, 		"field_exists" : false, 		"field_name" : "detail", 		"field_size" : 200, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "Address 2" 	} ] ');
+						field.json_labels = fs;
+						}
+						
+						close();
+					}
+					customsetter.cancel_func = function():void{
+						close();
+					}
+					customSetterWindow.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+					{
+						close()
+					});
+					customSetterWindow.height = 60;
+					}
+				
+				function close():void{
+					PopUpManager.removePopUp(customSetterWindow);
+				}
+				
+				customSetterWindow.title = "Custom Field "+field.field_name;
+				
+				
+				customsetter.setField(field)
+				PopUpManager.addPopUp(customSetterWindow,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(customSetterWindow);
+				
+				
+				
+			}
+
 		]]>
 	</fx:Script>
 	
@@ -463,7 +513,7 @@
 			</s:VGroup>
 			<mx:VRule height="35"/>
 			<s:VGroup height="100%" verticalAlign="middle" horizontalAlign="center">
-			<image:FadedImage fadeAlpha="0.3" width="16" height="16" buttonMode="true" source="{IconLib.FIELD_NICENAME}" id="btn_toggle_nicename" toolTip="Click to edit Field Nicename" click="btn_toggle_nicename_clickHandler(event)"  faded="{showNicename}"/>
+			<image:FadedImage fadeAlpha="0.3" width="16" height="16" buttonMode="true" source="{isEmpty(field.nicename)?IconLib.FIELD_NICENAME:IconLib.FIELD_NICENAME_GOOD}" id="btn_toggle_nicename" toolTip="Click to edit Field Nicename" click="btn_toggle_nicename_clickHandler(event)"  faded="{showNicename}"/>
 			</s:VGroup>
 			<s:VGroup height="100%" id="vb_name_toggle" verticalAlign="middle">
 				<s:TextInput visible="{!showNicename}" includeInLayout="{!showNicename}" id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="60" width="200" change="field_name_changeHandler(event)"/>
@@ -485,13 +535,13 @@
 					<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Date Created" source="{IconLib.CLOCK_GREEN_24}" id="is_insert_date" click="is_insert_date_clickHandler(event)" alpha="{field.is_insert_date?1:0.3}"/>
 					
 				</s:HGroup>
-				<s:HGroup visible="{field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.JSONARR}">
-					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_JSON_LABELS_24}" id="field_json_labels" toolTip="Edit Field Schema" click="field_json_labels_clickHandler(event)" faded="{isNull(field.json_labels)|| isEmpty(field.json_labels)}"/>
+				<s:HGroup visible="{(field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.JSONARR)  &amp;&amp; isEmpty(field.custom)}">
+					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_JSON_LABELS_24}" id="field_json_labels" toolTip="Edit Field Schema" click="field_json_labels_clickHandler(event)" faded="{isEmpty(field.json_labels)}"/>
 				</s:HGroup>
 				</s:HGroup>
 			</s:VGroup>
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
-				<s:NumericStepper enabled="{fieldHasVaraibleLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="{field_type.selectedItem == Field.DECIMAL?0.1:1}" minimum="0" maximum="5000" toolTip="field_size" value="{field.field_size}" change="field_size_changeHandler(event)" width="85" />
+				<s:NumericStepper enabled="{fieldHasVariableLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="{field_type.selectedItem == Field.DECIMAL?0.1:1}" minimum="0" maximum="5000" toolTip="field_size" value="{field.field_size}" change="field_size_changeHandler(event)" width="85" />
 			</s:VGroup>
 			<mx:VRule height="35"/>
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
@@ -525,6 +575,7 @@
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
 				<s:HGroup>
 					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_PROMPT_24}" id="field_prompt" toolTip="Edit Field Prompt" click="field_prompt_clickHandler(event)" faded="{isNull(field.prompt)}" visible="{!field.is_ID &amp;&amp; !field.is_FK &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false}"/>
+					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.CUSTOM_TYPE_24}" id="custom_type" toolTip="Edit Custom Type" click="custom_type_clickHandler(event)" faded="{isNull(field.custom)}" visible="{!field.is_ID &amp;&amp; !field.is_FK &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false &amp;&amp; (field.field_type == Field.JSONARR||Field.JSONOBJ||Field.LIST)||Field.VARCHAR}"/>
 				</s:HGroup>
 			</s:VGroup>
 			<s:VGroup width="25" height="100%" verticalAlign="middle" horizontalAlign="center">

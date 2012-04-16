@@ -16,11 +16,12 @@
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
 			import com.pbsmediatech.sequenceBuilder.views.components.NoteTaker2;
+			import com.pbsmediatech.sequenceBuilder.views.components.field.nested.NestedFieldList;
 			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.compareFieldToMySQLRow;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.field.set_field_default_value;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.field.set_field_validation;
-			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVaraibleLengthProperty;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVariableLengthProperty;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
 			
 			import db.Datastore;
@@ -34,6 +35,7 @@
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
 			
+			import spark.components.TitleWindow;
 			import spark.events.IndexChangeEvent;
 			import spark.events.TextOperationEvent;
 			
@@ -237,9 +239,93 @@
 				}
 			}
 			
+			protected function is_last_mod_clickHandler(event:MouseEvent):void
+			{
+				var setToTrue:Boolean = !field.is_last_mod;
+				if(setToTrue)
+				{
+					dispatchEvent(new CallbackEvent("EVENT_CHECK_ONLY_LAST_MOD_DATE_FIELD", function(onlyOne:Boolean):void
+					{
+						if(onlyOne)
+						{
+							field.is_last_mod = true;
+							field.is_insert_date = false;
+						}
+						else
+						{
+							field.is_last_mod = false;
+						}
+					},true))
+				}
+				else
+				{
+					field.is_last_mod = false;
+				}
+				
+			}
+			protected function is_insert_date_clickHandler(event:MouseEvent):void
+			{
+				var setToTrue:Boolean = !field.is_insert_date;
+				if(setToTrue)
+				{
+					dispatchEvent(new CallbackEvent("EVENT_CHECK_ONLY_INSERT_DATE_FIELD", function(onlyOne:Boolean):void
+					{
+						if(onlyOne)
+						{
+							field.is_insert_date = true;
+							field.is_last_mod = false;
+						}
+						else
+						{
+							field.is_insert_date = false;
+						}
+					},true))
+				}
+				else
+				{
+					field.is_insert_date = false;
+				}
 			
-			
-			
+			}
+
+			private var nestedFieldEditor:TitleWindow
+			private var nfl:NestedFieldList; 
+			protected function field_json_labels_clickHandler(event:MouseEvent):void
+			{
+				
+				if(!nestedFieldEditor){
+					nfl = new NestedFieldList();
+					nestedFieldEditor = new TitleWindow();
+					nestedFieldEditor.addElement(nfl);
+					nfl.saveFunc = function(fields:ArrayCollection):void{
+						field.json_labels = fields.source;
+						field_json_labels.faded = isEmpty(field.json_labels);
+						close();
+					}
+					nfl.cancelFunc = function():void{
+						close();
+					}
+					nestedFieldEditor.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+					{
+						close()
+					});
+					nestedFieldEditor.height = 400;
+				}
+				
+				function close():void{
+					PopUpManager.removePopUp(nestedFieldEditor);
+				}
+				
+				nestedFieldEditor.title = "Nested fields for "+field.field_name;
+				
+				
+				nfl.fields = new ArrayCollection(field.json_labels);
+				
+				PopUpManager.addPopUp(nestedFieldEditor,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(nestedFieldEditor);
+				
+				
+			}
 			
 			
 			
@@ -255,7 +341,7 @@
 			protected function field_default_value_clickHandler(event:MouseEvent):void
 			{
 				
-				set_field_default_value(field, this, function(field:Field):void{
+				set_field_default_value(field, this.parent, function(field:Field):void{
 					
 					
 				});
@@ -263,7 +349,7 @@
 			protected function field_validation_clickHandler(event:MouseEvent):void
 			{
 				
-				set_field_validation(field, this, function(field:Field):void{
+				set_field_validation(field, this.parent, function(field:Field):void{
 					
 					
 				});
@@ -323,7 +409,7 @@
 			</s:VGroup>-->
 			<mx:VRule height="35"/>
 			<s:VGroup height="100%" verticalAlign="middle" horizontalAlign="center">
-				<image:FadedImage fadeAlpha="0.3" width="16" height="16" buttonMode="true" source="{IconLib.FIELD_NICENAME}" id="btn_toggle_nicename" toolTip="Click to edit Field Nicename" click="btn_toggle_nicename_clickHandler(event)"  faded="{showNicename}"/>
+				<image:FadedImage fadeAlpha="0.3" width="16" height="16" buttonMode="true" source="{isEmpty(field.nicename)?IconLib.FIELD_NICENAME:IconLib.FIELD_NICENAME_GOOD}" id="btn_toggle_nicename" toolTip="Click to edit Field Nicename" click="btn_toggle_nicename_clickHandler(event)"  faded="{showNicename}"/>
 			</s:VGroup>
 			<s:VGroup height="100%" id="vb_name_toggle" verticalAlign="middle">
 				<s:TextInput visible="{!showNicename}" includeInLayout="{!showNicename}" id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="60" width="200" change="field_name_changeHandler(event)"/>
@@ -338,17 +424,17 @@
 						
 					</components1:FieldTypeDropDownList>
 					
-					<!--<s:HGroup visible="{field_type.selectedItem == Field.DATE_TIME}">
+					<s:HGroup visible="{field_type.selectedItem == Field.DATE_TIME}">
 						<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Last Modified Date" source="{IconLib.CLOCK_24}" id="is_last_mod" click="is_last_mod_clickHandler(event)" alpha="{field.is_last_mod?1:0.3}"/>
 						<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Date Created" source="{IconLib.CLOCK_GREEN_24}" id="is_insert_date" click="is_insert_date_clickHandler(event)" alpha="{field.is_insert_date?1:0.3}"/>
-					</s:HGroup>-->
-					<!--<s:HGroup visible="{field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.LIST || field_type.selectedItem == Field.JSONARR}">
+					</s:HGroup>
+					<s:HGroup visible="{field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.LIST || field_type.selectedItem == Field.JSONARR}">
 						<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_JSON_LABELS_24}" id="field_json_labels" toolTip="Edit Field Schema" click="field_json_labels_clickHandler(event)" faded="{isNull(field.json_labels)|| isEmpty(field.json_labels)}"/>
-					</s:HGroup>-->
+					</s:HGroup>
 				</s:HGroup>
 			</s:VGroup>
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
-				<s:NumericStepper enabled="{fieldHasVaraibleLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="{field_type.selectedItem == Field.DECIMAL?0.1:1}" minimum="0" maximum="5000" toolTip="field_size" value="{field.field_size}" change="field_size_changeHandler(event)" width="85" />
+				<s:NumericStepper enabled="{fieldHasVariableLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="{field_type.selectedItem == Field.DECIMAL?0.1:1}" minimum="0" maximum="5000" toolTip="field_size" value="{field.field_size}" change="field_size_changeHandler(event)" width="85" />
 			</s:VGroup>
 			<!--<mx:VRule height="35"/>
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">

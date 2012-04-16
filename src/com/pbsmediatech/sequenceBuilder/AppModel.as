@@ -7,6 +7,7 @@ package com.pbsmediatech.sequenceBuilder
 	import com.pbsmediatech.sequenceBuilder.views.components.field.validation.FieldValidation;
 	
 	import db.Datastore;
+	import db.dataview.DataView;
 	import db.field.Field;
 	
 	import mx.collections.ArrayCollection;
@@ -96,13 +97,19 @@ package com.pbsmediatech.sequenceBuilder
 			Field.GEO, 
 			Field.INT, 
 			Field.BOOLEAN,
+			Field.LIST, 
+			Field.JSONOBJ,  
+			Field.JSONARR, 
 			Field.EMAIL ,
 			Field.URL, 
-			Field.IMAGE_URL, 
-			Field.AUDIO_URL, 
-			Field.VIDEO_URL]);
+			Field.IMAGE_URL,
+			Field.AUDIO_URL,
+			Field.VIDEO_URL
+		]);
 		
-		
+		public var custom_types_json:Array = ["address", "telephone", "email"];
+		public var custom_types_list:Array = ["url", "email", "image_url", "audio_url", "video_url", "date", "datetime", "time", "number"];
+		public var custom_types_varchar:Array = ["country", "password"];
 		
 		public var domains:ArrayCollection = new ArrayCollection();
 			//new ArrayCollection([{domain_label:"jp.unchained"},{domain_label:"jp.unchained.partner"},{domain_label:"jp.wordsmart"},{domain_label:"jp.wordsmart.partner"},{domain_label:"com.pbsmediatech"}]);
@@ -110,6 +117,9 @@ package com.pbsmediatech.sequenceBuilder
 		public var loaded_sequence:ControllerSequence;
 		public var fields:ArrayCollection = new ArrayCollection;
 		public var data_views:ArrayCollection = new ArrayCollection;
+		public var selected_view:DataView;
+		
+		
 		public var saved_sequences:ArrayCollection = new ArrayCollection();
 		
 		//code

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
-			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="800" minHeight="600" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:local="*" xmlns:domains="com.pbsmediatech.sequenceBuilder.views.components.domains.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*">
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="800" minHeight="600" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:local="*" xmlns:domains="com.pbsmediatech.sequenceBuilder.views.components.domains.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*" xmlns:dataviews="com.pbsmediatech.sequenceBuilder.views.components.dataviews.*">
 	<s:layout>
 		<s:VerticalLayout paddingLeft="3" paddingRight="3"/>
 	</s:layout>
@@ -10,6 +10,7 @@
 		<![CDATA[
 			import com.maccherone.json.JSON;
 			import com.pbsmediatech.dto.ControllerSequence;
+			import com.pbsmediatech.dto.Domain;
 			import com.pbsmediatech.json.controllers.ControllerSequenceController;
 			import com.pbsmediatech.json.controllers.DomainController;
 			import com.pbsmediatech.json.utils.ControllerSequenceResultHelper;
@@ -20,6 +21,7 @@
 			import com.pbsmediatech.sequenceBuilder.views.components.ForeignKeyList;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.loadSequenceToModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.sequences.generateSequenceConfig;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.sequences.loadSavedSequncesForDomainToModel;
 			import com.pbsmediatech.sequenceBuilder.views.user.UserLogin;
 			
@@ -28,7 +30,9 @@
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.HTTPService;
 			
 			import spark.components.TitleWindow;
 			
@@ -38,9 +42,12 @@
 			import utils.object.isEmpty;
 			import utils.string.replace;
 			import utils.text.newLine;
+			import utils.url.openInBrowser;
 
 			[Bindable]
 			private var dev_history:ArrayCollection = new ArrayCollection;
+			[Bindable]
+			private var to_dos:ArrayCollection = new ArrayCollection;
 			private function cc():void
 			{
 				
@@ -70,6 +77,31 @@
 				dev_history.addItem({ver:0.962, summary : "Cookie added to user_login"});
 				dev_history.addItem({ver:0.963, summary : "Added Enter Key Handler to Login"});
 				dev_history.addItem({ver:0.964, summary : "Added Field.nicename"});
+				dev_history.addItem({ver:0.965, summary : "Get Method added to php controller"});
+				dev_history.addItem({ver:0.966, summary : "Improved Add PHP Method"});
+				dev_history.addItem({ver:0.967, summary : "Cleaned get method PHP"});
+				dev_history.addItem({ver:0.968, summary : "Cleaned where clause in get method PHP"});
+				dev_history.addItem({ver:0.969, summary : "Unique added to list validations"});
+				dev_history.addItem({ver:0.970, summary : "Custom Type Editor Added for Json and List types"});
+				dev_history.addItem({ver:0.971, summary : "Add field info and method info buttons"});
+				dev_history.addItem({ver:0.972, summary : "Not adding timezone offset to 'Date' objects, only 'DateTime'"});
+				dev_history.addItem({ver:0.973, summary : "Stopped time/date column problem fixed"});
+				dev_history.addItem({ver:0.974, summary : "Removed old dataview idea and replaced with new one"});
+				dev_history.addItem({ver:0.975, summary : "PHP add method now checks atleast one relevant param has been passed in request"});
+				dev_history.addItem({ver:0.976, summary : "PHP update method now checks atleast one relevant param has been passed in request"});
+				dev_history.addItem({ver:0.977, summary : "Now sending Json encoded data to Data Store Services"});
+				dev_history.addItem({ver:0.978, summary : "Fixed Dataview method generation"});
+				dev_history.addItem({ver:0.979, summary : "Fixed Add New Table Button"});
+				dev_history.addItem({ver:0.980, summary : "Changed JSON output on Sequence List - note array is being used for fields to try and keep an order"});
+				dev_history.addItem({ver:0.981, summary : "Deploy config to node added."});
+				dev_history.addItem({ver:0.982, summary : "Added store config output"});
+				
+				
+				
+				to_dos.addItem({level:3,title:"Set Default value on column", summary : "Add Coloumn Default Value when adding columns  - see makeSQLAddColumnToTable.as"});
+				to_dos.addItem({level:0,title:"FIXED - Adding Date/Time column problem", summary : "Can't add date column - This worked -ALTER TABLE `exhibitors` ADD `date_test` date"});
+				to_dos.addItem({level:2,title:"Column Rename - DataStores Tab", summary : "Column not renamed in datagrid after update - db is renamed successfuly"});
+				
 				
 				AppModel.getInstance().sequence_maker_version = Number(dev_history.getItemAt(dev_history.length-1)["ver"]);
 			
@@ -188,6 +220,7 @@
 				//get datastore info
 				getDataStoreServiceController(seq.sequence_domain, AppModel.getInstance().dev).get_table_info({table_name:loaded_sequence.sequence_table_name}, function(evt:ResultEvent):void
 				{
+					try{
 					AppModel.getInstance().datastore.fields = new ArrayCollection;
 					var results:Array = new JSONResultHelper2().resultToArray(String(evt.result));
 					for each (var obj:Object in results)
@@ -196,6 +229,11 @@
 						
 					}
 					dispatchEvent(new Event("EVENT_DATASTORE_TABLES_UPDATED",true));
+					}catch(err:Error){
+						
+						Alert.show("Unable to parse DataStore response");
+
+					}
 				}
 				);
 			}
@@ -258,7 +296,8 @@
 			{
 				sequence_details_editor.save();
 				sequence_row_editor.save();
-				dataviews.save();
+				AppModel.getInstance().loaded_sequence.sequence_views = JSON.encode(AppModel.getInstance().data_views.source);
+				trace(AppModel.getInstance().loaded_sequence.sequence_views)
 				code_admin.save();
 				
 			}
@@ -406,31 +445,37 @@
 				for(var i:int = 0; i< all.length; i++){
 						var seq:ControllerSequence = all[i];
 						if(seq.sequence_ready){
-						var jsonSafe:Object = new Object;
-						jsonSafe.store_type = "mongo";
-						//jsonSafe.sequence_domain = seq.sequence_domain
-						jsonSafe.version  = JSON.decode(String(seq.sequence_version))
-						jsonSafe.name	 = seq.sequence_controller_name
-						jsonSafe.last_modified = seq.sequence_last_modified;
-						var fields:Array = JSON.decode(seq.sequence_fields);
-						jsonSafe.fields = {};
-						for(var j:int = 0; j< fields.length; j++){
-							jsonSafe.fields[fields[j].field_name] = fields[j];
+							var allMighty:Object = generateSequenceConfig(seq);
+						ready[seq.sequence_controller_name] = allMighty;
+						
 						}
-						jsonSafe.info = JSON.decode(seq.sequence_info);
-						ready[jsonSafe.name] = jsonSafe;
-						//var encoded:String = JSON.encode(jsonSafe)
-						//output += encoded;
-						}
+						
+						
 				}
 				
 				output = JSON.encode(ready,true);
 				var pop:TitleWindow = new TitleWindow();
+				var vg:VGroup = new VGroup();
+				pop.addElement(vg)
 				var ta:TextArea = new TextArea;
 				ta.width = 500;
 				ta.height = 500;
-				pop.addElement(ta);
+				vg.addElement(ta);
+				var hg:HGroup = new HGroup();
+				var butt:Button = new Button();
+				butt.label = "Copy";
+				butt.addEventListener(MouseEvent.CLICK, function(evt:Event):void{
+					System.setClipboard(ta.text);
+				});
+				hg.height = 40;
+				hg.addElement(butt);
+				vg.addElement(ta);
+				vg.addElement(hg);
+				
+				
 				ta.text = output;
+				
+				
 				pop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
 				{
 					PopUpManager.removePopUp(pop);
@@ -496,6 +541,73 @@
 				trace(JSON.encode(c,true));
 					
 				
+			}
+
+
+			protected function btn_field_api_clickHandler(event:MouseEvent):void
+			{
+				var domain:Domain;
+				var seq:ControllerSequence = AppModel.getInstance().loaded_sequence
+				for each (var d:Domain in AppModel.getInstance().domains)
+				{
+					if(d.domain_label == seq.sequence_domain)
+					{
+						domain = d;
+						break;
+						
+					}
+				}
+				if(domain != null){
+				var url:String = domain.domain_api_url+seq.sequence_controller_name+"/get_field_info/?dev=1";
+					openInBrowser(url, "fieldAPI");
+				}
+			}
+
+
+			protected function btn_method_api_clickHandler(event:MouseEvent):void
+			{
+				var domain:Domain;
+				var seq:ControllerSequence = AppModel.getInstance().loaded_sequence
+				for each (var d:Domain in AppModel.getInstance().domains)
+				{
+					if(d.domain_label == seq.sequence_domain)
+					{
+						domain = d;
+						break;
+						
+					}
+				}
+				if(domain != null){
+					var url:String = domain.domain_api_url+seq.sequence_controller_name+"/get_method_info/?dev=1";
+					openInBrowser(url, "methodAPI");
+				}
+			}
+
+
+			protected function btn_deploy_sequence_clickHandler(event:MouseEvent):void
+			{
+				var name:String = AppModel.getInstance().loaded_sequence.sequence_controller_name;
+				var config:Object = generateSequenceConfig(AppModel.getInstance().loaded_sequence);
+				var vo:Object = {name:name, config:JSON.encode(config)};
+				var service:HTTPService
+				service = new HTTPService();
+				service.useProxy = false;
+				service.method = "POST";
+				service.resultFormat = "text";
+				service.addEventListener(FaultEvent.FAULT, function(fe:FaultEvent):void{
+					trace("Bad Desu")
+					trace(fe)
+				});
+				service.url = "http://www.unchained.jp:3000/ssc";
+				service.addEventListener(ResultEvent.RESULT,function(re:ResultEvent):void{
+					trace("Good Desu")
+					trace(re)
+				});
+				
+				trace(vo)
+				service.send(vo);
+				
+				// TODO Auto-generated method stub
 			}
 
 		]]>
@@ -583,7 +695,10 @@
 				
 				<s:HGroup width="100%" horizontalAlign="right">
 					<s:Button label="Help" toolTip="Help" id="show_help" click="show_help_click_handler(event)"/>
+					<s:Button label="Deploy" toolTip="Deploy Sequence" id="btn_deploy_sequence" click="btn_deploy_sequence_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
 					<s:Button label="JSON Config" toolTip="Generate Config" id="btn_config_gen" click="btn_config_gen_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
+					<s:Button label="JSON Field API" toolTip="Open in browser" id="btn_field_api" click="btn_field_api_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
+					<s:Button label="JSON Method API" toolTip="Open in browser" id="btn_method_api" click="btn_method_api_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
 					<s:Button label="New Version" toolTip="Create New Version of current(last saved)" id="clone_controller_sequence" visible="{AppModel.getInstance().loaded_sequence != null}" click="clone_controller_sequence_clickHandler(event)"/>
 					<s:Button label="New" id="new_controller_sequence" click="new_controller_sequence_clickHandler(event)"/>
 					<s:Button label="Remove" id="remove_controller_sequence" click="remove_controller_sequence_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
@@ -630,9 +745,12 @@
 			</components1:DomainTables>
 		</s:NavigatorContent>
 		<s:NavigatorContent label="Data Views">
-			<components1:DataViews width="100%" height="100%" id="dataviews" views="{AppModel.getInstance().data_views}">
+		<!--	<components1:DataViews width="100%" height="100%" id="dataviews" views="{AppModel.getInstance().data_views}">
 				
-			</components1:DataViews>
+			</components1:DataViews>-->
+			<dataviews:DataViews width="100%" height="100%" id="dataviews" fields="{AppModel.getInstance().fields}">
+				
+			</dataviews:DataViews>
 			
 		</s:NavigatorContent>
 		<s:NavigatorContent label="View Projects">
@@ -662,6 +780,17 @@
 						<s:columns>
 							<s:ArrayList>
 								<s:GridColumn dataField="ver" headerText="Ver" width="50"/>
+								<s:GridColumn dataField="summary" headerText="Summary"/>
+							</s:ArrayList>
+						</s:columns>
+					</s:DataGrid>
+				</s:NavigatorContent>
+				<s:NavigatorContent label="Todos">
+					<s:DataGrid width="100%" height="100%" dataProvider="{to_dos}">
+						<s:columns>
+							<s:ArrayList>
+								<s:GridColumn dataField="level" headerText="Level" width="20"/>
+								<s:GridColumn dataField="title" headerText="Title" width="250"/>
 								<s:GridColumn dataField="summary" headerText="Summary"/>
 							</s:ArrayList>
 						</s:columns>

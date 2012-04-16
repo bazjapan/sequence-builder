@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+	<s:layout>
+		<s:VerticalLayout>
+			
+		</s:VerticalLayout>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.views.tasks.field.setDataView;
+			
+			import db.field.Field;
+			protected function btn_remove_clickHandler(event:MouseEvent):void
+			{
+				var toRemove:String = dd_view.selectedItem["name"];
+				AppModel.getInstance().data_views.removeItemAt(dd_view.selectedIndex);
+				for each (var f:Field in fields)
+				{
+					setDataView(f,toRemove,true);
+				}
+			}
+		]]>
+	</fx:Script>
+
+
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			
+			import db.dataview.DataView;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			
+			import spark.events.IndexChangeEvent;
+			[Bindable]public var fields:ArrayCollection;
+			protected function btn_add_clickHandler(event:MouseEvent):void
+			{
+				var view:DataView = new DataView({name:ti_name.text, color : view_color.selectedColor});
+				for each (var dv:DataView in AppModel.getInstance().data_views)
+				{
+					if(dv.name == view.name){
+					
+						Alert.show("Name already exists");
+						break;
+					}	
+				}
+				AppModel.getInstance().data_views.addItem(view);
+				//cleanup
+				ti_name.text = "";
+			}
+
+			protected function dd_view_changeHandler(event:IndexChangeEvent):void
+			{
+				AppModel.getInstance().selected_view = dd_view.selectedItem as DataView;
+				(lt_fields.dataProvider as ArrayCollection).refresh();
+				
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:HGroup width="100%">
+		<s:HGroup width="100%">
+			<s:DropDownList width="300" id="dd_view" dataProvider="{AppModel.getInstance().data_views}" labelField="name" prompt="Select Data View" change="dd_view_changeHandler(event)"/>
+			<s:Button id="btn_remove" click="btn_remove_clickHandler(event)" label="Remove"/>
+		</s:HGroup>
+		<s:HGroup width="100%">
+			<s:HGroup width="100%">
+				<s:TextInput id="ti_name" width="300"/>
+				<mx:ColorPicker id="view_color"/>
+				<s:Button label="Add" id="btn_add" click="btn_add_clickHandler(event)" enabled="{ti_name.text.length>0}"/>
+			</s:HGroup>
+		</s:HGroup>
+	</s:HGroup>
+		<s:List width="100%" height="100%" id="lt_fields" dataProvider="{fields}" itemRenderer="com.pbsmediatech.sequenceBuilder.views.components.dataviews.DataViewFieldRender">
+			<s:layout>
+				<s:VerticalLayout>
+					
+				</s:VerticalLayout>
+			</s:layout>
+		</s:List>
+
+</s:Group>

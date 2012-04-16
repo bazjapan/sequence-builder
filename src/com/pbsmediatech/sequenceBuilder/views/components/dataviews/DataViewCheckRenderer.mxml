@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" 
+				autoDrawBackground="true">
+	<fx:Script>
+		<![CDATA[
+			import db.dataview.DataView;
+			
+			
+			var df:DataView
+			override public function set data(value:Object):void
+			{
+				df = value as db.dataview.DataView
+			}
+			
+
+			protected function cb_include_changeHandler(event:Event):void
+			{
+				dispatchEvent(new 
+			}
+
+		]]>
+	</fx:Script>
+	<s:BorderContainer backgroundColor="{df.color}">
+	<s:CheckBox label="{df.name}" id="cb_include" change="cb_include_changeHandler()"/>
+	</s:BorderContainer>
+		
+</s:ItemRenderer>
