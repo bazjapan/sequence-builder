@@ -16,6 +16,7 @@
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
 			import com.pbsmediatech.sequenceBuilder.views.components.NoteTaker2;
+			import com.pbsmediatech.sequenceBuilder.views.components.field.custom.CustomFieldSetter;
 			import com.pbsmediatech.sequenceBuilder.views.components.field.nested.NestedFieldList;
 			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.compareFieldToMySQLRow;
@@ -28,6 +29,7 @@
 			import db.MySQLRow;
 			import db.field.Field;
 			import db.field.IDFieldSize;
+			import db.field.rules.can_add_custom_type;
 			
 			import mx.collections.ArrayCollection;
 			import mx.core.Application;
@@ -138,6 +140,7 @@
 			
 			protected function field_type_changeHandler(event:IndexChangeEvent):void
 			{
+				if(field.is_nc){return};
 				field.field_type = field_type.selectedItem as String;
 				if(field.field_type == Field.ID){field_size.value = IDFieldSize(); field.field_size = IDFieldSize();};
 		
@@ -145,12 +148,14 @@
 			
 			protected function field_name_changeHandler(event:TextOperationEvent):void
 			{
+				if(field.is_nc){return};
 				field.field_name = field_name.text;
 			}
 			
 			
 			protected function field_size_changeHandler(event:Event):void
 			{
+				if(field.is_nc){return};
 				field.field_size = field_size.value;
 				
 			}
@@ -159,12 +164,14 @@
 			//store functions
 			protected function add_to_store_clickHandler(event:MouseEvent):void
 			{
+				if(field.is_nc){return};
 				dispatchEvent(new Event("EVENT_ADD_FIELD_TO_STORE", true));
 			}
 			
 			
 			protected function update_store_clickHandler(event:MouseEvent):void
 			{
+				if(field.is_nc){return};
 				// TODO Auto-generated method stub
 				dispatchEvent(new Event("EVENT_UPDATE_FIELD_IN_STORE", true));
 			}
@@ -172,6 +179,7 @@
 			
 			protected function open_field_in_store_click_handler(event:MouseEvent):void
 			{
+				if(field.is_nc){return};
 				dispatchEvent(new Event("EVENT_OPEN_FIELD_IN_STORE", true));
 				// TODO Auto-generated method stub
 			}
@@ -179,6 +187,7 @@
 			//------------------------
 			protected function trash_field_clickHandler(event:MouseEvent):void
 			{
+				if(field.is_nc){return};
 				dispatchEvent(new Event("TRASH_FIELD", true));
 			}
 			
@@ -203,6 +212,7 @@
 			}
 			protected function is_ID_clickHandler(event:MouseEvent):void
 			{
+				if(field.is_nc){return};
 				var setToTrue:Boolean = !field.is_ID;
 				if(setToTrue)
 				{
@@ -227,6 +237,7 @@
 			}
 			protected function is_FK_clickHandler(event:MouseEvent):void
 			{
+				if(field.is_nc){return};
 				if(field.is_ID){field.is_FK = false; field.fk_target = '';   return};
 				if(field.is_FK)
 				{
@@ -241,6 +252,7 @@
 			
 			protected function is_last_mod_clickHandler(event:MouseEvent):void
 			{
+				if(field.is_nc){return};
 				var setToTrue:Boolean = !field.is_last_mod;
 				if(setToTrue)
 				{
@@ -265,6 +277,7 @@
 			}
 			protected function is_insert_date_clickHandler(event:MouseEvent):void
 			{
+				if(field.is_nc){return};
 				var setToTrue:Boolean = !field.is_insert_date;
 				if(setToTrue)
 				{
@@ -292,7 +305,7 @@
 			private var nfl:NestedFieldList; 
 			protected function field_json_labels_clickHandler(event:MouseEvent):void
 			{
-				
+				if(field.is_nc){return};
 				if(!nestedFieldEditor){
 					nfl = new NestedFieldList();
 					nestedFieldEditor = new TitleWindow();
@@ -385,20 +398,58 @@
 			{
 				field.nicename = nicename.text;
 			}
+			
+			private var customSetterWindow:TitleWindow;
+			private var customsetter:CustomFieldSetter;
+			protected function custom_type_clickHandler(event:MouseEvent):void
+			{
+				if(!customSetterWindow){
+					customsetter = new CustomFieldSetter();
+					customSetterWindow = new TitleWindow();
+					customSetterWindow.addElement(customsetter);
+					customsetter.save_func = function():void{
+						field.custom = customsetter.getCustomType();
+						close();
+					}
+					customsetter.cancel_func = function():void{
+						close();
+					}
+					customSetterWindow.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+					{
+						close()
+					});
+					customSetterWindow.height = 60;
+				}
+				
+				function close():void{
+					PopUpManager.removePopUp(customSetterWindow);
+				}
+				
+				customSetterWindow.title = "Custom Field "+field.field_name;
+				
+				
+				customsetter.setField(field)
+				PopUpManager.addPopUp(customSetterWindow,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(customSetterWindow);
+				
+				
+				
+			}
+
 
 		]]>
 	</fx:Script>
 	
 	<s:BorderContainer width="100%" height="40" backgroundColor.selected="#E1E1E1">
 		<s:HGroup width="100%" height="100%" paddingRight="5" paddingLeft="5">
-			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
-				<mx:Image buttonMode="true" source="{IconLib.TRASH_24}" toolTip="Remove Field" id="trash_field" click="trash_field_clickHandler(event)"/>
+			<s:VGroup height="100%" verticalAlign="middle" horizontalAlign="center">
+				<mx:Image width="16" height="16" buttonMode="true" source="{field.is_nc?IconLib.LOCK24:IconLib.TRASH_24}" toolTip="{field.is_nc?'Field is Locked':'Remove Field'}" id="trash_field" click="trash_field_clickHandler(event)" alpha="{field.is_nc?0.5:1}"/>
 			</s:VGroup>
 			<mx:VRule height="35"/>
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
 				<mx:Image  buttonMode="true" source="{IconLib.NOTE_24}" id="field_note" toolTip="Edit Field Note" click="field_note_clickHandler(event)"  alpha="{field.field_note!=null?1:0.5}"/>
 			</s:VGroup>
-			<s:VGroup height="100%" verticalAlign="middle" horizontalAlign="center">
+			<s:VGroup visible="{!field.is_nc}" height="100%" verticalAlign="middle" horizontalAlign="center">
 				<mx:Image width="16" height="16" buttonMode="true" source="{IconLib.KEY_24}" id="is_ID" toolTip="Set as ID Field" click="is_ID_clickHandler(event)" alpha="{field.is_ID?1:0.3}"/>
 			</s:VGroup>
 			<!--<s:VGroup height="100%" verticalAlign="middle" horizontalAlign="center">
@@ -412,13 +463,13 @@
 				<image:FadedImage fadeAlpha="0.3" width="16" height="16" buttonMode="true" source="{isEmpty(field.nicename)?IconLib.FIELD_NICENAME:IconLib.FIELD_NICENAME_GOOD}" id="btn_toggle_nicename" toolTip="Click to edit Field Nicename" click="btn_toggle_nicename_clickHandler(event)"  faded="{showNicename}"/>
 			</s:VGroup>
 			<s:VGroup height="100%" id="vb_name_toggle" verticalAlign="middle">
-				<s:TextInput visible="{!showNicename}" includeInLayout="{!showNicename}" id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="60" width="200" change="field_name_changeHandler(event)"/>
-				<s:TextInput visible="{showNicename}" includeInLayout="{showNicename}" id="nicename" fontWeight="bold" text="{field.nicename}" maxChars="60" width="200" change="nicename_changeHandler(event)"/>
+				<s:TextInput editable="{!field.is_nc}" visible="{!showNicename}" includeInLayout="{!showNicename}" id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="60" width="200" change="field_name_changeHandler(event)"/>
+				<s:TextInput editable="{!field.is_nc}" visible="{showNicename}" includeInLayout="{showNicename}" id="nicename" fontWeight="bold" text="{field.nicename}" maxChars="60" width="200" change="nicename_changeHandler(event)"/>
 			</s:VGroup>
 			<s:VGroup  height="100%" verticalAlign="middle">
 				<s:HGroup verticalAlign="middle">
 					
-					<components1:FieldTypeDropDownList enabled="{!field.is_FK}"  id="field_type" toolTip="field_type" width="100%"
+					<components1:FieldTypeDropDownList  enabled="{!field.is_FK &amp;&amp; !field.is_nc}"  id="field_type" toolTip="field_type" width="100%"
 													   
 													   horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_nested_fields_types}" change="field_type_changeHandler(event)">
 						
@@ -429,12 +480,12 @@
 						<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Date Created" source="{IconLib.CLOCK_GREEN_24}" id="is_insert_date" click="is_insert_date_clickHandler(event)" alpha="{field.is_insert_date?1:0.3}"/>
 					</s:HGroup>
 					<s:HGroup visible="{field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.LIST || field_type.selectedItem == Field.JSONARR}">
-						<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_JSON_LABELS_24}" id="field_json_labels" toolTip="Edit Field Schema" click="field_json_labels_clickHandler(event)" faded="{isNull(field.json_labels)|| isEmpty(field.json_labels)}"/>
+						<image:FadedImage editable="{!field.is_nc}" fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_JSON_LABELS_24}" id="field_json_labels" toolTip="Edit Field Schema" click="field_json_labels_clickHandler(event)" faded="{isNull(field.json_labels)|| isEmpty(field.json_labels)}"/>
 					</s:HGroup>
 				</s:HGroup>
 			</s:VGroup>
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
-				<s:NumericStepper enabled="{fieldHasVariableLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="{field_type.selectedItem == Field.DECIMAL?0.1:1}" minimum="0" maximum="5000" toolTip="field_size" value="{field.field_size}" change="field_size_changeHandler(event)" width="85" />
+				<s:NumericStepper  enabled="{fieldHasVariableLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="{field_type.selectedItem == Field.DECIMAL?0.1:1}" minimum="0" maximum="5000" toolTip="field_size" value="{field.field_size}" change="field_size_changeHandler(event)" width="85" />
 			</s:VGroup>
 			<!--<mx:VRule height="35"/>
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
@@ -467,6 +518,7 @@
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
 				<s:HGroup>
 					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_PROMPT_24}" id="field_prompt" toolTip="Edit Field Prompt" click="field_prompt_clickHandler(event)" faded="{isNull(field.prompt)}" visible="{!field.is_ID &amp;&amp; !field.is_FK &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false}"/>
+					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.CUSTOM_TYPE_24}" id="custom_type" toolTip="Edit Custom Type" click="custom_type_clickHandler(event)" faded="{isNull(field.custom)}" visible="{db.field.rules.can_add_custom_type(field.field_type)}"/>
 				</s:HGroup>
 			</s:VGroup>
 		</s:HGroup>

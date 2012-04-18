@@ -95,6 +95,8 @@
 				dev_history.addItem({ver:0.980, summary : "Changed JSON output on Sequence List - note array is being used for fields to try and keep an order"});
 				dev_history.addItem({ver:0.981, summary : "Deploy config to node added."});
 				dev_history.addItem({ver:0.982, summary : "Added store config output"});
+				dev_history.addItem({ver:"0.1.0", summary : "Changed versioning type to semver"});
+				dev_history.addItem({ver:"0.2.0", summary : "Added custom types to nested fields"});
 				
 				
 				
@@ -103,7 +105,7 @@
 				to_dos.addItem({level:2,title:"Column Rename - DataStores Tab", summary : "Column not renamed in datagrid after update - db is renamed successfuly"});
 				
 				
-				AppModel.getInstance().sequence_maker_version = Number(dev_history.getItemAt(dev_history.length-1)["ver"]);
+				AppModel.getInstance().sequence_maker_version = dev_history.getItemAt(dev_history.length-1)["ver"];
 			
 					
 				var login_screen:UserLogin = new UserLogin;

@@ -31,6 +31,7 @@
 			import db.MySQLRow;
 			import db.field.Field;
 			import db.field.IDFieldSize;
+			import db.field.rules.can_add_custom_type;
 			
 			import mx.collections.ArrayCollection;
 			import mx.core.Application;
@@ -400,6 +401,7 @@
 				
 				if(!nestedFieldEditor){
 					nfl = new NestedFieldList();
+					
 					nestedFieldEditor = new TitleWindow();
 					nestedFieldEditor.addElement(nfl);
 					nfl.saveFunc = function(fields:ArrayCollection):void{
@@ -423,7 +425,7 @@
 					
 				nestedFieldEditor.title = "Nested fields for "+field.field_name;
 					
-				
+				nfl.set_parent_field(field);
 				nfl.fields = new ArrayCollection(field.json_labels);
 				
 				PopUpManager.addPopUp(nestedFieldEditor,Application.application as DisplayObject,true);
@@ -457,12 +459,6 @@
 					customSetterWindow.addElement(customsetter);
 					customsetter.save_func = function():void{
 						field.custom = customsetter.getCustomType();
-						var fields:Array = [];
-						if(field.custom === "address"){
-						var fs:Array = com.adobe.serialization.json.JSON.decode('[{ 		"prompt" : null, 		"field_exists" : false, 		"field_name" : "zip_code", 		"field_size" : 10, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : null },{ 		"prompt" : "Please enter a country.", 		"field_exists" : false, 		"field_name" : "country", 		"field_size" : 50, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "Country" }, { 		"prompt" : "Please enter a postal code.", 		"field_exists" : false, 		"field_name" : "zip_code", 		"field_size" : 10, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "Postal Code" 	}, { 		"prompt" : null, 		"field_exists" : false, 		"field_name" : "province", 		"field_size" : 100, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "Province" 	}, { 		"prompt" : null, 		"field_exists" : false, 		"field_name" : "locality", 		"field_size" : 100, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "City" 	}, { 		"prompt" : null, 		"field_exists" : false, 		"field_name" : "dep_locality", 		"field_size" : 100, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "Address 1" 	}, { 		"prompt" : null, 		"field_exists" : false, 		"field_name" : "detail", 		"field_size" : 200, 		"field_note" : null, 		"field_type" : "varchar", 		"can_search_by" : false, 		"custom" : null, 		"updateable" : false, 		"is_required" : false, 		"is_FK" : false, 		"fk_target" : null, 		"can_remove_by" : false, 		"is_ID" : false, 		"json_labels" : null, 		"dataviews" : [], 		"default_value" : null, 		"is_last_mod" : false, 		"validation" : null, 		"is_unique" : false, 		"can_update_by" : false, 		"is_insert_date" : false, 		"is_index" : false, 		"nicename" : "Address 2" 	} ] ');
-						field.json_labels = fs;
-						}
-						
 						close();
 					}
 					customsetter.cancel_func = function():void{
@@ -535,7 +531,7 @@
 					<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Date Created" source="{IconLib.CLOCK_GREEN_24}" id="is_insert_date" click="is_insert_date_clickHandler(event)" alpha="{field.is_insert_date?1:0.3}"/>
 					
 				</s:HGroup>
-				<s:HGroup visible="{(field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.JSONARR)  &amp;&amp; isEmpty(field.custom)}">
+				<s:HGroup visible="{(field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.JSONARR)}">
 					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_JSON_LABELS_24}" id="field_json_labels" toolTip="Edit Field Schema" click="field_json_labels_clickHandler(event)" faded="{isEmpty(field.json_labels)}"/>
 				</s:HGroup>
 				</s:HGroup>
@@ -575,7 +571,7 @@
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
 				<s:HGroup>
 					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_PROMPT_24}" id="field_prompt" toolTip="Edit Field Prompt" click="field_prompt_clickHandler(event)" faded="{isNull(field.prompt)}" visible="{!field.is_ID &amp;&amp; !field.is_FK &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false}"/>
-					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.CUSTOM_TYPE_24}" id="custom_type" toolTip="Edit Custom Type" click="custom_type_clickHandler(event)" faded="{isNull(field.custom)}" visible="{!field.is_ID &amp;&amp; !field.is_FK &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false &amp;&amp; (field.field_type == Field.JSONARR||Field.JSONOBJ||Field.LIST)||Field.VARCHAR}"/>
+					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.CUSTOM_TYPE_24}" id="custom_type" toolTip="Edit Custom Type" click="custom_type_clickHandler(event)" faded="{isNull(field.custom)}" visible="{db.field.rules.can_add_custom_type(field.field_type)}"/>
 				</s:HGroup>
 			</s:VGroup>
 			<s:VGroup width="25" height="100%" verticalAlign="middle" horizontalAlign="center">

@@ -12,6 +12,7 @@
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			
 			import db.field.Field;
+			import db.field.custom.custom_fields_by_parent_field_type;
 			
 			import mx.collections.ArrayCollection;
 			
@@ -52,15 +53,7 @@
 			
 			public function setField(f:Field):void
 			{
-				if(f.field_type == Field.LIST){
-					types.source = AppModel.getInstance().custom_types_list;
-				}
-				if(f.field_type == Field.JSONARR || f.field_type == Field.JSONOBJ){
-					types.source = AppModel.getInstance().custom_types_json;
-				}
-				if(f.field_type == Field.VARCHAR){
-					types.source = AppModel.getInstance().custom_types_varchar;
-				}
+				types.source = custom_fields_by_parent_field_type(f.field_type);
 				
 				var cType:String = f.custom;	
 				for (var i:int = 0; i < types.length; i++)

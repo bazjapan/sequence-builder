@@ -75,6 +75,8 @@ package com.pbsmediatech.sequenceBuilder.assets
 	
 	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/tick24.png")]
 	public static var TICK24:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/lock24.png")]
+	public static var LOCK24:Class;
 	
 	
 	

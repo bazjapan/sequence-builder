@@ -48,7 +48,7 @@ package com.pbsmediatech.sequenceBuilder
 		}
 		
 		//application version
-		public var sequence_maker_version:Number = 0;
+		public var sequence_maker_version:String = "0:0:0";
 		public var view_maker_version:Number = 0;
 		
 		//initialDate
@@ -107,9 +107,7 @@ package com.pbsmediatech.sequenceBuilder
 			Field.VIDEO_URL
 		]);
 		
-		public var custom_types_json:Array = ["address", "telephone", "email"];
-		public var custom_types_list:Array = ["url", "email", "image_url", "audio_url", "video_url", "date", "datetime", "time", "number"];
-		public var custom_types_varchar:Array = ["country", "password"];
+		
 		
 		public var domains:ArrayCollection = new ArrayCollection();
 			//new ArrayCollection([{domain_label:"jp.unchained"},{domain_label:"jp.unchained.partner"},{domain_label:"jp.wordsmart"},{domain_label:"jp.wordsmart.partner"},{domain_label:"com.pbsmediatech"}]);
