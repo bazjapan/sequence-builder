@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
-			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="800" minHeight="600" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:local="*" xmlns:domains="com.pbsmediatech.sequenceBuilder.views.components.domains.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*" xmlns:dataviews="com.pbsmediatech.sequenceBuilder.views.components.dataviews.*">
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="800" minHeight="600" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:local="*" xmlns:domains="com.pbsmediatech.sequenceBuilder.views.components.domains.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*" xmlns:dataviews="com.pbsmediatech.sequenceBuilder.views.components.dataviews.*" xmlns:image="image.*">
 	<s:layout>
 		<s:VerticalLayout paddingLeft="3" paddingRight="3"/>
 	</s:layout>
@@ -18,6 +18,7 @@
 			import com.pbsmediatech.json.utils.JSONResultHelper2;
 			import com.pbsmediatech.json.utils.extractResult;
 			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
 			import com.pbsmediatech.sequenceBuilder.views.components.ForeignKeyList;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.loadSequenceToModel;
@@ -97,6 +98,10 @@
 				dev_history.addItem({ver:0.982, summary : "Added store config output"});
 				dev_history.addItem({ver:"0.1.0", summary : "Changed versioning type to semver"});
 				dev_history.addItem({ver:"0.2.0", summary : "Added custom types to nested fields"});
+				dev_history.addItem({ver:"0.3.0", summary : "Added Money type"});
+				dev_history.addItem({ver:"0.3.1", summary : "Fixed closing Nested field editor"});
+				dev_history.addItem({ver:"0.4.0", summary : "Field JSON viewer added"});
+				dev_history.addItem({ver:"0.5.1", summary : "Field Options added"});
 				
 				
 				
@@ -440,56 +445,7 @@
 				copy_area_text += newLine(); */
 			}
 			
-			private function generate_json_clickHandler(event:MouseEvent):void{
-				var all:ArrayCollection =  AppModel.getInstance().saved_sequences;
-				var ready:Object = {};
-				var output:String = "";
-				for(var i:int = 0; i< all.length; i++){
-						var seq:ControllerSequence = all[i];
-						if(seq.sequence_ready){
-							var allMighty:Object = generateSequenceConfig(seq);
-						ready[seq.sequence_controller_name] = allMighty;
-						
-						}
-						
-						
-				}
-				
-				output = JSON.encode(ready,true);
-				var pop:TitleWindow = new TitleWindow();
-				var vg:VGroup = new VGroup();
-				pop.addElement(vg)
-				var ta:TextArea = new TextArea;
-				ta.width = 500;
-				ta.height = 500;
-				vg.addElement(ta);
-				var hg:HGroup = new HGroup();
-				var butt:Button = new Button();
-				butt.label = "Copy";
-				butt.addEventListener(MouseEvent.CLICK, function(evt:Event):void{
-					System.setClipboard(ta.text);
-				});
-				hg.height = 40;
-				hg.addElement(butt);
-				vg.addElement(ta);
-				vg.addElement(hg);
-				
-				
-				ta.text = output;
-				
-				
-				pop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
-				{
-					PopUpManager.removePopUp(pop);
-				});
-				pop.title = "DataStore JSON"
-				PopUpManager.addPopUp(pop, this,false);
-				
-				trace(output);
-				
-			}
-
-		
+					
 			
 			
 
@@ -650,15 +606,14 @@
 	<mx:ViewStack width="100%" height="100%" id="vs" creationPolicy="all">
 		<s:NavigatorContent width="100%" height="100%" label="Saved">
 			<s:VGroup width="100%" height="100%">
-				<s:HGroup width="100%" paddingLeft="2" paddingRight="2">
+				<s:HGroup width="100%" paddingLeft="2" paddingRight="2" verticalAlign="middle">
 					<s:HGroup width="100%" horizontalAlign="left">
-						<s:Button visible="{dg_saved.selectedItem != null}" id="load_selected_sequence" label="load_selected_sequence"  click="load_selected_sequence_clickHandler(event)"/>
-						<s:Button visible="{dg_saved.selectedItem != null}" id="generate_json" label="Generate JSON"  click="generate_json_clickHandler(event)"/>
+						<image:FadedImage fadeAlpha="0.3" source="{IconLib.EDIT_SETTINGS32}" enabled="{dg_saved.selectedItem != null}" faded="{!dg_saved.selectedItem}" id="load_selected_sequence" toolTip="Edit Selected Sequence" click="load_selected_sequence_clickHandler(event)"/>
 					</s:HGroup>	
-					<s:HGroup width="100%" horizontalAlign="right">
+					<s:HGroup width="100%" horizontalAlign="right" verticalAlign="middle">
 						<s:Button visible="{dg_saved.selectedItem != null}"  id="remove_saved_sequence" label="remove_saved_sequence" click="remove_saved_sequence_clickHandler(event)"/>
 						<s:DropDownList width="250" requireSelection="true" dataProvider="{AppModel.getInstance().domains}" labelField="domain_label" id="save_sequence_domain_chooser"/>
-						<s:Button enabled="{save_sequence_domain_chooser.selectedItem != null}" id="get_saved_sequences" label="get_saved_sequences" click="get_saved_sequences_clickHandler(event)"/>
+						<s:Image buttonMode="true" source="{IconLib.RELOAD22}"  id="get_saved_sequences" toolTip="Load Saved Sequences" click="get_saved_sequences_clickHandler(event)"/>
 					</s:HGroup>	
 				</s:HGroup>	
 				<s:DataGrid width="100%" height="100%" id="dg_saved" dataProvider="{AppModel.getInstance().saved_sequences}">
@@ -678,7 +633,6 @@
 						<s:GridColumn dataField="sequence_version" width="50"/>
 						<s:GridColumn dataField="sequence_controller_name" width="200"/>
 						<s:GridColumn dataField="sequence_last_modified" width="150"/>
-						<s:GridColumn dataField="sequence_notes"/>
 						</s:ArrayList>
 					</s:columns>
 				</s:DataGrid>

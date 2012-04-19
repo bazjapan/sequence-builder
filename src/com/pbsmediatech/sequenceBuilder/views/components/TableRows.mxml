@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*">
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*" xmlns:image="image.*">
 	<s:layout>
 		<s:VerticalLayout/>
 	</s:layout>
 
 	<fx:Script>
 		<![CDATA[
-			import com.adobe.serialization.json.JSON;
+			
+			import com.maccherone.json.JSON;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLAddColumnToTable;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLRemoveColumnFromTableScript;
 			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
 			import com.pbsmediatech.sequenceBuilder.views.components.renderer.TableColumnRenderer;
 			import com.pbsmediatech.sequenceBuilder.views.components.table.KeyFieldList;
 			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
@@ -33,6 +35,8 @@
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			
+			import spark.components.TextArea;
+			import spark.components.VGroup;
 			import spark.events.IndexChangeEvent;
 			
 			import utils.ac.moveItemDown;
@@ -378,6 +382,47 @@
 			
 
 
+
+			protected function btn_show_field_json_clickHandler(event:MouseEvent):void
+			{
+				if(!lt_fields.selectedItem){return};
+				var output:String = "";
+				
+				output = JSON.encode(lt_fields.selectedItem,true);
+				var pop:TitleWindow = new TitleWindow();
+				pop.showCloseButton = true;
+				
+				var vg:VGroup = new VGroup();
+				pop.addElement(vg)
+				var ta:TextArea = new TextArea;
+				ta.width = 500;
+				ta.height = 500;
+				vg.addElement(ta);
+				var hg:HGroup = new HGroup();
+				var butt:Button = new Button();
+				butt.label = "Copy";
+				butt.addEventListener(MouseEvent.CLICK, function(evt:Event):void{
+					System.setClipboard(ta.text);
+				});
+				hg.height = 40;
+				hg.addElement(butt);
+				vg.addElement(ta);
+				vg.addElement(hg);
+				
+				
+				ta.text = output;
+				
+				
+				pop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+				{
+					PopUpManager.removePopUp(pop);
+					pop = null;
+				});
+				pop.title = "Config JSON for "+lt_fields.selectedItem["field_name"];
+				PopUpManager.addPopUp(pop, this,false);
+			
+			}
+
 		]]>
 	</fx:Script>
 
@@ -426,8 +471,9 @@
 		<s:HGroup width="100%" height="100%" verticalAlign="bottom">
 			<s:Label text="{AppModel.getInstance().loaded_sequence.getClassName()+'.'+lt_fields.selectedItem['field_name']}"  fontSize="16" height="20" textAlign="center" verticalAlign="bottom" width="100%"/>
 		</s:HGroup>
-		<s:Button enabled="{lt_fields.selectedItem != null}" label="Up" toolTip="Move Field Down" click="{moveUp()}"/>
-		<s:Button enabled="{lt_fields.selectedItem != null}" label="Down" toolTip="Move Field Up" click="{moveDown()}"/>
+		<image:FadedImage source="{IconLib.VIEW_JSON22}" toolTip="View Config" id="btn_show_field_json" click="btn_show_field_json_clickHandler(event)" enabled="{lt_fields.selectedItem}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"/>
+		<image:FadedImage source="{IconLib.GO_UP22}" toolTip="Move Field Up" click="{moveUp()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>
+		<image:FadedImage source="{IconLib.GO_DOWN22}" toolTip="Move Field Down" click="{moveDown()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>
 	</s:HGroup>
 	</s:HGroup>
 	

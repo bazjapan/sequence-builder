@@ -18,6 +18,7 @@
 			import com.pbsmediatech.sequenceBuilder.views.components.NoteTaker2;
 			import com.pbsmediatech.sequenceBuilder.views.components.field.custom.CustomFieldSetter;
 			import com.pbsmediatech.sequenceBuilder.views.components.field.nested.NestedFieldList;
+			import com.pbsmediatech.sequenceBuilder.views.components.field.options.OptionSetter;
 			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.compareFieldToMySQLRow;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.field.set_field_default_value;
@@ -331,7 +332,7 @@
 				
 				nestedFieldEditor.title = "Nested fields for "+field.field_name;
 				
-				
+				nfl.parent_field = field;
 				nfl.fields = new ArrayCollection(field.json_labels);
 				
 				PopUpManager.addPopUp(nestedFieldEditor,Application.application as DisplayObject,true);
@@ -435,7 +436,42 @@
 				
 				
 			}
-
+			
+			private var fosWindow:TitleWindow
+			private var fos:OptionSetter
+			protected function field_options_clickHandler(event:MouseEvent):void
+			{
+				var fi:FadedImage = event.currentTarget as FadedImage;
+				if(!fosWindow){
+					fos = new OptionSetter();
+					fosWindow = new TitleWindow();
+					fosWindow.addElement(fos);
+					fos.save_func = function():void{
+						close();
+						fi.faded = isEmpty(field.options);
+					}
+					fos.cancel_func = function():void{
+						close();
+					}
+					fosWindow.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+					{
+						close()
+					});
+				}
+				
+				function close():void{
+					PopUpManager.removePopUp(fosWindow);
+				}
+				
+				fosWindow.title = "Options for  "+field.field_name;
+				
+				
+				fos.set_field(field)
+				PopUpManager.addPopUp(fosWindow,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(fosWindow);
+				
+				
+			}
 
 		]]>
 	</fx:Script>
@@ -466,24 +502,46 @@
 				<s:TextInput editable="{!field.is_nc}" visible="{!showNicename}" includeInLayout="{!showNicename}" id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="60" width="200" change="field_name_changeHandler(event)"/>
 				<s:TextInput editable="{!field.is_nc}" visible="{showNicename}" includeInLayout="{showNicename}" id="nicename" fontWeight="bold" text="{field.nicename}" maxChars="60" width="200" change="nicename_changeHandler(event)"/>
 			</s:VGroup>
+			
+			<!-- field type -->
 			<s:VGroup  height="100%" verticalAlign="middle">
 				<s:HGroup verticalAlign="middle">
 					
-					<components1:FieldTypeDropDownList  enabled="{!field.is_FK &amp;&amp; !field.is_nc}"  id="field_type" toolTip="field_type" width="100%"
+					<components1:FieldTypeDropDownList enabled="{!field.is_FK}"  id="field_type" toolTip="field_type" width="100%"
 													   
-													   horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_nested_fields_types}" change="field_type_changeHandler(event)">
+													   horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_fields_types}" change="field_type_changeHandler(event)">
 						
 					</components1:FieldTypeDropDownList>
 					
-					<s:HGroup visible="{field_type.selectedItem == Field.DATE_TIME}">
-						<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Last Modified Date" source="{IconLib.CLOCK_24}" id="is_last_mod" click="is_last_mod_clickHandler(event)" alpha="{field.is_last_mod?1:0.3}"/>
-						<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Date Created" source="{IconLib.CLOCK_GREEN_24}" id="is_insert_date" click="is_insert_date_clickHandler(event)" alpha="{field.is_insert_date?1:0.3}"/>
-					</s:HGroup>
-					<s:HGroup visible="{field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.LIST || field_type.selectedItem == Field.JSONARR}">
-						<image:FadedImage editable="{!field.is_nc}" fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_JSON_LABELS_24}" id="field_json_labels" toolTip="Edit Field Schema" click="field_json_labels_clickHandler(event)" faded="{isNull(field.json_labels)|| isEmpty(field.json_labels)}"/>
+					
+					<!-- TODO - key stuff --> 
+					<!--<s:HGroup includeInLayout="{field.is_FK}">
+					<s:Label text="Hello"/>
+					
+					</s:HGroup>	-->
+					
+					<s:HGroup minWidth="100">
+						<s:HGroup includeInLayout="{true}" visible="{true}">
+							<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_SETTINGS24}" id="field_options" toolTip="Edit Field Options" click="field_options_clickHandler(event)" faded="{isEmpty(field.options)}"/>
+						</s:HGroup>	
+						<s:HGroup includeInLayout="{field_type.selectedItem == Field.DATE_TIME &amp;&amp; (field.is_insert_date || field.is_last_mod)}" visible="{field_type.selectedItem == Field.DATE_TIME  &amp;&amp; (field.is_insert_date || field.is_last_mod)}">
+							<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Last Modified Date" source="{IconLib.CLOCK_24}" id="is_last_mod" click="is_last_mod_clickHandler(event)" alpha="{field.is_last_mod?1:0.3}"/>
+							<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Date Created" source="{IconLib.CLOCK_GREEN_24}" id="is_insert_date" click="is_insert_date_clickHandler(event)" alpha="{field.is_insert_date?1:0.3}"/>
+						</s:HGroup>
+						
+						<s:HGroup includeInLayout="{(field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.JSONARR)}" visible="{(field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.JSONARR)}">
+							<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_JSON_LABELS_24}" id="field_json_labels" toolTip="Edit Field Schema" click="field_json_labels_clickHandler(event)" faded="{isEmpty(field.json_labels)}"/>
+						</s:HGroup>
+						
 					</s:HGroup>
 				</s:HGroup>
+				
+				
 			</s:VGroup>
+			
+			<!-- /field type -->
+		
+			
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
 				<s:NumericStepper  enabled="{fieldHasVariableLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="{field_type.selectedItem == Field.DECIMAL?0.1:1}" minimum="0" maximum="5000" toolTip="field_size" value="{field.field_size}" change="field_size_changeHandler(event)" width="85" />
 			</s:VGroup>

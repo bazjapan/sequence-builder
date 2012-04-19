@@ -84,5 +84,24 @@ package com.pbsmediatech.sequenceBuilder.assets
 	public static var FIELD_NICENAME:Class;
 	[Embed(source="/assets/app-icons/iconsets/fugue/control-cursor-g.png")]
 	public static var FIELD_NICENAME_GOOD:Class;
+	
+	
+	
+	
+	
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/edit_settings.png")]
+	public static var EDIT_SETTINGS32:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/view_json.png")]
+	public static var VIEW_JSON22:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/go-up.png")]
+	public static var GO_UP22:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/go-down.png")]
+	public static var GO_DOWN22:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/reload.png")]
+	public static var RELOAD22:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/field_settings.png")]
+	public static var FIELD_SETTINGS24:Class;
+	
+	
 	}
 }

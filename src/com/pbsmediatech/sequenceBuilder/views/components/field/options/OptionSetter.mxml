@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="100%">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			protected function btn_clear_all_clickHandler(event:MouseEvent):void
+			{
+				field.options = {};
+				
+				if(field.field_type == Field.MONEY)
+				{
+					dd_currency.selectedIndex = -1;
+				}
+			}
+		]]>
+	</fx:Script>
+
+
+	<fx:Script>
+		<![CDATA[
+			
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import db.field.CONSTANTS;
+			import db.field.Field;
+			
+			import mx.collections.ArrayList;
+			
+			[Bindable]
+			private var field:Field;
+			public var save_func:Function;
+			public var cancel_func:Function;
+			
+		
+			public function set_field(f:Field):void{
+				field = f;
+				if(field.field_type = Field.MONEY)
+				{
+					//???
+				}
+			}
+			
+			//money
+			private	var currency:ArrayList = new ArrayList([CONSTANTS.MONEY_JPY,CONSTANTS.MONEY_USD,CONSTANTS.MONEY_GBP,CONSTANTS.MONEY_EUR]);
+			private var currency_prompt:String = "Choose Currency";
+			//------------------
+			
+			
+			
+			protected function btn_save_clickHandler(event:MouseEvent):void
+			{
+				if(field.field_type == Field.MONEY){
+					if(dd_currency.selectedIndex>-1){
+					field.options.money = {};
+					field.options.money.currency = dd_currency.selectedItem as String;
+					}
+				}
+				if(save_func != null){save_func()};
+			}
+			
+			protected function btn_cancel_clickHandler(event:MouseEvent):void
+			{
+				if(cancel_func != null){cancel_func()};
+			}
+			
+		]]>
+	</fx:Script>
+	<s:Form width="100%" height="100%">
+	<s:HGroup width="100%" horizontalAlign="right">
+		<s:Button label="Clear All Settings" id="btn_clear_all" click="btn_clear_all_clickHandler(event)"/>
+	</s:HGroup>	
+	<s:VGroup width="100%" height="100%" includeInLayout="{field.field_type == Field.MONEY}" visible="{field.field_type == Field.MONEY}">
+		<s:Label text="Money"/>
+		<s:FormItem label="Currency">
+		<s:DropDownList dataProvider="{currency}" selectedItem="{field.options.money.currency}" id="dd_currency" prompt="{currency_prompt}"/>
+		</s:FormItem>
+	</s:VGroup>
+	<s:HGroup width="100%" height="100%">
+			<s:HGroup width="100%" height="100%">
+				<s:Button label="Cancel" id="btn_cancel" click="btn_cancel_clickHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup width="100%" height="100%">
+				
+			</s:HGroup>
+			<s:HGroup width="100%" height="100%" horizontalAlign="right">
+				<s:Button label="Save" id="btn_save" click="btn_save_clickHandler(event)"/>
+			</s:HGroup>
+	</s:HGroup>
+	</s:Form>
+	
+	
+	
+</s:Group>

@@ -20,6 +20,7 @@
 			import com.pbsmediatech.sequenceBuilder.views.components.NoteTaker2;
 			import com.pbsmediatech.sequenceBuilder.views.components.field.custom.CustomFieldSetter;
 			import com.pbsmediatech.sequenceBuilder.views.components.field.nested.NestedFieldList;
+			import com.pbsmediatech.sequenceBuilder.views.components.field.options.OptionSetter;
 			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.compareFieldToMySQLRow;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.field.set_field_default_value;
@@ -31,6 +32,7 @@
 			import db.MySQLRow;
 			import db.field.Field;
 			import db.field.IDFieldSize;
+			import db.field.options.field_has_custom_options;
 			import db.field.rules.can_add_custom_type;
 			
 			import mx.collections.ArrayCollection;
@@ -89,10 +91,7 @@
 				{
 				if(field.is_FK)
 				{
-					trace("lets validate FK");
 					var bits:Array = field.fk_target.split(".");
-					trace(bits[0])
-					trace(bits[1])
 					var store_name:String = bits[0];
 					var field_name:String = bits[1];
 					getDataStoreServiceController(AppModel.getInstance().loaded_sequence.sequence_domain, AppModel.getInstance().dev).get_store_field_info({store_name:store_name, field_name:field_name},
@@ -486,6 +485,42 @@
 				
 			}
 
+			private var fosWindow:TitleWindow
+			private var fos:OptionSetter
+			protected function field_options_clickHandler(event:MouseEvent):void
+			{
+				var fi:FadedImage = event.currentTarget as FadedImage;
+				if(!fosWindow){
+					fos = new OptionSetter();
+					fosWindow = new TitleWindow();
+					fosWindow.addElement(fos);
+					fos.save_func = function():void{
+						close();
+						fi.faded = isEmpty(field.options);
+					}
+					fos.cancel_func = function():void{
+						close();
+					}
+					fosWindow.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
+					{
+						close()
+					});
+				}
+				
+				function close():void{
+					PopUpManager.removePopUp(fosWindow);
+				}
+				
+				fosWindow.title = "Options for  "+field.field_name;
+				
+				
+				fos.set_field(field)
+				PopUpManager.addPopUp(fosWindow,Application.application as DisplayObject,true);
+				PopUpManager.centerPopUp(fosWindow);
+				
+				
+			}
+
 		]]>
 	</fx:Script>
 	
@@ -512,9 +547,13 @@
 			<image:FadedImage fadeAlpha="0.3" width="16" height="16" buttonMode="true" source="{isEmpty(field.nicename)?IconLib.FIELD_NICENAME:IconLib.FIELD_NICENAME_GOOD}" id="btn_toggle_nicename" toolTip="Click to edit Field Nicename" click="btn_toggle_nicename_clickHandler(event)"  faded="{showNicename}"/>
 			</s:VGroup>
 			<s:VGroup height="100%" id="vb_name_toggle" verticalAlign="middle">
-				<s:TextInput visible="{!showNicename}" includeInLayout="{!showNicename}" id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="60" width="200" change="field_name_changeHandler(event)"/>
-				<s:TextInput visible="{showNicename}" includeInLayout="{showNicename}" id="nicename" fontWeight="bold" text="{field.nicename}" maxChars="60" width="200" change="nicename_changeHandler(event)"/>
+				<s:TextInput visible="{!showNicename}" includeInLayout="{!showNicename}" id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="40" width="150" change="field_name_changeHandler(event)"/>
+				<s:TextInput visible="{showNicename}" includeInLayout="{showNicename}" id="nicename" fontWeight="bold" text="{field.nicename}" maxChars="40" width="150" change="nicename_changeHandler(event)"/>
 			</s:VGroup>
+			
+			
+			
+			<!-- field type -->
 			<s:VGroup  height="100%" verticalAlign="middle">
 				<s:HGroup verticalAlign="middle">
 					
@@ -523,25 +562,45 @@
 												  horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_fields_types}" change="field_type_changeHandler(event)">
 					
 				</components1:FieldTypeDropDownList>
-				<s:HGroup includeInLayout="{field.is_FK}">
+					
+					
+<!-- TODO - key stuff --> 
+<!--<s:HGroup includeInLayout="{field.is_FK}">
 					<s:Label text="Hello"/>
+
+</s:HGroup>	-->
+					
+				<s:HGroup minWidth="100">
+				<s:HGroup includeInLayout="{field_has_custom_options(field.field_type)}" visible="{field_has_custom_options(field.field_type)}">
+					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_SETTINGS24}" id="field_options" toolTip="Edit Field Options" click="field_options_clickHandler(event)" faded="{isEmpty(field.options)}"/>
 				</s:HGroup>	
-				<s:HGroup visible="{field_type.selectedItem == Field.DATE_TIME}">
+				<s:HGroup includeInLayout="{field_type.selectedItem == Field.DATE_TIME &amp;&amp; (field.is_insert_date || field.is_last_mod)}" visible="{field_type.selectedItem == Field.DATE_TIME  &amp;&amp; (field.is_insert_date || field.is_last_mod)}">
 					<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Last Modified Date" source="{IconLib.CLOCK_24}" id="is_last_mod" click="is_last_mod_clickHandler(event)" alpha="{field.is_last_mod?1:0.3}"/>
 					<mx:Image visible="{field_type.selectedItem == Field.DATE_TIME}" width="24" height="24" buttonMode="true" toolTip="Record Date Created" source="{IconLib.CLOCK_GREEN_24}" id="is_insert_date" click="is_insert_date_clickHandler(event)" alpha="{field.is_insert_date?1:0.3}"/>
-					
 				</s:HGroup>
-				<s:HGroup visible="{(field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.JSONARR)}">
+				
+				<s:HGroup includeInLayout="{(field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.JSONARR)}" visible="{(field_type.selectedItem == Field.JSONOBJ || field_type.selectedItem == Field.JSONARR)}">
 					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_JSON_LABELS_24}" id="field_json_labels" toolTip="Edit Field Schema" click="field_json_labels_clickHandler(event)" faded="{isEmpty(field.json_labels)}"/>
 				</s:HGroup>
+					
 				</s:HGroup>
-			</s:VGroup>
+				</s:HGroup>
+				
+				
+				</s:VGroup>
+			
+			<!-- /field type -->
+			
+			
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
 				<s:NumericStepper enabled="{fieldHasVariableLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="{field_type.selectedItem == Field.DECIMAL?0.1:1}" minimum="0" maximum="5000" toolTip="field_size" value="{field.field_size}" change="field_size_changeHandler(event)" width="85" />
 			</s:VGroup>
+			
+			
 			<mx:VRule height="35"/>
+			
+			<!--methods-->
 			<s:VGroup  height="100%" verticalAlign="middle" horizontalAlign="center">
-				
 			<s:HGroup>
 				<mx:Image  visible="{!field.is_ID &amp;&amp; field.is_insert_date == false &amp;&amp; field.is_last_mod == false}" width="24" height="24" buttonMode="true" source="{IconLib.UPDATEABLE_24}" toolTip="Field is updateable" id="updateable" click="updateable_clickHandler(event)" alpha="{field.updateable?1:0.3}"/>
 				<mx:Image width="24" height="24" buttonMode="true" source="{IconLib.DB_SEARCH_24}" toolTip="Can Search by" id="can_search_by" click="can_search_by_clickHandler(event)" alpha="{field.can_search_by?1:0.3}"/>
@@ -549,8 +608,9 @@
 				<mx:Image enabled="{!field.is_ID}" width="24" height="24" buttonMode="true" source="{IconLib.DB_REMOVE_24}" toolTip="Can remove by" id="can_remove_by" click="can_remove_by_clickHandler(event)" alpha="{field.can_remove_by?1:0.3}"/>
 				<mx:Image enabled="{!field.is_ID}" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_IS_INDEX_24}" toolTip="Is Indexed" id="is_index" click="is_index_clickHandler(event)" alpha="{field.is_index?1:0.3}"/>
 			</s:HGroup>
-				
 			</s:VGroup>
+			<!--/methods-->
+			
 			<s:VGroup width="25" height="100%" verticalAlign="middle" horizontalAlign="center">
 				<mx:VRule height="35"/>
 			</s:VGroup>
@@ -574,6 +634,8 @@
 					<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.CUSTOM_TYPE_24}" id="custom_type" toolTip="Edit Custom Type" click="custom_type_clickHandler(event)" faded="{isNull(field.custom)}" visible="{db.field.rules.can_add_custom_type(field.field_type)}"/>
 				</s:HGroup>
 			</s:VGroup>
+			
+			<!-- store related -->
 			<s:VGroup width="25" height="100%" verticalAlign="middle" horizontalAlign="center">
 				<mx:VRule height="35"/>
 			</s:VGroup>
@@ -584,6 +646,9 @@
 					<mx:Image width="16" height="16" buttonMode="true" source="{IconLib.LINK_FIELD_TO_DATABASE_16}" toolTip="field is linked to store." id="link_to_store" click="open_field_in_store_click_handler(event)"  visible="{allow_table_edits}" includeInLayout="{allow_table_edits}"/>
 				</s:HGroup>
 			</s:VGroup>
+			<!-- /store related -->
+			
+			
 		</s:HGroup>
 	</s:BorderContainer>
 	
