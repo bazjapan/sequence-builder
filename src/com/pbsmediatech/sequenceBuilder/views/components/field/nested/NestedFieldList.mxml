@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*" xmlns:custom="com.pbsmediatech.sequenceBuilder.views.components.field.custom.*">
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="cc()" xmlns:components="jp.unchained.views.components.*" xmlns:components1="com.pbsmediatech.sequenceBuilder.views.components.*" xmlns:custom="com.pbsmediatech.sequenceBuilder.views.components.field.custom.*" xmlns:image="image.*">
 	<s:layout>
 		<s:VerticalLayout/>
 	</s:layout>
@@ -13,6 +13,8 @@
 			import com.pbsmediatech.code.method_builders.sql.makeSQLAddColumnToTable;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLRemoveColumnFromTableScript;
 			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
+			import com.pbsmediatech.sequenceBuilder.views.components.field.shared_actions.show_field_json;
 			import com.pbsmediatech.sequenceBuilder.views.components.renderer.NestedFieldRenderer;
 			import com.pbsmediatech.sequenceBuilder.views.components.renderer.TableColumnRenderer;
 			import com.pbsmediatech.sequenceBuilder.views.components.table.KeyFieldList;
@@ -284,6 +286,12 @@
 			}
 			
 			
+
+			protected function btn_show_field_json_clickHandler(event:MouseEvent):void
+			{
+				show_field_json(lt_fields.selectedItem as Field, this);
+			}
+
 		]]>
 	</fx:Script>
 	
@@ -329,9 +337,9 @@
 		<s:Button label="can_update_by" id="sort_by_can_update_by" click="sort_by_can_update_by_clickHandler(event)"/>
 		<s:Button label="can_remove_by" id="sort_by_can_remove_by" click="sort_by_can_remove_by_clickHandler(event)"/>
 		<s:HGroup width="100%" horizontalAlign="right">
-			<s:Button enabled="{lt_fields.selectedItem != null}" label="Up" toolTip="Move Field Down" click="{moveUp()}"/>
-			<s:Button enabled="{lt_fields.selectedItem != null}" label="Down" toolTip="Move Field Up" click="{moveDown()}"/>
-		</s:HGroup>
+			<image:FadedImage source="{IconLib.VIEW_JSON22}" toolTip="View Config" id="btn_show_field_json" click="btn_show_field_json_clickHandler(event)"  enabled="{lt_fields.selectedItem}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"/>
+			<image:FadedImage source="{IconLib.GO_UP22}" toolTip="Move Field Up" click="{moveUp()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>
+			<image:FadedImage source="{IconLib.GO_DOWN22}" toolTip="Move Field Down" click="{moveDown()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/></s:HGroup>
 
 			
 

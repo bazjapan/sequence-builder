@@ -30,6 +30,7 @@
 			import db.MySQLRow;
 			import db.field.Field;
 			import db.field.IDFieldSize;
+			import db.field.options.field_has_custom_options;
 			import db.field.rules.can_add_custom_type;
 			
 			import mx.collections.ArrayCollection;
@@ -521,7 +522,7 @@
 					</s:HGroup>	-->
 					
 					<s:HGroup minWidth="100">
-						<s:HGroup includeInLayout="{true}" visible="{true}">
+						<s:HGroup includeInLayout="{field_has_custom_options(field.field_type)}" visible="{field_has_custom_options(field.field_type)}">
 							<image:FadedImage fadeAlpha="0.3" width="24" height="24" buttonMode="true" source="{IconLib.FIELD_SETTINGS24}" id="field_options" toolTip="Edit Field Options" click="field_options_clickHandler(event)" faded="{isEmpty(field.options)}"/>
 						</s:HGroup>	
 						<s:HGroup includeInLayout="{field_type.selectedItem == Field.DATE_TIME &amp;&amp; (field.is_insert_date || field.is_last_mod)}" visible="{field_type.selectedItem == Field.DATE_TIME  &amp;&amp; (field.is_insert_date || field.is_last_mod)}">

@@ -544,7 +544,7 @@
 			</s:VGroup>
 			<mx:VRule height="35"/>
 			<s:VGroup height="100%" verticalAlign="middle" horizontalAlign="center">
-			<image:FadedImage fadeAlpha="0.3" width="16" height="16" buttonMode="true" source="{isEmpty(field.nicename)?IconLib.FIELD_NICENAME:IconLib.FIELD_NICENAME_GOOD}" id="btn_toggle_nicename" toolTip="Click to edit Field Nicename" click="btn_toggle_nicename_clickHandler(event)"  faded="{showNicename}"/>
+			<image:FadedImage fadeAlpha="0.3" width="16" height="16" buttonMode="true" source="{isEmpty(field.nicename)?IconLib.FIELD_NICENAME:IconLib.FIELD_NICENAME_GOOD}" id="btn_toggle_nicename" toolTip="{isEmpty(field.nicename)?'Click to edit Field Nicename':field.nicename}" click="btn_toggle_nicename_clickHandler(event)"  faded="{showNicename}"/>
 			</s:VGroup>
 			<s:VGroup height="100%" id="vb_name_toggle" verticalAlign="middle">
 				<s:TextInput visible="{!showNicename}" includeInLayout="{!showNicename}" id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="40" width="150" change="field_name_changeHandler(event)"/>

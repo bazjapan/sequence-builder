@@ -17,6 +17,7 @@
 			import com.pbsmediatech.json.utils.DomainResultHelper;
 			import com.pbsmediatech.json.utils.JSONResultHelper2;
 			import com.pbsmediatech.json.utils.extractResult;
+			import com.pbsmediatech.json.utils.extractResultResult;
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
 			import com.pbsmediatech.sequenceBuilder.views.components.ForeignKeyList;
@@ -102,6 +103,10 @@
 				dev_history.addItem({ver:"0.3.1", summary : "Fixed closing Nested field editor"});
 				dev_history.addItem({ver:"0.4.0", summary : "Field JSON viewer added"});
 				dev_history.addItem({ver:"0.5.1", summary : "Field Options added"});
+				dev_history.addItem({ver:"0.5.2", summary : "Aligned Nested Field List with TableRows List"});
+				dev_history.addItem({ver:"0.6.0", summary : "Added reload Sequence"});
+				dev_history.addItem({ver:"0.6.1", summary : "Button bar Heights to 20"});
+				dev_history.addItem({ver:"0.6.2", summary : "Field Length Input"});
 				
 				
 				
@@ -145,10 +150,10 @@
 
 			
 			[Bindable]private var help_txt:String = 'Table Name = sp_event_user_registrations' +newLine()+
-				'Table Label = event_user_registration_table' +newLine()+
+				'Table Label = event_user_registrations' +newLine()+
 				'Object Name = event_registration' +newLine()+
-				'Controller Name = Event_User_Registration' +newLine()+
-				'Class Name = PartnerEventUserRegistration'+newLine()+newLine()+newLine()+newLine()+newLine();
+				'Controller Name = EventUserRegistrations' +newLine()+
+				'Class Name = EventUserRegistration'+newLine()+newLine()+newLine()+newLine()+newLine();
 				'Custom Method = '+newLine()+
 				'input: [{"required": true,"field": "project_name"}]'+newLine()+
 				'output: {"num": "0:*", "fields": ["module_id","title","version"]';
@@ -220,10 +225,10 @@
 			{
 				loadSequence(dg_saved.selectedItem as ControllerSequence);
 			}
-			private function loadSequence(seq:ControllerSequence):void
+			private function loadSequence(seq:ControllerSequence, go_to_info:Boolean = true):void
 			{
 				var loaded_sequence:ControllerSequence = loadSequenceToModel(seq);
-				vs.selectedIndex = 2;
+				if(go_to_info){vs.selectedIndex = 2};
 				//get datastore info
 				getDataStoreServiceController(seq.sequence_domain, AppModel.getInstance().dev).get_table_info({table_name:loaded_sequence.sequence_table_name}, function(evt:ResultEvent):void
 				{
@@ -368,7 +373,11 @@
 			}
 			protected function remove_saved_sequence_clickHandler(event:MouseEvent):void
 			{
-				removeSequence(dg_saved.selectedItem as ControllerSequence);
+				Alert.show("Are you sure you wish to remove this sequence?","Remove Sequence?", Alert.YES|Alert.NO, this,function(ce:CloseEvent){
+					if(ce.detail == Alert.YES){
+					removeSequence(dg_saved.selectedItem as ControllerSequence);
+					}
+				});
 			}
 			protected function remove_controller_sequence_clickHandler(event:MouseEvent):void
 			{
@@ -568,6 +577,24 @@
 				// TODO Auto-generated method stub
 			}
 
+
+			protected function btn_reload_sequence_clickHandler(event:MouseEvent):void
+			{
+				var seq:ControllerSequence = AppModel.getInstance().loaded_sequence;
+				if(seq != null){
+					var vo = {};
+					vo.sequence_ID	= seq.sequence_ID;
+					sequence_controller.get_controller_sequences_by_sequence_ID(vo, function(data){
+						trace(data);
+						var result:Array = extractResultResult(data) as Array;
+						if(result.length>0){
+							var seq:ControllerSequence = new ControllerSequence(result[0])
+							loadSequence(seq,false);
+						}
+					});
+					}
+			}
+
 		]]>
 	</fx:Script>
 
@@ -589,7 +616,8 @@
 	<s:TabBar dataProvider="{vs}"/>
     			
     		</s:HGroup>	
-    		<s:HGroup width="100%" horizontalAlign="right">
+    		<s:HGroup width="100%" verticalAlign="middle" horizontalAlign="right">
+				<s:Image width="16" height="16" buttonMode="true" source="{IconLib.IC_RELOAD_SELECTED_SEQUENCE}"  id="btn_reload_sequence" toolTip="Reload Sequence" click="btn_reload_sequence_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
 				<s:VGroup width="100%" horizontalAlign="right" paddingRight="5">
 				<s:HGroup>
 				<s:Label text="{'Saved: '+last_saved}" paddingRight="5"/>
@@ -597,8 +625,9 @@
 				</s:HGroup>					
 				<s:Label text="{'Sequence ID: '+AppModel.getInstance().loaded_sequence.sequence_ID}"/>
 				</s:VGroup>
-	<s:Button label="Save" toolTip="Save Sequence" id="save_controller_sequence" visible="{AppModel.getInstance().loaded_sequence != null}" click="save_controller_sequence_clickHandler(event)"/>
-    			
+	
+				<s:Image toolTip="Save Sequence" width="16" height="16" buttonMode="true" source="{IconLib.IC_SAVE_SELECTED_SEQUENCE}"  id="save_controller_sequence"  visible="{AppModel.getInstance().loaded_sequence != null}" click="save_controller_sequence_clickHandler(event)"/>
+				
     		</s:HGroup>	
     	</s:HGroup>	
     
@@ -606,14 +635,15 @@
 	<mx:ViewStack width="100%" height="100%" id="vs" creationPolicy="all">
 		<s:NavigatorContent width="100%" height="100%" label="Saved">
 			<s:VGroup width="100%" height="100%">
-				<s:HGroup width="100%" paddingLeft="2" paddingRight="2" verticalAlign="middle">
+				<s:HGroup height="20" width="100%" paddingLeft="2" paddingRight="2" verticalAlign="middle">
 					<s:HGroup width="100%" horizontalAlign="left">
-						<image:FadedImage fadeAlpha="0.3" source="{IconLib.EDIT_SETTINGS32}" enabled="{dg_saved.selectedItem != null}" faded="{!dg_saved.selectedItem}" id="load_selected_sequence" toolTip="Edit Selected Sequence" click="load_selected_sequence_clickHandler(event)"/>
+						<image:FadedImage height="20" fadeAlpha="0.3" source="{IconLib.IC_LOAD_SELECTED_SEQUENCE}" enabled="{dg_saved.selectedItem != null}" faded="{!dg_saved.selectedItem}" id="load_selected_sequence" toolTip="Edit Selected Sequence" click="load_selected_sequence_clickHandler(event)"/>
+						<mx:VRule height="18"/>
+						<image:FadedImage height="20" fadeAlpha="0.3" source="{IconLib.IC_REMOVE_SELECTED_SEQUENCE}" enabled="{dg_saved.selectedItem != null}" faded="{!dg_saved.selectedItem}" id="remove_saved_sequence" toolTip="Remove Selected Sequence" click="remove_saved_sequence_clickHandler(event)"/>
 					</s:HGroup>	
 					<s:HGroup width="100%" horizontalAlign="right" verticalAlign="middle">
-						<s:Button visible="{dg_saved.selectedItem != null}"  id="remove_saved_sequence" label="remove_saved_sequence" click="remove_saved_sequence_clickHandler(event)"/>
 						<s:DropDownList width="250" requireSelection="true" dataProvider="{AppModel.getInstance().domains}" labelField="domain_label" id="save_sequence_domain_chooser"/>
-						<s:Image buttonMode="true" source="{IconLib.RELOAD22}"  id="get_saved_sequences" toolTip="Load Saved Sequences" click="get_saved_sequences_clickHandler(event)"/>
+						<s:Image width="20" height="20" buttonMode="true" source="{IconLib.IC_LOAD_SEQUENCES_FOR_DOMAIN}"  id="get_saved_sequences" toolTip="Load Saved Sequences" click="get_saved_sequences_clickHandler(event)"/>
 					</s:HGroup>	
 				</s:HGroup>	
 				<s:DataGrid width="100%" height="100%" id="dg_saved" dataProvider="{AppModel.getInstance().saved_sequences}">
@@ -659,6 +689,7 @@
 					<s:Button label="New" id="new_controller_sequence" click="new_controller_sequence_clickHandler(event)"/>
 					<s:Button label="Remove" id="remove_controller_sequence" click="remove_controller_sequence_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
 				</s:HGroup>	
+				
 			</s:HGroup>
 			<!--Top End-->
 			<components1:SequenceDetails id="sequence_details_editor" width="100%" height="100%" loaded_sequence="{AppModel.getInstance().loaded_sequence}">
@@ -688,13 +719,13 @@
       
 		
 	
-		<s:NavigatorContent width="100%" height="100%" label="Operational">
+	<!--	<s:NavigatorContent width="100%" height="100%" label="Operational">
 		
 			<components1:ActiveControllers load_sequence_func="{loadSequence}" width="100%" height="100%">
 				
 			</components1:ActiveControllers>
 	
-		</s:NavigatorContent>
+		</s:NavigatorContent>-->
 		<s:NavigatorContent label="Data Stores">
 			<components1:DomainTables width="100%" height="100%">
 				
@@ -709,12 +740,12 @@
 			</dataviews:DataViews>
 			
 		</s:NavigatorContent>
-		<s:NavigatorContent label="View Projects">
+	<!--	<s:NavigatorContent label="View Projects">
 			<components1:ViewProjectAdmin width="100%" height="100%">
 				
 			</components1:ViewProjectAdmin>
 			
-		</s:NavigatorContent>
+		</s:NavigatorContent>-->
 		<s:NavigatorContent label="Utils">
 			<mx:TabNavigator width="100%" height="100%">
 				<s:NavigatorContent label="Clipboard">

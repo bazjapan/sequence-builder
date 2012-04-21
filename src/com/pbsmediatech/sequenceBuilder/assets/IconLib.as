@@ -3,6 +3,8 @@ package com.pbsmediatech.sequenceBuilder.assets
 	[Bindable]
 	public class IconLib
 	{
+		var folder:String = "black";
+		
 		[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/Key_24.png")]
 		public static var KEY_24:Class;
 		[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/add_24.png")]
@@ -101,6 +103,34 @@ package com.pbsmediatech.sequenceBuilder.assets
 	public static var RELOAD22:Class;
 	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/field_settings.png")]
 	public static var FIELD_SETTINGS24:Class;
+	
+	
+	
+	
+	//start again
+	
+	//sequence
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gentleface/cc_mono/round_and_up_32.png")]
+	public static var IC_LOAD_SEQUENCES_FOR_DOMAIN:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gentleface/cc_mono/doc_edit_32.png")]
+	public static var IC_LOAD_SELECTED_SEQUENCE:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gentleface/cc_mono/round_delete_32.png")]
+	public static var IC_REMOVE_SELECTED_SEQUENCE:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gentleface/cc_mono/save_16.png")]
+	public static var IC_SAVE_SELECTED_SEQUENCE:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gentleface/cc_mono/playback_reload_16.png")]
+	public static var IC_RELOAD_SELECTED_SEQUENCE:Class;
+	
+	
+	//field
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gentleface/cc_mono/sq_br_up_20.png")]
+	public static var IC_FIELD_MOVE_UP:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gentleface/cc_mono/sq_br_down_20.png")]
+	public static var IC_FIELD_MOVE_DOWN:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gentleface/cc_mono/round_plus_20.png")]
+	public static var IC_FIELD_ADD:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gentleface/cc_mono/star_20.png")]
+	public static var IC_FIELD_NEW:Class;
 	
 	
 	}
