@@ -617,18 +617,17 @@
     			
     		</s:HGroup>	
     		<s:HGroup width="100%" verticalAlign="middle" horizontalAlign="right">
-				<s:Image width="16" height="16" buttonMode="true" source="{IconLib.IC_RELOAD_SELECTED_SEQUENCE}"  id="btn_reload_sequence" toolTip="Reload Sequence" click="btn_reload_sequence_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
-				<s:VGroup width="100%" horizontalAlign="right" paddingRight="5">
 				<s:HGroup>
-				<s:Label text="{'Saved: '+last_saved}" paddingRight="5"/>
 				<s:Label text="{'App Ver: '+AppModel.getInstance().sequence_maker_version}"/>
+				<s:Label text="{'ID: '+AppModel.getInstance().loaded_sequence.sequence_ID}"/>
+				<s:Label text="{'Saved: '+last_saved}" paddingRight="5"/>
 				</s:HGroup>					
-				<s:Label text="{'Sequence ID: '+AppModel.getInstance().loaded_sequence.sequence_ID}"/>
-				</s:VGroup>
-	
+				<s:HGroup>
+				<s:Image width="16" height="16" buttonMode="true" source="{IconLib.IC_RELOAD_SELECTED_SEQUENCE}"  id="btn_reload_sequence" toolTip="Reload Sequence" click="btn_reload_sequence_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
 				<s:Image toolTip="Save Sequence" width="16" height="16" buttonMode="true" source="{IconLib.IC_SAVE_SELECTED_SEQUENCE}"  id="save_controller_sequence"  visible="{AppModel.getInstance().loaded_sequence != null}" click="save_controller_sequence_clickHandler(event)"/>
-				
+				</s:HGroup>
     		</s:HGroup>	
+					
     	</s:HGroup>	
     
 
