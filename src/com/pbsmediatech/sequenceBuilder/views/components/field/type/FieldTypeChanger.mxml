@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="220" xmlns:components="com.pbsmediatech.sequenceBuilder.views.components.*">
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVariableLengthProperty;
+			
+			import db.field.Field;
+			import db.field.custom.custom_fields_by_parent_field_type;
+			import db.field.get_field_type_by_name;
+			import db.field.types.isComplexType;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.object.isNull;
+			[Bindable]
+			private var field:Field;
+			[Bindable]
+			private var custom_types:ArrayCollection = new ArrayCollection();
+			
+			public var save_func:Function;
+			public var cancel_func:Function;
+			
+			public function set_field(f:Field):void
+			{
+				field = f;
+				get_custom_types_by_base_type(f.field_type);
+				allow_field_size_changes(f.field_type, !isNull(f.custom));
+			}
+			public function get_selected_type():String
+			{
+				return field_type.selectedItem as String;
+			}
+
+			protected function field_type_changeHandler(event:IndexChangeEvent):void
+			{
+				// TODO Auto-generated method stub
+				var selected_type:String = field_type.selectedItem as String;
+				get_custom_types_by_base_type(selected_type);
+				allow_field_size_changes(selected_type, dd_custom_types.selectedIndex>0);
+			}
+			private function get_custom_types_by_base_type(base_type:String):void
+			{
+				custom_types.source = custom_fields_by_parent_field_type(base_type);
+				custom_types.addItemAt("None",0);
+			}
+			[Bindable]
+			private var can_change_field_size:Boolean;
+			private function allow_field_size_changes(type:String, has_custom:Boolean):void{
+				var show:Boolean = fieldHasVariableLengthProperty(type);
+				
+				if(has_custom){
+					can_change_field_size = false;
+				}else{
+					can_change_field_size = show;
+				}
+			}
+			public function get_custom_type():String
+			{
+				if(dd_custom_types.selectedIndex>0){
+					return dd_custom_types.selectedItem as String;
+				}
+				return null;
+				
+			}
+			public function get_field_size():Number
+			{
+				if(dd_custom_types.selectedIndex>0){
+					if(!isComplexType(field_type.selectedItem as String)){
+						var fs:Number = get_field_type_by_name(dd_custom_types.selectedItem as String).field_size;
+						return fs;
+					}
+				}
+				var len:Number = Number(field_size.textDisplay.text);
+				return len;
+				
+			}
+
+
+			protected function btn_cancel_clickHandler(event:MouseEvent):void
+			{
+				if(!isNull(cancel_func)){cancel_func()}
+			}
+
+
+			protected function btn_save_clickHandler(event:MouseEvent):void
+			{
+				if(!isNull(save_func)){save_func()}
+			}
+
+
+			protected function dd_custom_types_changeHandler(event:IndexChangeEvent):void
+			{
+				allow_field_size_changes(field_type.selectedItem as String, dd_custom_types.selectedIndex>0);
+			}
+
+
+			protected function field_size_changeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Form width="100%" height="100%">
+		<s:FormItem label="Basically">
+			<components:FieldTypeDropDownList  id="field_type" toolTip="field_type" width="100%" selectedItem="{field.field_type}"
+											   
+											   horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_fields_types}" change="field_type_changeHandler(event)">
+				
+				</components:FieldTypeDropDownList>
+
+		</s:FormItem>
+		<s:FormItem label="Specifically">
+			<s:DropDownList id="dd_custom_types" dataProvider="{custom_types}" selectedItem="{field.custom}" change="dd_custom_types_changeHandler(event)" prompt="Select Type"/>
+		</s:FormItem>
+		<s:FormItem visible="{can_change_field_size}" includeInLayout="{can_change_field_size}" label="Field Size">
+				<s:NumericStepper id="field_size" stepSize="{field.field_type == Field.DECIMAL?0.1:1}" minimum="0" maximum="5000" toolTip="field_size" value="{field.field_size}" change="field_size_changeHandler(event)"/>
+		</s:FormItem>
+		
+		<s:HGroup width="100%" height="100%">
+			<s:HGroup width="100%" height="100%">
+				<s:Button label="Cancel" id="btn_cancel" click="btn_cancel_clickHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup width="100%" height="100%">
+				
+			</s:HGroup>
+			<s:HGroup width="100%" height="100%" horizontalAlign="right">
+				<s:Button label="Save" id="btn_save" click="btn_save_clickHandler(event)"/>
+			</s:HGroup>
+		</s:HGroup>
+	</s:Form>
+
+				
+</s:Group>
