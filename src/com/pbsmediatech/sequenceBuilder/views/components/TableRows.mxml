@@ -39,6 +39,7 @@
 			import utils.ac.moveItemDown;
 			import utils.ac.moveItemUp;
 			import utils.events.CallbackEvent;
+			import utils.object.isEmpty;
 			
 			private function cc():void
 			{
@@ -168,6 +169,7 @@
 
 			private function onTRASH_FIELD(event:Event):void
 			{
+				
 				var renderer:TableColumnRenderer = TableColumnRenderer(event.target);
 				fields.removeItemAt(fields.getItemIndex(renderer.field));
 			}
@@ -227,7 +229,7 @@
 				fieldToAdd.field_type = String(field_type.selectedItem);
 				fieldToAdd.field_size = getFieldTypeLength(fieldToAdd.field_type, len);	
 				
-				fieldToAdd.is_ID = is_ID.selected;
+				//fieldToAdd.is_ID = is_ID.selected;
 				
 				//check only id field
 				if(fieldToAdd.is_ID)
@@ -270,7 +272,7 @@
 					fieldToAdd.can_search_by = true;
 					fieldToAdd.can_update_by = true;
 				}
-				is_ID.selected = false;
+				//is_ID.selected = false;
 				
 				//fieldToAdd.can_remove_by = can_remove_by.selected;
 				//can_remove_by.selected = false;
@@ -284,8 +286,8 @@
 				
 				if(fieldToAdd.field_type == Field.DATE_TIME)
 				{
-					fieldToAdd.is_insert_date = is_insert_date.selected;
-					fieldToAdd.is_last_mod = is_last_mod.selected;
+					//fieldToAdd.is_insert_date = is_insert_date.selected;
+					//fieldToAdd.is_last_mod = is_last_mod.selected;
 					/* if(is_last_mod.selected)
 					{
 					fieldToAdd.field_type = Field.TIMESTAMP;
@@ -413,15 +415,9 @@
 		</components1:FieldTypeDropDownList>
 		<s:NumericStepper  enabled="{fieldHasVariableLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="0.1" minimum="0" maximum="5000" toolTip="field_size"/>
 		<mx:VRule height="24"/>
-		<s:HGroup width="100%" includeInLayout="{field_type.selectedItem == Field.DATE_TIME}" visible="{field_type.selectedItem == Field.DATE_TIME}" horizontalAlign="right">
-			<s:CheckBox toolTip="Date created" label="Creation Date" id="is_insert_date" click="{if(is_insert_date.selected)is_last_mod.selected = false}"/>
-			<s:CheckBox toolTip="Last modified date" label="Last Modified" id="is_last_mod" click="{if(is_last_mod.selected)is_insert_date.selected = false}"/>
-			<mx:VRule height="24"/>
-		</s:HGroup>
-		<s:CheckBox label="is ID" id="is_ID" />
 		<image:FadedImage source="{IconLib.IC_FIELD_ADD}" toolTip="Add Field" id="add_row" click="add_row_clickHandler(event)" fadeAlpha="0.3" faded="{field_name.text.length>0}"  enabled="{field_name.text.length>0}"/>
 		<!--<s:Button enabled="{AppModel.getInstance().loaded_sequence != null}" width="50" label="K" toolTip="show store keys" id="show_store_keys" click="show_foreign_keys_clickHandler(event)"/>-->
-		<image:FadedImage source="{IconLib.IC_FIELD_NEW}" toolTip="New Field" id="do_new" click="{field_name.text = ''; field_size.value = 0; is_ID.selected = false;}" fadeAlpha="0.3" faded="{field_name.text.length>0}"  enabled="{field_name.text.length>0}"/>
+		<image:FadedImage source="{IconLib.IC_FIELD_NEW}" toolTip="New Field" id="do_new" click="{field_name.text = ''; field_size.value = 0;}" fadeAlpha="0.3" faded="{field_name.text.length>0}"  enabled="{field_name.text.length>0}"/>
 		
 	</s:HGroup>
 	<s:HGroup width="100%" paddingLeft="3">

@@ -9,6 +9,10 @@ package com.pbsmediatech.sequenceBuilder
 	import db.Datastore;
 	import db.dataview.DataView;
 	import db.field.Field;
+	import db.field.get_base_type_names;
+	import db.field.get_base_types;
+	
+	import freeze.FreezeConfig;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.ArrayList;
@@ -48,6 +52,8 @@ package com.pbsmediatech.sequenceBuilder
 		}
 		
 		//application version
+		public var master_config:Object = FreezeConfig();
+		
 		public var sequence_maker_version:String = "0:0:0";
 		public var view_maker_version:Number = 0;
 		
@@ -69,45 +75,11 @@ package com.pbsmediatech.sequenceBuilder
 		public var dev:Boolean = false;
 		public var service_base_url:String = "http://www.pbsmediatech.com/cms/api/";
 		public var sqlRows:ArrayCollection = new ArrayCollection();
-		public var available_fields_types:ArrayList = new ArrayList([Field.VARCHAR, 
-			Field.ID, 
-			Field.DATE_TIME, 
-			Field.DATE, 
-			Field.TIME, 
-			Field.DECIMAL,
-			Field.MONEY, 
-			Field.TEXT, 
-			Field.GEO, 
-			Field.INT, 
-			Field.BOOLEAN, 
-			Field.LIST, 
-			Field.JSONOBJ,  
-			Field.JSONARR, 
-			Field.EMAIL ,
-			Field.URL, 
-			Field.IMAGE_URL, 
-			Field.AUDIO_URL, 
-			Field.VIDEO_URL]);
-		public var available_nested_fields_types:ArrayList = new ArrayList([Field.VARCHAR,
-			Field.ID, 
-			Field.DATE_TIME, 
-			Field.DATE, 
-			Field.TIME, 
-			Field.DECIMAL, 
-			Field.MONEY, 
-			Field.TEXT, 
-			Field.GEO, 
-			Field.INT, 
-			Field.BOOLEAN,
-			Field.LIST, 
-			Field.JSONOBJ,  
-			Field.JSONARR, 
-			Field.EMAIL ,
-			Field.URL, 
-			Field.IMAGE_URL,
-			Field.AUDIO_URL,
-			Field.VIDEO_URL
-		]);
+		public var available_fields_types:ArrayList = new ArrayList(get_base_type_names());
+		
+		
+		
+		public var available_nested_fields_types:ArrayList = new ArrayList(get_base_type_names());
 		
 		
 		

@@ -133,5 +133,46 @@ package com.pbsmediatech.sequenceBuilder.assets
 	public static var IC_FIELD_NEW:Class;
 	
 	
+	
+	//field_types
+	
+	//base
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/snowish/key32.png")]
+	public static var IC_FIELD_id:Class;
+	
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/glaze/font32.png")]
+	public static var IC_FIELD_varchar:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/crystalclear/playlist32.png")]
+	public static var IC_FIELD_list:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/snowish/json32.png")]
+	public static var IC_FIELD_json:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/futorosoft/date32.png")]
+	public static var IC_FIELD_datetime:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/futorosoft/date32.png")]
+	public static var IC_FIELD_date:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/glaze/time32.png")]
+	public static var IC_FIELD_time:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/glaze/document32.png")]
+	public static var IC_FIELD_text:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/snowish/money32.png")]
+	public static var IC_FIELD_money:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/farm-fresh/numeric_stepper32.png")]
+	public static var IC_FIELD_int:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/farm-fresh/numeric_stepper32.png")]
+	public static var IC_FIELD_decimal:Class;
+	
+	
+	//custom simple
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/glaze/message.png")]
+	public static var IC_FIELD_email:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/glaze/www32.png")]
+	public static var IC_FIELD_url:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/snowish/image32.png")]
+	public static var IC_FIELD_image_url:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/glaze/sound32.png")]
+	public static var IC_FIELD_audio_url:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/glaze/video32.png")]
+	public static var IC_FIELD_video_url:Class;
+	
 	}
 }

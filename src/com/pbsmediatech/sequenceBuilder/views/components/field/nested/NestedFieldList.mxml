@@ -15,7 +15,6 @@
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
 			import com.pbsmediatech.sequenceBuilder.views.components.field.shared_actions.show_field_json;
-			import com.pbsmediatech.sequenceBuilder.views.components.renderer.NestedFieldRenderer;
 			import com.pbsmediatech.sequenceBuilder.views.components.renderer.TableColumnRenderer;
 			import com.pbsmediatech.sequenceBuilder.views.components.table.KeyFieldList;
 			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
@@ -120,7 +119,7 @@
 			
 			private function onTRASH_FIELD(event:Event):void
 			{
-				var renderer:NestedFieldRenderer = NestedFieldRenderer(event.target);
+				var renderer:TableColumnRenderer = TableColumnRenderer(event.target);
 				fields.removeItemAt(fields.getItemIndex(renderer.field));
 			}
 			
@@ -178,7 +177,6 @@
 				fieldToAdd.field_type = String(field_type.selectedItem);
 				fieldToAdd.field_size = getFieldTypeLength(fieldToAdd.field_type, field_size.value);	
 				fieldToAdd.dataviews = [];
-				fieldToAdd.is_ID = is_ID.selected;
 				
 				//check only id field
 				if(fieldToAdd.is_ID)
@@ -220,27 +218,6 @@
 						fieldToAdd.can_remove_by = true;
 						fieldToAdd.can_search_by = true;
 						fieldToAdd.can_update_by = true;
-					}
-					is_ID.selected = false;
-					
-					//fieldToAdd.can_remove_by = can_remove_by.selected;
-					//can_remove_by.selected = false;
-					//fieldToAdd.can_search_by = can_search_by.selected;
-					//can_search_by.selected = false;
-					//fieldToAdd.can_update_by = can_update_by.selected;
-					//can_update_by.selected = false;
-					//fieldToAdd.updateable = updateable.selected;
-					//updateable.selected = false;
-					//fieldToAdd.json_labels = json_labels.text;
-					
-					if(fieldToAdd.field_type == Field.DATE_TIME)
-					{
-						fieldToAdd.is_insert_date = is_insert_date.selected;
-						fieldToAdd.is_last_mod = is_last_mod.selected;
-						/* if(is_last_mod.selected)
-						{
-						fieldToAdd.field_type = Field.TIMESTAMP;
-						} */
 					}
 					
 					fields.addItem(fieldToAdd);
@@ -308,24 +285,18 @@
 			
 		</custom:NestedCustomObjectSetter>
 	</s:HGroup>
-	<s:HGroup width="100%">
+	<s:HGroup width="100%" paddingRight="10">
 		<s:TextInput id="field_name" toolTip="field_name" maxChars="50"  width="100%" />
 		<components1:FieldTypeDropDownList id="field_type" toolTip="field_type" width="100%"
 										   requireSelection="true"
-										   horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_nested_fields_types}" change="field_type_changeHandler(event)" >
+										   horizontalCenter="0" top="20" dataProvider="{AppModel.getInstance().available_fields_types}" change="field_type_changeHandler(event)" >
 			
 		</components1:FieldTypeDropDownList>
 		<s:NumericStepper  enabled="{fieldHasVariableLengthProperty(String(field_type.selectedItem))}" id="field_size" stepSize="0.1" minimum="0" maximum="5000" toolTip="field_size"/>
 		<mx:VRule height="24"/>
-		<s:HGroup width="100%" includeInLayout="{field_type.selectedItem == Field.DATE_TIME}" visible="{field_type.selectedItem == Field.DATE_TIME}" horizontalAlign="right">
-			<s:CheckBox toolTip="Date created" label="Creation Date" id="is_insert_date" click="{if(is_insert_date.selected)is_last_mod.selected = false}"/>
-			<s:CheckBox toolTip="Last modified date" label="Last Modified" id="is_last_mod" click="{if(is_last_mod.selected)is_insert_date.selected = false}"/>
-			<mx:VRule height="24"/>
-		</s:HGroup>
-		<s:CheckBox label="is ID" id="is_ID" />
-		<s:Button label="Add" id="add_row" click="add_row_clickHandler(event)"/>
+		<image:FadedImage source="{IconLib.IC_FIELD_ADD}" toolTip="Add Field" id="add_row" click="add_row_clickHandler(event)" fadeAlpha="0.3" faded="{field_name.text.length>0}"  enabled="{field_name.text.length>0}"/>
 		<!--<s:Button enabled="{AppModel.getInstance().loaded_sequence != null}" width="50" label="K" toolTip="show store keys" id="show_store_keys" click="show_foreign_keys_clickHandler(event)"/>-->
-		<s:Button width="50" label="New" id="do_new" click="{field_name.text = ''; field_size.value = 0; is_ID.selected = false;}"/>
+		<image:FadedImage source="{IconLib.IC_FIELD_NEW}" toolTip="New Field" id="do_new" click="{field_name.text = ''; field_size.value = 0;}" fadeAlpha="0.3" faded="{field_name.text.length>0}"  enabled="{field_name.text.length>0}"/>
 		
 	</s:HGroup>
 	<s:HGroup width="100%" paddingLeft="3">
@@ -336,16 +307,17 @@
 		<s:Button label="can_search_by" id="sort_by_can_search_by" click="sort_by_can_search_by_clickHandler(event)"/>
 		<s:Button label="can_update_by" id="sort_by_can_update_by" click="sort_by_can_update_by_clickHandler(event)"/>
 		<s:Button label="can_remove_by" id="sort_by_can_remove_by" click="sort_by_can_remove_by_clickHandler(event)"/>
-		<s:HGroup width="100%" horizontalAlign="right">
-			<image:FadedImage source="{IconLib.VIEW_JSON22}" toolTip="View Config" id="btn_show_field_json" click="btn_show_field_json_clickHandler(event)"  enabled="{lt_fields.selectedItem}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"/>
-			<image:FadedImage source="{IconLib.GO_UP22}" toolTip="Move Field Up" click="{moveUp()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>
-			<image:FadedImage source="{IconLib.GO_DOWN22}" toolTip="Move Field Down" click="{moveDown()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/></s:HGroup>
-
-			
-
+		<s:HGroup width="100%" horizontalAlign="right" paddingRight="10">
+			<s:HGroup width="100%" height="100%" verticalAlign="bottom">
+				<s:Label text="{AppModel.getInstance().loaded_sequence.getClassName()+'.'+lt_fields.selectedItem['field_name']}"  fontSize="16" height="20" textAlign="center" verticalAlign="bottom" width="100%"/>
+			</s:HGroup>
+			<image:FadedImage source="{IconLib.VIEW_JSON22}" toolTip="View Config" id="btn_show_field_json" click="btn_show_field_json_clickHandler(event)" enabled="{lt_fields.selectedItem}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"/>
+			<image:FadedImage source="{IconLib.IC_FIELD_MOVE_UP}" toolTip="Move Field Up" click="{moveUp()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>
+			<image:FadedImage source="{IconLib.IC_FIELD_MOVE_DOWN}" toolTip="Move Field Down" click="{moveDown()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>
+		</s:HGroup>
 	</s:HGroup>
 	
-	<s:List change="lt_fields_changeHandler(event)" useVirtualLayout="true" id="lt_fields" width="100%" height="100%" dataProvider="{fields}" itemRenderer="com.pbsmediatech.sequenceBuilder.views.components.renderer.NestedFieldRenderer">
+	<s:List change="lt_fields_changeHandler(event)" useVirtualLayout="true" id="lt_fields" width="100%" height="100%" dataProvider="{fields}" itemRenderer="com.pbsmediatech.sequenceBuilder.views.components.renderer.TableColumnRenderer">
 		<s:layout>
 			<s:VerticalLayout/>
 		</s:layout>

@@ -76,7 +76,7 @@
 				var infoObject:Object = JSON.decode(loaded_sequence.sequence_info);
 				object_name.text = infoObject.object_name;
 				class_name.text = infoObject.class_name; 
-				
+				id_field.text = infoObject.id_field?infoObject.id_field:"";
 				//desc
 				controller_description.text = infoObject.controller_description;
 				sequence_version.value = loaded_sequence.sequence_version;
@@ -107,6 +107,7 @@
 				loaded_sequence.sequence_last_modified = dateToTimestamp(new Date());
 				//sequence controller name
 				loaded_sequence.sequence_controller_name = controller_name.text;
+				
 				//domain
 				loaded_sequence.sequence_domain = domain_name.selectedItem["domain_label"];
 					
@@ -121,6 +122,7 @@
 				infoObject.controller_description = controller_description.text;
 				infoObject.object_name = object_name.text;
 				infoObject.class_name = class_name.text;
+				infoObject.id_field = id_field.text;
 				loaded_sequence.sequence_info = JSON.encode(infoObject);
 			
 				
@@ -248,10 +250,7 @@
 			}
 
 
-			protected function table_version_changeHandler(event:Event):void
-			{
-				loaded_sequence.sequence_table_version = table_version.value;
-			}
+			
 
 		]]>
 	</fx:Script>
@@ -274,14 +273,7 @@
 			</s:HGroup>
 		</s:VGroup>
 		
-		<s:VGroup>
-			<s:Label text="Num Records"/>
-			<s:Button label="000" toolTip="Get Number of Records" id="get_num_records" click="{getNumRecords(table_name.text, function(num:Object):void{get_num_records.label = num.toString()})}" />
-		</s:VGroup>
-		<s:VGroup>
-			<s:Label text="Table Version"/>
-			<s:NumericStepper id="table_version" change="table_version_changeHandler(event)" stepSize="0.1" value="{AppModel.getInstance().loaded_sequence.sequence_table_version}" maximum="99" minimum="0"/>
-		</s:VGroup>
+		
 	</s:HGroup>
 	<mx:HRule width="100%"/>
 		<s:VGroup width="100%" enabled="{_loaded_sequence != null}">
@@ -292,10 +284,15 @@
 					<s:TextInput id="controller_name" toolTip="Sequence_Name" maxChars="50"  width="100%"/>
 				</s:HGroup>
 				<s:HGroup width="100%">
+					
+					<s:HGroup>
 					<s:Label text="Sequence Ver"/>
 					<s:NumericStepper id="sequence_version" maximum="99" minimum="0" stepSize="0.01"/>
-					<!--
-					<s:TextInput id="sequence_version" maxChars="4"  width="100%" restrict=". 0-9" />-->
+					</s:HGroup>
+					<s:HGroup>
+						<s:Label text="ID Field"/>
+						<s:TextInput id="id_field"/>
+					</s:HGroup>
 				</s:HGroup>
 			</s:VGroup>
 			<s:HGroup width="100%">

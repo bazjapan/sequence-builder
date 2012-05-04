@@ -39,9 +39,6 @@
 
 			protected function btn_cancel_clickHandler(event:MouseEvent):void
 			{
-				
-			
-				
 				if(cancel_func != null)cancel_func();
 			}
 

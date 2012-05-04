@@ -25,9 +25,12 @@
 			import com.pbsmediatech.sequenceBuilder.views.tasks.loadSequenceToModel;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.sequences.generateSequenceConfig;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.sequences.loadSavedSequncesForDomainToModel;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.show_copy_window_pop;
 			import com.pbsmediatech.sequenceBuilder.views.user.UserLogin;
 			
 			import db.MySQLRow;
+			
+			import freeze.FreezeConfig;
 			
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
@@ -52,6 +55,8 @@
 			private var to_dos:ArrayCollection = new ArrayCollection;
 			private function cc():void
 			{
+				
+				
 				
 				//0.2 Domain Tales
 				//0.3 Deploy PHP controller
@@ -107,6 +112,8 @@
 				dev_history.addItem({ver:"0.6.0", summary : "Added reload Sequence"});
 				dev_history.addItem({ver:"0.6.1", summary : "Button bar Heights to 20"});
 				dev_history.addItem({ver:"0.6.2", summary : "Field Length Input"});
+				dev_history.addItem({ver:"0.7.0", summary : "Custom field types for varchar changed"});
+				dev_history.addItem({ver:"0.7.1", summary : "Added id_field to sequence"});
 				
 				
 				
@@ -260,11 +267,11 @@
 				//new
 				if(isNaN(AppModel.getInstance().loaded_sequence.sequence_ID))
 				{
-					Button(event.target).enabled = false;
+					event.target["enabled"] = false;
 					fillSequence();
 					sequence_controller.add_controller_sequence(AppModel.getInstance().loaded_sequence, function(evt:ResultEvent):void
 					{
-						Button(event.target).enabled = true;
+						event.target["enabled"] = true;
 						var returnedID:Number = Number(JSON.decode(extractResult(evt)).result);
 						if(returnedID == 0)
 						{
@@ -461,7 +468,15 @@
 
 			protected function btn_config_gen_clickHandler(event:MouseEvent):void
 			{
+				var use_trimmed:Boolean = false;
+				
+				var name:String = AppModel.getInstance().loaded_sequence.sequence_controller_name;
+				var c:Object = generateSequenceConfig(AppModel.getInstance().loaded_sequence);
 				var s:ControllerSequence = AppModel.getInstance().loaded_sequence;
+				
+				
+				//trims down
+				if(use_trimmed){
 				var c:Object = {};
 				c.path = s.sequence_domain+"."+s.sequence_controller_name;
 				c.fields = [];
@@ -490,23 +505,11 @@
 				var infoObject:Object = JSON.decode(s.sequence_info);
 				c.name = infoObject.class_name; 
 				c.version = s.sequence_version;
+				}
 			
 				var output:String = JSON.encode(c,true);
-				var pop:TitleWindow = new TitleWindow();
-				var ta:TextArea = new TextArea;
-				ta.width = 500;
-				ta.height = 500;
-				pop.addElement(ta);
-				ta.text = output;
-				pop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
-				{
-					PopUpManager.removePopUp(pop);
-				});
-				pop.title = "Sequence Class JSON"
-				PopUpManager.addPopUp(pop, this,false);
 				
-				trace(JSON.encode(c,true));
-					
+				show_copy_window_pop("Config for "+s.sequence_controller_name, output, this);
 				
 			}
 
@@ -682,8 +685,10 @@
 					<s:Button label="Help" toolTip="Help" id="show_help" click="show_help_click_handler(event)"/>
 					<s:Button label="Deploy" toolTip="Deploy Sequence" id="btn_deploy_sequence" click="btn_deploy_sequence_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
 					<s:Button label="JSON Config" toolTip="Generate Config" id="btn_config_gen" click="btn_config_gen_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
-					<s:Button label="JSON Field API" toolTip="Open in browser" id="btn_field_api" click="btn_field_api_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
+					
+					<!--<s:Button label="JSON Field API" toolTip="Open in browser" id="btn_field_api" click="btn_field_api_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
 					<s:Button label="JSON Method API" toolTip="Open in browser" id="btn_method_api" click="btn_method_api_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
+					-->
 					<s:Button label="New Version" toolTip="Create New Version of current(last saved)" id="clone_controller_sequence" visible="{AppModel.getInstance().loaded_sequence != null}" click="clone_controller_sequence_clickHandler(event)"/>
 					<s:Button label="New" id="new_controller_sequence" click="new_controller_sequence_clickHandler(event)"/>
 					<s:Button label="Remove" id="remove_controller_sequence" click="remove_controller_sequence_clickHandler(event)" visible="{AppModel.getInstance().loaded_sequence != null}"/>
