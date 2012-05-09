@@ -10,6 +10,7 @@ package com.pbsmediatech.sequenceBuilder.views.events
 		public static const EVENT_UPDATE_FIELD_IN_SEQUENCE:String = "EVENT_UPDATE_FIELD_IN_SEQUENCE";
 		public static const EVENT_REMOVE_FIELD_FROM_SEQUENCE:String = "EVENT_REMOVE_FIELD_FROM_SEQUENCE";
 		public static const EVENT_SHOW_FOREIGN_KEYS_FOR_FIELD:String = "EVENT_SHOW_FOREIGN_KEYS_FOR_FIELD";
+
 		
 		public var callback:Function;
 		public var field:Field;

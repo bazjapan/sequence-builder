@@ -53,6 +53,7 @@
 		
 			
 			private function cc():void{
+				ti_user_pass.text = "atlas007"
 				try{
 				var cookie_user_login:Object = CookieUtil.getCookie("user_login").toString();
 				if(cookie_user_login != null){

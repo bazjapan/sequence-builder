@@ -26,6 +26,8 @@
 			import com.pbsmediatech.sequenceBuilder.views.tasks.compareFieldToMySQLRow;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.field.set_field_default_value;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.field.set_field_validation;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.field.system.show_connection_setter;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.field.system.show_mirror_field_options_setter;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVariableLengthProperty;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDataStoreServiceController;
 			
@@ -287,7 +289,8 @@
 					{
 						close()
 					});
-					nestedFieldEditor.height = 400;
+					nestedFieldEditor.width = (Application.application.width/100*70);
+					nestedFieldEditor.height = (Application.application.height/100*70);
 				}
 				
 				function close():void{
@@ -356,12 +359,34 @@
 				
 			}
 
-			var ftcWindow:TitleWindow;
-			var ftc:FieldTypeChanger;
+			private var ftcWindow:TitleWindow;
+			private var ftc:FieldTypeChanger;
 			protected function field_icon_clickHandler(event:MouseEvent):void
 			{
 				if(isComplexType(field.field_type)){
 					show_nested_field_editor();
+					return;
+				}
+				if(field.field_type == Field.CONNECTION){
+					var add_mirror = function(f, cb):void{
+						var evt:FieldEvent = new FieldEvent(
+							FieldEvent.EVENT_ADD_FIELD_TO_SEQUENCE,
+							f,
+							function(message:String):void{
+								cb(message);
+							},true
+						)
+						dispatchEvent(evt);
+					}
+					show_connection_setter(field, false,add_mirror, function(f:Field):void{
+						
+					});
+					return;
+				}
+				if(field.field_type == Field.MIRROR){
+					show_mirror_field_options_setter(field,  function():void{
+						
+					});
 					return;
 				}
 				if(!ftcWindow){
@@ -404,9 +429,10 @@
 					
 				}else{
 				var icon_type:String = field.field_type;
-				var field_type:Object = get_field_type_by_name(icon_type);
+				var field_type:Object = get_field_type_by_name(icon_type, AppModel.getInstance().master_config);
 				var icon_str:String = field_type?field_type.icon:isComplexType(field.field_type)?'json':'text';
 				var icon:Class = IconLib["IC_FIELD_"+icon_str];
+				trace(icon_str)
 				if(isNull(icon)){
 					if(isComplexType(field.field_type)){
 						icon = IconLib["IC_FIELD_json"];
@@ -425,7 +451,7 @@
 					custom_icon = null
 					if(isNull(field.custom)){return}
 					var icon_type:String = field.custom;
-					var field_type:Object = get_field_type_by_name(icon_type);
+					var field_type:Object = get_field_type_by_name(icon_type, AppModel.getInstance().master_config);
 					var icon_str:String = field_type?field_type.icon:isComplexType(field.field_type)?'json':'text';
 					var icon:Class = IconLib["IC_FIELD_"+icon_str];
 					

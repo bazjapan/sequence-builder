@@ -3,7 +3,7 @@ package com.pbsmediatech.sequenceBuilder.assets
 	[Bindable]
 	public class IconLib
 	{
-		var folder:String = "black";
+		private var folder:String = "black";
 		
 		[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/Key_24.png")]
 		public static var KEY_24:Class;
@@ -173,6 +173,11 @@ package com.pbsmediatech.sequenceBuilder.assets
 	public static var IC_FIELD_audio_url:Class;
 	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/glaze/video32.png")]
 	public static var IC_FIELD_video_url:Class;
+	
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/connections_24.png")]
+	public static var IC_FIELD_connection:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gnome/copy24.png")]
+	public static var IC_FIELD_mirror:Class;
 	
 	}
 }

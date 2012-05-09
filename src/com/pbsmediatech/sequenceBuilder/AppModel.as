@@ -52,7 +52,7 @@ package com.pbsmediatech.sequenceBuilder
 		}
 		
 		//application version
-		public var master_config:Object = FreezeConfig();
+		public var master_config:Object;
 		
 		public var sequence_maker_version:String = "0:0:0";
 		public var view_maker_version:Number = 0;
@@ -75,11 +75,11 @@ package com.pbsmediatech.sequenceBuilder
 		public var dev:Boolean = false;
 		public var service_base_url:String = "http://www.pbsmediatech.com/cms/api/";
 		public var sqlRows:ArrayCollection = new ArrayCollection();
-		public var available_fields_types:ArrayList = new ArrayList(get_base_type_names());
+		public var available_fields_types:ArrayList;
 		
 		
 		
-		public var available_nested_fields_types:ArrayList = new ArrayList(get_base_type_names());
+		public var available_nested_fields_types:ArrayList;
 		
 		
 		

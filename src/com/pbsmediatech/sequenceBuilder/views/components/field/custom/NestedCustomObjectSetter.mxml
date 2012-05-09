@@ -10,7 +10,6 @@
 	<fx:Script>
 		<![CDATA[
 			import com.pbsmediatech.sequenceBuilder.AppModel;
-
 			
 			import db.field.Field;
 			import db.field.custom.custom_fields_by_parent_field_type;
@@ -52,7 +51,7 @@
 			public function setField(f:Field):void
 			{
 				
-				types.source = custom_fields_by_parent_field_type(f.field_type);
+				types.source = custom_fields_by_parent_field_type(f.field_type, AppModel.getInstance().master_config);
 				
 				
 				var cType:String = f.custom;	

@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300">
+<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	<s:RadioButtonGroup id="rbg" selectedValue="{connection_type}">
+		
+	</s:RadioButtonGroup>
+</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.pbsmediatech.dto.ControllerSequence;
+			import com.pbsmediatech.sequenceBuilder.AppModel;
+			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.field.system.show_mirror_field_options_setter;
+			
+			import db.field.Field;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			
+			import sequence.field.system.create_mirror_field;
+			
+			private var f:Field;
+			public var save_func:Function;
+			public var cancel_func:Function;
+			public var add_mirror_func:Function;
+			
+			[Bindable]
+			public var connection_type:String = "One"; //Many
+			
+			[Bindable]
+			public var is_new_connection:Boolean = true;
+			
+			[Bindable]
+			public var state:String = "main";
+			
+			[Bindable]
+			public var sequences:ArrayCollection = AppModel.getInstance().saved_sequences;
+			public var selected_sequence:ControllerSequence;
+			public var selected_sequence_fields:ArrayCollection;
+			public var target_sequence:ControllerSequence;
+			
+			private var my_sequence:ControllerSequence;
+			
+			private var field:Field;
+			
+			
+			public function set_field(f:Field, is_new:Boolean):void
+			{
+				field = f;
+				if(f.fk_target && f.fk_target.ref){
+					lb_ref.text = f.fk_target.ref;
+					ti_conn_name.text = f.field_name;
+					set_connected_sequence(f.fk_target.ref);
+					connection_type = f.fk_target.type;
+					
+				}
+				is_new_connection = is_new;
+				
+				
+			}
+			public function set_sequence(seq:ControllerSequence):void
+			{
+				my_sequence = seq;
+			}
+			private function set_connected_sequence(seq_name:String):void{
+				for(var i:int = 0; i<sequences.length; i++){
+				var seq:ControllerSequence = sequences[i] as ControllerSequence;
+				if(seq.sequence_controller_name == seq_name){
+				selected_sequence = seq;
+				break;
+				
+				}
+				}
+				if(!selected_sequence){
+					Alert.show("Can not find connected Model");
+						
+				}
+			}
+			public function get_ref():String
+			{
+				return lb_ref.text;
+			}
+			public function get_type():String
+			{
+				return rbg.selectedValue.toString();
+			}
+			public function get_name():String
+			{
+				return ti_conn_name.text;
+			}
+
+			protected function lt_sequences_doubleClickHandler(event:MouseEvent):void
+			{
+				if(!lt_sequences.selectedItem)return
+				var seq:ControllerSequence = ControllerSequence(lt_sequences.selectedItem) as ControllerSequence;	
+				lb_ref.text = seq.sequence_controller_name;
+				if(ti_conn_name.text.length<2){
+					ti_conn_name.text = lb_ref.text;
+				}
+			}
+
+
+			protected function btn_save_clickHandler(event:MouseEvent):void
+			{
+				if(lb_ref.text == my_sequence.sequence_controller_name){
+					Alert.show("Can not choose own sequence");
+				}else if(lb_ref.text.length<2){
+					Alert.show("Please select a sequence");
+				}else if(ti_conn_name.text.length<2){
+					Alert.show("Please name connection");
+				}else{
+				save_func();
+				}
+			}
+
+
+			protected function btn_cancel_clickHandler(event:MouseEvent):void
+			{
+				cancel_func()
+			}
+
+
+			protected function btn_add_clone_clickHandler(event:MouseEvent):void
+			{
+				var selected_field:Field = lt_mirrorable_fields.selectedItem as Field;
+				var f:Field = create_mirror_field(selected_sequence.sequence_controller_name, selected_field.field_name);
+				
+				show_mirror_field_options_setter(f, 
+					function():void{
+						
+						add_mirror_func(f, function(message):void{
+							lb_add_mirror_result.text = message;
+						});
+						
+					});
+				
+			}
+
+
+			protected function btn_back_to_main_clickHandler(event:MouseEvent):void
+			{
+				state = "main";
+			}
+
+
+			protected function btn_go_to_add_clone_clickHandler(event:MouseEvent):void
+			{
+				state = "mirror";
+				if(!selected_sequence_fields){
+					selected_sequence_fields = new ArrayCollection;
+				var fields:Array = JSON.decode(selected_sequence.sequence_fields);
+				for each (var obj:Object in fields)
+					{
+						var f:Field = new Field(obj);
+						selected_sequence_fields.addItem(f);
+					}
+				}
+				lt_mirrorable_fields.dataProvider = selected_sequence_fields;
+			}
+
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%" includeInLayout="{state == 'main'}" visible="{state == 'main'}">
+		
+	<s:HGroup width="100%" height="100%" >
+		<s:VGroup width="100%" height="100%" visible="{is_new_connection}" includeInLayout="{is_new_connection}">
+			<s:List height="100%"  id="lt_sequences" click="lt_sequences_doubleClickHandler(event)" dataProvider="{sequences}" labelField="sequence_controller_name">
+				
+			</s:List>	
+		</s:VGroup>
+		
+		<s:VGroup width="100%" height="100%" paddingTop="30">
+			<fx:Script>
+				<![CDATA[
+					import db.field.system.ConnectionTypes;
+				]]>
+			</fx:Script>
+			<s:Label text="Name"/>
+			<s:TextInput id="ti_conn_name" text="{f.field_name}" />
+			<s:Label text="Connected Sequence" paddingTop="10"/>
+			<s:Label fontWeight="bold" id="lb_ref" paddingBottom="10"></s:Label>
+			<s:Label text="Choose Connection Type"/>
+			<s:RadioButton selected="true" group="{rbg}" label="{ConnectionTypes.ONE}" value="{ConnectionTypes.ONE}">
+			</s:RadioButton>
+			<s:RadioButton group="{rbg}" label="{ConnectionTypes.MANY}"  value="{ConnectionTypes.MANY}">
+				
+			</s:RadioButton>
+			
+		</s:VGroup>
+	</s:HGroup>
+		
+		
+	<s:HGroup width="100%" paddingLeft="5" paddingRight="5" paddingBottom="5">
+		<s:HGroup width="100%" horizontalAlign="left">
+		<s:Button id="btn_cancel" click="btn_cancel_clickHandler(event)" label="Cancel"/>
+			
+		</s:HGroup>
+		<s:HGroup width="100%" horizontalAlign="right">
+			<s:Button label="Add Mirrored Field" id="btn_go_to_add_clone" click="btn_go_to_add_clone_clickHandler(event)" enabled="{connection_type == ConnectionTypes.ONE &amp;&amp; !is_new_connection}"/>
+		</s:HGroup>
+		<s:HGroup width="100%" horizontalAlign="right">
+		<s:Button id="btn_save" click="btn_save_clickHandler(event)" label="Save"/>
+			
+		</s:HGroup>
+	</s:HGroup>	
+	
+	</s:VGroup>
+	<s:VGroup visible="{state == 'mirror'}" includeInLayout="{state == 'mirror'}" width="100%" height="100%">
+		<s:VGroup width="100%" height="100%">
+			<s:List id="lt_mirrorable_fields" labelField="field_name" width="100%" height="100%"/>
+		</s:VGroup>
+		<s:HGroup width="100%" paddingLeft="5" paddingRight="5" paddingBottom="5">
+			<s:HGroup width="100%" horizontalAlign="left">
+				<s:Button id="btn_back_to_main" click="btn_back_to_main_clickHandler(event)" label="Back"/>
+				
+			</s:HGroup>
+			<s:HGroup width="100%">
+				<s:Label id="lb_add_mirror_result"/>
+			</s:HGroup>
+			<s:HGroup width="100%" horizontalAlign="right">
+				<s:Button id="btn_add_clone" click="btn_add_clone_clickHandler(event)" enabled="{lt_mirrorable_fields.selectedItem != null}" label="Add"/>
+				
+			</s:HGroup>
+		</s:HGroup>		
+		
+	</s:VGroup>
+</s:Group>

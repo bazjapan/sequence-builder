@@ -16,6 +16,7 @@
 			import com.pbsmediatech.sequenceBuilder.views.components.table.KeyFieldList;
 			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
 			import com.pbsmediatech.sequenceBuilder.views.events.FieldEvent;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.field.system.show_connection_setter;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVariableLengthProperty;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.findFieldByName;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDefaultFieldSizeByFieldType;
@@ -26,20 +27,16 @@
 			
 			import mx.collections.Sort;
 			import mx.collections.SortField;
-			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
-			import mx.events.NumericStepperEvent;
 			import mx.managers.PopUpManager;
 			
-			import spark.components.TextArea;
-			import spark.components.VGroup;
 			import spark.events.IndexChangeEvent;
 			
 			import utils.ac.moveItemDown;
 			import utils.ac.moveItemUp;
 			import utils.events.CallbackEvent;
-			import utils.object.isEmpty;
+			import utils.string.replace;
 			
 			private function cc():void
 			{
@@ -51,7 +48,28 @@
 			lt_fields.addEventListener("EVENT_UPDATE_FIELD_IN_STORE", onEVENT_UPDATE_FIELD_IN_STORE);
 			lt_fields.addEventListener("EVENT_OPEN_FIELD_IN_STORE", onEVENT_OPEN_FIELD_IN_STORE);
 			lt_fields.addEventListener(FieldEvent.EVENT_SHOW_FOREIGN_KEYS_FOR_FIELD,onEVENT_SHOW_FOREIGN_KEYS_FOR_FIELD);
-			
+			lt_fields.addEventListener(FieldEvent.EVENT_ADD_FIELD_TO_SEQUENCE, onEVENT_ADD_FIELD);
+			}
+
+			private function onEVENT_ADD_FIELD(event:FieldEvent):void
+			{
+				event.stopImmediatePropagation();
+				event.preventDefault();
+				var toAdd:Field = event.field
+				var message:String = toAdd.field_name+" added.";
+				var exists:Boolean;
+				for each (var existing:Field in fields)
+				{
+					if(existing.field_name == toAdd.field_name){
+						exists = true;	
+						message = toAdd.field_name+" already exists.";
+						break;
+					}
+				}
+				if(!exists){
+				fields.addItem(event.field);}
+				if(event.callback != null)event.callback(message);
+				
 			}
 
 			private function onEVENT_SHOW_FOREIGN_KEYS_FOR_FIELD(event:FieldEvent):void
@@ -174,10 +192,7 @@
 				fields.removeItemAt(fields.getItemIndex(renderer.field));
 			}
 			
-			protected function sort_by_field_name_clickHandler(event:MouseEvent):void
-			{
-				doSort("field_name", fields, false);
-			}
+			
 
 			private function doSort(field:String, ac:ArrayCollection, isDescending:Boolean = true):void
 			{
@@ -190,34 +205,7 @@
 				ac.sort = sort;
 				ac.refresh();
 			}
-			protected function sort_by_is_ID_clickHandler(event:MouseEvent):void
-			{
-				doSort("is_ID", fields);
-			}
-
-
-			protected function sort_by_updateable_clickHandler(event:MouseEvent):void
-			{
-				doSort("updateable", fields);
-			}
-
-
-			protected function sort_by_can_search_by_clickHandler(event:MouseEvent):void
-			{
-				doSort("can_search_by", fields);
-			}
-
-
-			protected function sort_by_can_update_by_clickHandler(event:MouseEvent):void
-			{
-				doSort("can_update_by", fields);
-			}
-
-
-			protected function sort_by_can_remove_by_clickHandler(event:MouseEvent):void
-			{
-				doSort("can_remove_by", fields);
-			}
+			
 
 			
 			protected function add_row_clickHandler(event:MouseEvent):void
@@ -389,6 +377,32 @@
 				show_field_json(lt_fields.selectedItem as Field, this);
 			
 			}
+			protected function btn_add_connection_clickHandler(event:MouseEvent):void
+			{
+				var f:Field = new Field;
+				f.field_type = Field.CONNECTION;
+				f.field_name = "connection name";
+				f.is_FK = true;
+				show_connection_setter(f, true, function(f:Field){
+					fields.addItem(f);
+				});
+			
+			}
+			
+			
+
+			private var field_sorts:ArrayCollection = new ArrayCollection(["none","field_name","is_ID","updateable","can_search_by","can_update_by","can_remove_by"]);
+			protected function dd_field_sort_changeHandler(event:IndexChangeEvent):void
+			{
+				var selected:String = dd_field_sort.selectedItem as String;
+				if(selected != "none"){
+				
+					doSort(selected, fields, selected != "field_name");
+				}else{
+					fields.sort = null;
+					fields.refresh();
+				}
+			}
 
 		]]>
 	</fx:Script>
@@ -422,16 +436,14 @@
 	</s:HGroup>
 	<s:HGroup width="100%" paddingLeft="3">
 		<s:Label text="Sort by  " fontWeight="bold" height="100%" verticalAlign="middle"/>
-		<s:Button label="field_name" id="sort_by_field_name" click="sort_by_field_name_clickHandler(event)"/>
-		<s:Button label="is_ID" id="sort_by_is_ID" click="sort_by_is_ID_clickHandler(event)"/>
-		<s:Button label="updateable" id="sort_by_updateable" click="sort_by_updateable_clickHandler(event)"/>
-		<s:Button label="can_search_by" id="sort_by_can_search_by" click="sort_by_can_search_by_clickHandler(event)"/>
-		<s:Button label="can_update_by" id="sort_by_can_update_by" click="sort_by_can_update_by_clickHandler(event)"/>
-		<s:Button label="can_remove_by" id="sort_by_can_remove_by" click="sort_by_can_remove_by_clickHandler(event)"/>
-	<s:HGroup width="100%" horizontalAlign="right" paddingRight="10">
+		<s:DropDownList dataProvider="{field_sorts}" selectedIndex="0" id="dd_field_sort" change="dd_field_sort_changeHandler(event)">
+			
+		</s:DropDownList>
+		<s:HGroup width="100%" horizontalAlign="right" paddingRight="10">
 		<s:HGroup width="100%" height="100%" verticalAlign="bottom">
 			<s:Label text="{AppModel.getInstance().loaded_sequence.getClassName()+'.'+lt_fields.selectedItem['field_name']}"  fontSize="16" height="20" textAlign="center" verticalAlign="bottom" width="100%"/>
 		</s:HGroup>
+		<image:FadedImage source="{IconLib.IC_FIELD_connection}" toolTip="Add Connection" id="btn_add_connection" click="btn_add_connection_clickHandler(event)"/>
 		<image:FadedImage source="{IconLib.VIEW_JSON22}" toolTip="View Config" id="btn_show_field_json" click="btn_show_field_json_clickHandler(event)" enabled="{lt_fields.selectedItem}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"/>
 		<image:FadedImage source="{IconLib.IC_FIELD_MOVE_UP}" toolTip="Move Field Up" click="{moveUp()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>
 		<image:FadedImage source="{IconLib.IC_FIELD_MOVE_DOWN}" toolTip="Move Field Down" click="{moveDown()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>
