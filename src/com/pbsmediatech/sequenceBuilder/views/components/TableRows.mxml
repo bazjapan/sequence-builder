@@ -187,8 +187,25 @@
 
 			private function onTRASH_FIELD(event:Event):void
 			{
-				
 				var renderer:TableColumnRenderer = TableColumnRenderer(event.target);
+				var field_to_remove:Field = renderer.field;
+				if(field_to_remove.field_type == Field.CONNECTION){
+					var connected_to:String = field_to_remove.fk_target.ref;
+					var mirrors_to_remove:Array = [];
+					for each (var possible_mirror_field:Field in fields)
+					{
+						if(possible_mirror_field.field_type == Field.MIRROR){
+							if(possible_mirror_field.fk_target.ref == connected_to){
+								mirrors_to_remove.push(possible_mirror_field);
+							}
+						}
+					}
+					for (var i:int = 0; i < mirrors_to_remove.length; i++)
+					{
+						fields.removeItemAt(fields.getItemIndex(mirrors_to_remove[i]));
+					}
+					
+				}
 				fields.removeItemAt(fields.getItemIndex(renderer.field));
 			}
 			
@@ -383,7 +400,9 @@
 				f.field_type = Field.CONNECTION;
 				f.field_name = "connection name";
 				f.is_FK = true;
-				show_connection_setter(f, true, function(f:Field){
+				show_connection_setter(f, true, function(f:Field, cb:Function):void{
+				throw new Error("Should not be able to use the add mirror callback from this context");
+				}, function(f:Field):void{
 					fields.addItem(f);
 				});
 			

@@ -41,7 +41,7 @@
 			public var sequences:ArrayCollection = AppModel.getInstance().saved_sequences;
 			public var selected_sequence:ControllerSequence;
 			public var selected_sequence_fields:ArrayCollection;
-			public var target_sequence:ControllerSequence;
+			//public var target_sequence:ControllerSequence;
 			
 			private var my_sequence:ControllerSequence;
 			
@@ -124,7 +124,7 @@
 			}
 
 
-			protected function btn_add_clone_clickHandler(event:MouseEvent):void
+			protected function btn_add_mirror_clickHandler(event:MouseEvent):void
 			{
 				var selected_field:Field = lt_mirrorable_fields.selectedItem as Field;
 				var f:Field = create_mirror_field(selected_sequence.sequence_controller_name, selected_field.field_name);
@@ -166,7 +166,7 @@
 	</fx:Script>
 	<s:VGroup width="100%" height="100%" includeInLayout="{state == 'main'}" visible="{state == 'main'}">
 		
-	<s:HGroup width="100%" height="100%" >
+	<s:HGroup width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
 		<s:VGroup width="100%" height="100%" visible="{is_new_connection}" includeInLayout="{is_new_connection}">
 			<s:List height="100%"  id="lt_sequences" click="lt_sequences_doubleClickHandler(event)" dataProvider="{sequences}" labelField="sequence_controller_name">
 				
@@ -183,12 +183,16 @@
 			<s:TextInput id="ti_conn_name" text="{f.field_name}" />
 			<s:Label text="Connected Sequence" paddingTop="10"/>
 			<s:Label fontWeight="bold" id="lb_ref" paddingBottom="10"></s:Label>
+			
+			<s:Group visible="{is_new_connection}" width="100%" height="100%">
+				
 			<s:Label text="Choose Connection Type"/>
 			<s:RadioButton selected="true" group="{rbg}" label="{ConnectionTypes.ONE}" value="{ConnectionTypes.ONE}">
 			</s:RadioButton>
 			<s:RadioButton group="{rbg}" label="{ConnectionTypes.MANY}"  value="{ConnectionTypes.MANY}">
 				
 			</s:RadioButton>
+			</s:Group>
 			
 		</s:VGroup>
 	</s:HGroup>
@@ -222,7 +226,7 @@
 				<s:Label id="lb_add_mirror_result"/>
 			</s:HGroup>
 			<s:HGroup width="100%" horizontalAlign="right">
-				<s:Button id="btn_add_clone" click="btn_add_clone_clickHandler(event)" enabled="{lt_mirrorable_fields.selectedItem != null}" label="Add"/>
+				<s:Button id="btn_add_clone" click="btn_add_mirror_clickHandler(event)" enabled="{lt_mirrorable_fields.selectedItem != null}" label="Add"/>
 				
 			</s:HGroup>
 		</s:HGroup>		

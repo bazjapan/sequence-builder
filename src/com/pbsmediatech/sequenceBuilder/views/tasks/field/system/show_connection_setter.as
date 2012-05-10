@@ -13,7 +13,7 @@ import mx.managers.PopUpManager;
 import spark.components.TitleWindow;
 
 
-public function show_connection_setter(field:Field, new_conn:Boolean,add_mirror_callback, cb:Function = null):void
+public function show_connection_setter(field:Field, new_conn:Boolean, add_mirror_callback:Function, cb:Function):void
 		{
 			var csWindow:TitleWindow;
 			var csc:ConnectorSetter;
@@ -47,7 +47,7 @@ public function show_connection_setter(field:Field, new_conn:Boolean,add_mirror_
 				PopUpManager.removePopUp(csWindow);
 			}
 			
-			csWindow.title = "Edit Connection";
+			csWindow.title = new_conn?"Add Connection":"Edit Connection";
 			
 			
 			csc.set_field(field, new_conn);

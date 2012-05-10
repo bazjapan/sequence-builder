@@ -378,7 +378,9 @@
 						)
 						dispatchEvent(evt);
 					}
-					show_connection_setter(field, false,add_mirror, function(f:Field):void{
+						
+						
+					show_connection_setter(field, false, add_mirror, function(f:Field):void{
 						
 					});
 					return;

@@ -119,6 +119,7 @@
 				dev_history.addItem({ver:"0.7.1", summary : "Added id_field to sequence"});
 				dev_history.addItem({ver:"0.7.2", summary : "Allow add connection"});
 				dev_history.addItem({ver:"0.7.3", summary : "Clone field functionality added"});
+				dev_history.addItem({ver:"0.7.4", summary : "Fixes to connection/mirror"});
 				
 				
 				
