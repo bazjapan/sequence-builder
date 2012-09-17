@@ -53,6 +53,7 @@
 			}
 			
 			//money
+			[Bindable]
 			private	var currency:ArrayList = new ArrayList([CONSTANTS.MONEY_JPY,CONSTANTS.MONEY_USD,CONSTANTS.MONEY_GBP,CONSTANTS.MONEY_EUR]);
 			private var currency_prompt:String = "Choose Currency";
 			//------------------

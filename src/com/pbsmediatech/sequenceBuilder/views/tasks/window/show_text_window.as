@@ -1,4 +1,4 @@
-package com.pbsmediatech.sequenceBuilder.views.tasks
+package com.pbsmediatech.sequenceBuilder.views.tasks.window
 {
 	import flash.display.DisplayObject;
 	import flash.events.Event;
@@ -13,8 +13,8 @@ package com.pbsmediatech.sequenceBuilder.views.tasks
 	import spark.components.TextArea;
 	import spark.components.TitleWindow;
 	import spark.components.VGroup;
-
-	public function show_copy_window_pop(title:String, content:String,parent:DisplayObject):void
+	
+	public function show_text_window(title:String, parent:DisplayObject, next:Function):void
 	{
 		var pop:TitleWindow = new TitleWindow();
 		
@@ -26,17 +26,18 @@ package com.pbsmediatech.sequenceBuilder.views.tasks
 		vg.addElement(ta);
 		var hg:HGroup = new HGroup();
 		var butt:Button = new Button();
-		butt.label = "Copy";
+		butt.label = "OK";
 		butt.addEventListener(MouseEvent.CLICK, function(evt:Event):void{
-			System.setClipboard(ta.text);
+			PopUpManager.removePopUp(pop);
+			pop = null;
+			next(ta.text);
 		});
 		hg.height = 40;
 		hg.addElement(butt);
 		vg.addElement(ta);
 		vg.addElement(hg);
 		
-		
-		ta.text = content;
+	
 		
 		
 		pop.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void

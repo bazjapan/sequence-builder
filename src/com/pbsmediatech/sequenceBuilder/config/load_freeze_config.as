@@ -8,7 +8,8 @@ package com.pbsmediatech.sequenceBuilder.config
 
 	public function load_freeze_config(ready:Function):void
 		{
-		var url:String = "http://www.unchained.jp/partner/apps/ucxb/node_modules/freeze/lib/FreezeConfig.json";
+		//var url:String = "http://www.unchained.jp/partner/apps/ucxb/node_modules/freeze/lib/FreezeConfig.json";
+		var url:String = "http://www.unchained.jp/get_freeze_config/";
 		
 		var request:URLRequest = new URLRequest(url);
 		var loader:URLLoader = new URLLoader();

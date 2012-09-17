@@ -95,6 +95,8 @@ package com.pbsmediatech.sequenceBuilder.assets
 	public static var EDIT_SETTINGS32:Class;
 	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/view_json.png")]
 	public static var VIEW_JSON22:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/oxygen/application-xml.png")]
+	public static var VIEW_OBJECT_LITERAL22:Class;
 	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/go-up.png")]
 	public static var GO_UP22:Class;
 	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/go-down.png")]
@@ -160,6 +162,8 @@ package com.pbsmediatech.sequenceBuilder.assets
 	public static var IC_FIELD_int:Class;
 	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/farm-fresh/numeric_stepper32.png")]
 	public static var IC_FIELD_decimal:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/snowish/image32.png")]
+	public static var IC_FIELD_image:Class;
 	
 	
 	//custom simple
@@ -178,6 +182,8 @@ package com.pbsmediatech.sequenceBuilder.assets
 	public static var IC_FIELD_connection:Class;
 	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/gnome/copy24.png")]
 	public static var IC_FIELD_mirror:Class;
+	[Embed(source="/com/pbsmediatech/sequenceBuilder/assets/icons/asterisk_yellow.png")]
+	public static var IC_FIELD_mixed:Class;
 	
 	}
 }

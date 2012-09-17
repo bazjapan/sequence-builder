@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<actionScriptProperties mainApplicationPath="Main.mxml" projectUUID="18d827bc-a070-4ca7-9c85-007844c94885" version="6">
+<actionScriptProperties mainApplicationPath="SequenceMaker.mxml" projectUUID="18d827bc-a070-4ca7-9c85-007844c94885" version="6">
   <compiler additionalCompilerArguments="-locale en_US" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderLocation="C:/temp/debug/sequence-builder" outputFolderPath="bin-debug" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
     <compilerSourcePath/>
     <libraryPath defaultLinkType="0">
@@ -37,6 +37,4 @@
   <modules/>
   <buildCSSFiles/>
 </actionScriptProperties>
-
-
 

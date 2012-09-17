@@ -26,6 +26,7 @@
 			
 			override public function set data(value:Object):void
 			{
+				if(!value)return;
 				field = value as Field;
 				inView = isInView();
 			}

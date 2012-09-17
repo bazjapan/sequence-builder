@@ -12,6 +12,7 @@
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
 			import com.pbsmediatech.sequenceBuilder.views.components.field.shared_actions.show_field_json;
+			import com.pbsmediatech.sequenceBuilder.views.components.field.shared_actions.show_object_literal;
 			import com.pbsmediatech.sequenceBuilder.views.components.renderer.TableColumnRenderer;
 			import com.pbsmediatech.sequenceBuilder.views.components.table.KeyFieldList;
 			import com.pbsmediatech.sequenceBuilder.views.components.table.TableEditor;
@@ -20,6 +21,7 @@
 			import com.pbsmediatech.sequenceBuilder.views.tasks.fieldHasVariableLengthProperty;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.findFieldByName;
 			import com.pbsmediatech.sequenceBuilder.views.tasks.getDefaultFieldSizeByFieldType;
+			import com.pbsmediatech.sequenceBuilder.views.tasks.window.show_text_window;
 			
 			import db.field.Field;
 			import db.field.IDFieldSize;
@@ -36,6 +38,7 @@
 			import utils.ac.moveItemDown;
 			import utils.ac.moveItemUp;
 			import utils.events.CallbackEvent;
+			import utils.object.isEmpty;
 			import utils.string.replace;
 			
 			private function cc():void
@@ -394,6 +397,10 @@
 				show_field_json(lt_fields.selectedItem as Field, this);
 			
 			}
+			protected function btn_show_object_literal_clickHandler(event:MouseEvent):void
+			{
+				show_object_literal(ArrayCollection(lt_fields.dataProvider).source, this);
+			}
 			protected function btn_add_connection_clickHandler(event:MouseEvent):void
 			{
 				var f:Field = new Field;
@@ -420,6 +427,30 @@
 				}else{
 					fields.sort = null;
 					fields.refresh();
+				}
+			}
+
+
+			
+
+
+			protected function btn_load_field_json_clickHandler(event:MouseEvent):void
+			{
+				if(!AppModel.getInstance().loaded_sequence){return};
+				try{
+				show_text_window("Paste Field JSON here", this, function(json:String):void{
+					if(isEmpty(json))return;
+					if(!fields)return
+					var fields_array:Array = [JSON.decode(json)];
+					for each (var obj:Object in fields_array)
+					{
+						fields.addItem(new Field(obj));
+					}
+					
+				});
+				}catch(err:Error){
+					
+					Alert.show(err.toString(),"An error Ocurred")
 				}
 			}
 
@@ -463,6 +494,9 @@
 			<s:Label text="{AppModel.getInstance().loaded_sequence.getClassName()+'.'+lt_fields.selectedItem['field_name']}"  fontSize="16" height="20" textAlign="center" verticalAlign="bottom" width="100%"/>
 		</s:HGroup>
 		<image:FadedImage source="{IconLib.IC_FIELD_connection}" toolTip="Add Connection" id="btn_add_connection" click="btn_add_connection_clickHandler(event)"/>
+		
+		<image:FadedImage source="{IconLib.VIEW_OBJECT_LITERAL22}" toolTip="View Object Literal" id="btn_show_object_literal" click="btn_show_object_literal_clickHandler(event)"  fadeAlpha="0.3" faded="{false}"/>
+		<image:FadedImage source="{IconLib.VIEW_JSON22}" toolTip="Load Field Config" id="btn_load_field_json" click="btn_load_field_json_clickHandler(event)" enabled="{true}" fadeAlpha="0.3" faded="{false}"/>
 		<image:FadedImage source="{IconLib.VIEW_JSON22}" toolTip="View Config" id="btn_show_field_json" click="btn_show_field_json_clickHandler(event)" enabled="{lt_fields.selectedItem}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"/>
 		<image:FadedImage source="{IconLib.IC_FIELD_MOVE_UP}" toolTip="Move Field Up" click="{moveUp()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>
 		<image:FadedImage source="{IconLib.IC_FIELD_MOVE_DOWN}" toolTip="Move Field Down" click="{moveDown()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>

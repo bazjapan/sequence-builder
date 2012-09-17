@@ -5,6 +5,19 @@
 	<s:layout>
 		<s:VerticalLayout/>
 	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
+			
+			import mx.controls.Alert;
+
+			protected function image1_clickHandler(event:MouseEvent):void
+			{
+				Alert.show("Todo: rename sequence check for fk refs", "TODO");
+			}
+
+		]]>
+	</fx:Script>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -33,6 +46,8 @@
 			import spark.events.IndexChangeEvent;
 			import spark.events.TextOperationEvent;
 			
+			import utils.object.isEmpty;
+			import utils.object.isNull;
 			import utils.object.listParams;
 			import utils.timestamp.dateToTimestamp;
 			
@@ -281,7 +296,8 @@
 			<s:VGroup width="100%">
 				<s:HGroup width="100%">
 					<s:Label text="Sequence Name"/>
-					<s:TextInput id="controller_name" toolTip="Sequence_Name" maxChars="50"  width="100%"/>
+					<s:TextInput editable="{isNaN(_loaded_sequence.sequence_ID)}" id="controller_name" toolTip="Sequence_Name" maxChars="50"  width="100%"/>
+					<mx:Image source="{IconLib.RENAME_24}" width="16" height="16" click="image1_clickHandler(event)"/>
 				</s:HGroup>
 				<s:HGroup width="100%">
 					

@@ -50,7 +50,7 @@
 			[Bindable]public var fields:ArrayCollection;
 			public var parent_field:Field;
 			public var custom_type_set:String;//set by cc_custom_object_setter
-			[Bindable]
+			
 			private function cc():void
 			{
 				cc_custom_object_setter.addEventListener("SET_CUSTOM_OBJECT",onSET_CUSTOM_OBJECT);
@@ -68,7 +68,7 @@
 			private function onSET_CUSTOM_OBJECT(event:Event):void
 			{
 				custom_type_set = cc_custom_object_setter.getCustomType();
-				fields.source = custom_object_fields(custom_type_set);
+				fields.source = custom_object_fields(custom_type_set, AppModel.getInstance().master_config);
 			}
 			
 			public var saveFunc:Function;
@@ -78,6 +78,7 @@
 			public function set_parent_field(f:Field):void
 			{
 				parent_field = f;
+				custom_type_set = parent_field.custom;
 				cc_custom_object_setter.setField(parent_field);
 			}
 			

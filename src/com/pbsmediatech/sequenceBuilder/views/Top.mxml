@@ -120,6 +120,15 @@
 				dev_history.addItem({ver:"0.7.2", summary : "Allow add connection"});
 				dev_history.addItem({ver:"0.7.3", summary : "Clone field functionality added"});
 				dev_history.addItem({ver:"0.7.4", summary : "Fixes to connection/mirror"});
+				dev_history.addItem({ver:"0.7.41", summary : "Reverted"});
+				dev_history.addItem({ver:"0.7.5", summary : "Custom Object Image Added"});
+				dev_history.addItem({ver:"0.7.6", summary : "Fixed Mirror/Stopped Seq Controller name change"});
+				dev_history.addItem({ver:"0.7.72", summary : "Object Literal Output"});
+				dev_history.addItem({ver:"0.7.73", summary : "Changed Custom Type : Image Fields"});
+				dev_history.addItem({ver:"0.7.8", summary : "Added ability to paste field config"});
+				dev_history.addItem({ver:"0.7.81", summary : "Fixed ability to paste field config"});
+				dev_history.addItem({ver:"0.7.82", summary : "Getting freeze config via unchained.jp/get_freeze_config/"});
+				dev_history.addItem({ver:"0.7.83", summary : "Utils target changed to pbsmediatech port 4000"});
 				
 				
 				
@@ -358,7 +367,7 @@
 			}
 			protected function remove_saved_sequence_clickHandler(event:MouseEvent):void
 			{
-				Alert.show("Are you sure you wish to remove this sequence?","Remove Sequence?", Alert.YES|Alert.NO, this,function(ce:CloseEvent){
+				Alert.show("Are you sure you wish to remove this sequence?","Remove Sequence?", Alert.YES|Alert.NO, this,function(ce:CloseEvent):void{
 					if(ce.detail == Alert.YES){
 						removeSequence(dg_saved.selectedItem as ControllerSequence);
 					}
@@ -455,7 +464,7 @@
 				
 				//trims down
 				if(use_trimmed){
-					var c:Object = {};
+					c = {};
 					c.path = s.sequence_domain+"."+s.sequence_controller_name;
 					c.fields = [];
 					
@@ -535,8 +544,9 @@
 			protected function btn_deploy_sequence_clickHandler(event:MouseEvent):void
 			{
 				var name:String = AppModel.getInstance().loaded_sequence.sequence_controller_name;
+				var sequence_domain:String = AppModel.getInstance().loaded_sequence.sequence_domain;
 				var config:Object = generateSequenceConfig(AppModel.getInstance().loaded_sequence);
-				var vo:Object = {name:name, config:JSON.encode(config)};
+				var vo:Object = {name:name,sequence_domain:sequence_domain, config:JSON.encode(config)};
 				var service:HTTPService
 				service = new HTTPService();
 				service.useProxy = false;
@@ -545,7 +555,7 @@
 				service.addEventListener(FaultEvent.FAULT, function(fe:FaultEvent):void{
 					Alert.show("Unable to Deploy Sequence Config");
 				});
-				service.url = "http://www.unchained.jp:3000/deploysequence";
+				service.url = "http://www.pbsmediatech.com:4000/deploysequence/";
 				service.addEventListener(ResultEvent.RESULT,function(re:ResultEvent):void{
 					var alrt:Alert = Alert.show(name+" Sequence Config Deployed");
 					var alrtTimer:Timer = new Timer(2000, 1);
@@ -567,10 +577,9 @@
 			{
 				var seq:ControllerSequence = AppModel.getInstance().loaded_sequence;
 				if(seq != null){
-					var vo = {};
+					var vo:Object = {};
 					vo.sequence_ID	= seq.sequence_ID;
-					sequence_controller.get_controller_sequences_by_sequence_ID(vo, function(data){
-						trace(data);
+					sequence_controller.get_controller_sequences_by_sequence_ID(vo, function(data:ResultEvent):void{
 						var result:Array = extractResultResult(data) as Array;
 						if(result.length>0){
 							var seq:ControllerSequence = new ControllerSequence(result[0])

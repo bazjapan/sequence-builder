@@ -368,7 +368,7 @@
 					return;
 				}
 				if(field.field_type == Field.CONNECTION){
-					var add_mirror = function(f, cb):void{
+					var add_mirror:Function = function(f:Field, cb:Function):void{
 						var evt:FieldEvent = new FieldEvent(
 							FieldEvent.EVENT_ADD_FIELD_TO_SEQUENCE,
 							f,
@@ -484,7 +484,7 @@
 			</s:VGroup>
 			
 			<s:VGroup height="100%" id="vb_name_toggle" verticalAlign="middle">
-				<s:TextInput visible="{!showNicename}" includeInLayout="{!showNicename}" id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="40" width="200" change="field_name_changeHandler(event)"/>
+				<s:TextInput editable="{!field.is_nc}" visible="{!showNicename}" includeInLayout="{!showNicename}" id="field_name" fontWeight="bold" text="{field.field_name}" maxChars="40" width="200" change="field_name_changeHandler(event)"/>
 				<s:TextInput visible="{showNicename}" includeInLayout="{showNicename}" id="nicename" fontWeight="bold" text="{field.nicename}" maxChars="40" width="200" change="nicename_changeHandler(event)"/>
 			</s:VGroup>
 			
