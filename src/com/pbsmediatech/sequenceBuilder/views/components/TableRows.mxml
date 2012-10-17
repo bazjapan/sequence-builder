@@ -399,7 +399,8 @@
 			}
 			protected function btn_show_object_literal_clickHandler(event:MouseEvent):void
 			{
-				show_object_literal(ArrayCollection(lt_fields.dataProvider).source, this);
+				var fs:Array = [lt_fields.selectedItem as Field]; 
+				show_object_literal(fs, this);
 			}
 			protected function btn_add_connection_clickHandler(event:MouseEvent):void
 			{
@@ -495,7 +496,7 @@
 		</s:HGroup>
 		<image:FadedImage source="{IconLib.IC_FIELD_connection}" toolTip="Add Connection" id="btn_add_connection" click="btn_add_connection_clickHandler(event)"/>
 		
-		<image:FadedImage source="{IconLib.VIEW_OBJECT_LITERAL22}" toolTip="View Object Literal" id="btn_show_object_literal" click="btn_show_object_literal_clickHandler(event)"  fadeAlpha="0.3" faded="{false}"/>
+		<image:FadedImage source="{IconLib.VIEW_OBJECT_LITERAL22}" toolTip="View Object Literal" id="btn_show_object_literal" click="btn_show_object_literal_clickHandler(event)" enabled="{lt_fields.selectedItem}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"/>
 		<image:FadedImage source="{IconLib.VIEW_JSON22}" toolTip="Load Field Config" id="btn_load_field_json" click="btn_load_field_json_clickHandler(event)" enabled="{true}" fadeAlpha="0.3" faded="{false}"/>
 		<image:FadedImage source="{IconLib.VIEW_JSON22}" toolTip="View Config" id="btn_show_field_json" click="btn_show_field_json_clickHandler(event)" enabled="{lt_fields.selectedItem}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"/>
 		<image:FadedImage source="{IconLib.IC_FIELD_MOVE_UP}" toolTip="Move Field Up" click="{moveUp()}" fadeAlpha="0.3" faded="{!lt_fields.selectedItem}"  enabled="{lt_fields.selectedItem}"/>

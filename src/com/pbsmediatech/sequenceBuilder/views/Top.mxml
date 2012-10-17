@@ -129,6 +129,8 @@
 				dev_history.addItem({ver:"0.7.81", summary : "Fixed ability to paste field config"});
 				dev_history.addItem({ver:"0.7.82", summary : "Getting freeze config via unchained.jp/get_freeze_config/"});
 				dev_history.addItem({ver:"0.7.83", summary : "Utils target changed to pbsmediatech port 4000"});
+				dev_history.addItem({ver:"0.7.9", summary : "Adding code generation for js objects"});
+				dev_history.addItem({ver:"0.7.91", summary : "Fixed Object Literal Generation"});
 				
 				
 				

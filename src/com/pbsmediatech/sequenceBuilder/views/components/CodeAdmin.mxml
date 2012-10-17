@@ -21,6 +21,7 @@
 			import com.pbsmediatech.code.method_builders.as3.makeAS3JSONResultHelper;
 			import com.pbsmediatech.code.method_builders.as3.makeAS3Utils;
 			import com.pbsmediatech.code.method_builders.custom_methods.CustomMethodDescription;
+			import com.pbsmediatech.code.method_builders.js.makeJSClass;
 			import com.pbsmediatech.code.method_builders.js.makeJSController;
 			import com.pbsmediatech.code.method_builders.php.makePHPController;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLScript;
@@ -565,6 +566,16 @@
 						}); 
 			}
 
+
+			protected function btn_gen_js_classes_clickHandler(event:MouseEvent):void
+			{
+				AppModel.getInstance().js_class_text = makeJSClass(
+					sequence_details_editor.class_name.text,
+					sequence_details_editor.domain_name.selectedItem["domain_package_root"],
+					AppModel.getInstance().loaded_sequence.sequence_version,
+					AppModel.getInstance().fields.source);
+			}
+
 		]]>
 	</fx:Script>
 	
@@ -707,6 +718,9 @@
 											</s:VGroup>
 										</s:NavigatorContent>
 										<s:NavigatorContent label="JS Code">
+											<s:HGroup width="100%">
+												<s:Button enabled="{AppModel.getInstance().loaded_sequence != null}" label="Generate Classes" id="btn_gen_js_classes" click="btn_gen_js_classes_clickHandler(event)"/>
+											</s:HGroup>
 											<s:VGroup width="100%" height="100%">
 												
 												<s:HGroup width="100%" horizontalAlign="right" verticalAlign="middle">
@@ -719,7 +733,7 @@
 												<s:HGroup width="100%" height="100%">
 													<s:HGroup>
 													</s:HGroup>
-													<s:TextArea id="ta_js_code"  width="100%" height="100%" fontSize="14"/>
+													<s:TextArea id="ta_js_code" text="{AppModel.getInstance().js_class_text}"  width="100%" height="100%" fontSize="14"/>
 												</s:HGroup>
 											</s:VGroup>
 										</s:NavigatorContent>

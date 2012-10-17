@@ -100,6 +100,7 @@ package com.pbsmediatech.sequenceBuilder
 		public var php_controller_text:String;
 		public var as3_controller_text:String;
 		public var js_controller_text:String;
+		public var js_class_text:String;
 		public var as3_class_text:String;
 		public var as3_ResultHelper_text:String;
 		public var as3_utils_text:String;

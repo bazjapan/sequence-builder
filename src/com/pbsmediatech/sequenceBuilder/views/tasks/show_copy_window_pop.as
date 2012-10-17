@@ -5,6 +5,7 @@ package com.pbsmediatech.sequenceBuilder.views.tasks
 	import flash.events.MouseEvent;
 	import flash.system.System;
 	
+	import mx.controls.Alert;
 	import mx.events.CloseEvent;
 	import mx.managers.PopUpManager;
 	
@@ -32,10 +33,17 @@ package com.pbsmediatech.sequenceBuilder.views.tasks
 		});
 		hg.height = 40;
 		hg.addElement(butt);
+		
+		var dl_butt:Button = new Button();
+		dl_butt.label = "Download";
+		dl_butt.addEventListener(MouseEvent.CLICK, function(evt:Event):void{
+			Alert("Howdy")
+		});
+		hg.addElement(dl_butt);
+		
+		
 		vg.addElement(ta);
 		vg.addElement(hg);
-		
-		
 		ta.text = content;
 		
 		

@@ -6,12 +6,15 @@ package com.pbsmediatech.sequenceBuilder.views.tasks
 	
 	import db.dataview.DataView;
 	import db.field.Field;
+	
+	import utils.object.isNull;
 
 
 	public function loadSequenceToModel(seq:ControllerSequence):ControllerSequence
 	{
 		AppModel.getInstance().fields.removeAll();
 		AppModel.getInstance().data_views.removeAll();
+		
 		var loaded_sequence:ControllerSequence = seq;
 		var fields_array:Array = JSON.decode(loaded_sequence.sequence_fields);
 		var data_views_array:Array = [];
