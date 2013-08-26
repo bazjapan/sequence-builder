@@ -13,6 +13,8 @@
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
+			
+			
 			protected function method_note_clickHandler(event:MouseEvent):void
 			{
 				if(!selected_custom_method){return};
@@ -37,7 +39,7 @@
 				noteTaker.width = 300;
 				noteTaker.height = 200;
 				
-				noteTaker.text = JSON.encode(selected_custom_method.input);
+				noteTaker.text = JSON.stringify(selected_custom_method.input);
 				
 				noteTaker.title = selected_custom_method.method_name;
 				PopUpManager.addPopUp(noteTaker,this,true);
@@ -45,7 +47,7 @@
 				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
 				{
 					try{
-					selected_custom_method.input = JSON.decode(noteTaker.text);
+					selected_custom_method.input = JSON.parse(noteTaker.text) as Array;
 					PopUpManager.removePopUp(noteTaker);
 					}catch(e:Error){
 					Alert.show("Must be correctly formed JSON");
@@ -61,14 +63,14 @@
 				var noteTaker:NoteTaker2 = new NoteTaker2;
 				noteTaker.width = 300;
 				noteTaker.height = 200;
-				noteTaker.text = JSON.encode(selected_custom_method.output);
+				noteTaker.text = JSON.stringify(selected_custom_method.output);
 				noteTaker.title = selected_custom_method.method_name;
 				PopUpManager.addPopUp(noteTaker,this,true);
 				PopUpManager.centerPopUp(noteTaker);
 				noteTaker.addEventListener(CloseEvent.CLOSE, function(ce:CloseEvent):void
 				{
 					try{
-					selected_custom_method.output = JSON.decode(noteTaker.text);
+					selected_custom_method.output = JSON.parse(noteTaker.text);
 					PopUpManager.removePopUp(noteTaker);
 					}catch(e:Error){
 					Alert.show("Must be correctly formed JSON");
@@ -116,7 +118,7 @@
 
 	<fx:Script>
 		<![CDATA[
-			import com.adobe.serialization.json.JSON;
+			
 			import com.pbsmediatech.code.method_builders.LangCodePair;
 			import com.pbsmediatech.code.method_builders.as3.getAS3Method;
 			import com.pbsmediatech.code.method_builders.js.getJSMethod;
@@ -134,7 +136,7 @@
 				var as3:LangCodePair = new LangCodePair({lang:"as3",code:getFunctionSkeleton("as3", method.method_name)});
 				var js:LangCodePair = new LangCodePair({lang:"js",code:getFunctionSkeleton("js", method.method_name)});
 				var lang_pairs:Array = [php,as3,js]
-				method.method_lang_code_pairs = JSON.encode(lang_pairs);
+				method.method_lang_code_pairs = JSON.stringify(lang_pairs);
 				selected_lang_code_pair = php;
 				lang_code_pairs.source = lang_pairs;
 				custom_methods.addItem(method);
@@ -180,7 +182,7 @@
 				
 				selected_custom_method = dg_custom_methods.selectedItem as CustomMethod;
 				lang_code_pairs.removeAll();
-				var objs:Array = JSON.decode(selected_custom_method.method_lang_code_pairs);
+				var objs:Array = JSON.parse(selected_custom_method.method_lang_code_pairs) as Array;
 				for each (var obj:Object in objs)
 				{
 					lang_code_pairs.addItem(new LangCodePair(obj));
@@ -205,24 +207,23 @@
 			protected function save_code_clickHandler(event:MouseEvent):void
 			{
 				selected_lang_code_pair.code = lang_pair_code.text;
-				selected_custom_method.method_lang_code_pairs = JSON.encode(lang_code_pairs.source);
+				selected_custom_method.method_lang_code_pairs = JSON.stringify(lang_code_pairs.source);
 				
 			}
 			
-			public function set custom_method_data(json:String):void
+			public function set custom_method_data(arr:Array):void
 			{
 				custom_methods.removeAll();
-				if(!json)return;
-				var methods:Array = JSON.decode(json);
+				var methods:Array = arr;
 				
 				for each (var obj:Object in methods)
 				{
 					custom_methods.addItem(new CustomMethod(obj));
 				}
 			}
-			public function get custom_method_data():String
+			public function get custom_method_data():Array
 			{
-				return JSON.encode(custom_methods.source);
+				return custom_methods.source;
 			}
 
 		]]>
@@ -246,7 +247,7 @@
 			
 			public function makeLangPairs(json:String):Array
 			{
-				var objArray:Array = JSON.decode(json);
+				var objArray:Array = JSON.parse(json) as Array;
 				var lang_pairs:Array = [];
 				for each (var obj:Object in objArray)
 				{

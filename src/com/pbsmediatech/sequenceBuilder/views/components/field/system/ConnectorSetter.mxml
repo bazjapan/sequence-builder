@@ -158,7 +158,7 @@
 						Alert.show("Connected Model is unavailable!", "Model Error");
 						return;
 					}
-				var fields:Array = JSON.decode(selected_sequence.sequence_fields);
+				var fields:Array = selected_sequence.sequence_fields;
 				for each (var obj:Object in fields)
 					{
 						var f:Field = new Field(obj);

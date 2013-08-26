@@ -10,7 +10,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
-			import com.maccherone.json.JSON;
+			import com.maccherone.json.MJSON;
 			import com.pbsmediatech.sequenceBuilder.views.components.common.KeyValuePair;
 			import com.pbsmediatech.sequenceBuilder.views.components.common.KeyValuePairAdder;
 			import com.pbsmediatech.sequenceBuilder.views.components.field.validation.FieldValidation;
@@ -29,7 +29,7 @@
 			var one:String = utils.string.replace(texty,"'", "\\'");
 			trace(one);
 			var myObj:Object = {text : texty};
-			var two:String = JSON.encode(myObj);
+			var two:String = MJSON.encode(myObj);
 			trace(two);
 			var three:String = utils.string.replace(two,"'", "\\'");
 			trace(three);

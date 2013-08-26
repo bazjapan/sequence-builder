@@ -47,7 +47,7 @@ package com.maccherone.json
 	 *		var myObject:Object = JSON.decode( jsonString );
 	 *	</code>
 	 */
-	public class JSON
+	public class MJSON
 	{
 		/**
 		 * Encodes a object into a JSON string.

@@ -1,6 +1,6 @@
 package com.pbsmediatech.sequenceBuilder.views.components.field.shared_actions
 {
-	import com.maccherone.json.JSON;
+	import com.maccherone.json.MJSON;
 	import com.pbsmediatech.sequenceBuilder.views.tasks.show_copy_window_pop;
 	
 	import db.field.Field;
@@ -11,7 +11,7 @@ package com.pbsmediatech.sequenceBuilder.views.components.field.shared_actions
 	{
 		if(!f){return};
 		var output:String = "";
-		output = JSON.encode(f,true);
+		output = MJSON.encode(f,true);
 		var title:String = "Config JSON for "+f["field_name"];
 		show_copy_window_pop(title,output,parent);
 		

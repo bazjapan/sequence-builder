@@ -17,12 +17,16 @@
 			import mx.collections.ArrayCollection;
 			
 			import spark.events.IndexChangeEvent;
+			import spark.events.TextOperationEvent;
 			
 			[Bindable]
 			private var types:ArrayCollection = new ArrayCollection([]);
 			
 			public var save_func:Function;
 			public var cancel_func:Function;
+			
+			[Bindable]
+			public var field:Field;
 			
 			
 			protected function dd_types_changeHandler(event:IndexChangeEvent):void
@@ -34,6 +38,8 @@
 			protected function btn_clear_clickHandler(event:MouseEvent):void
 			{
 				dd_types.selectedIndex = -1;
+				field.nested_schema_name = "";
+				field.is_nc = false;
 				dispatchEvent(new Event("CLEAR_CUSTOM_OBJECT"));
 			}
 			
@@ -43,14 +49,16 @@
 			
 			protected function btn_save_clickHandler(event:MouseEvent):void
 			{
+				field.nested_schema_name = getCustomType();
 				if(save_func != null)save_func();
+				field.is_nc = true;
 				dispatchEvent(new Event("SET_CUSTOM_OBJECT"));
 
 			}
 			
 			public function setField(f:Field):void
 			{
-				
+				field = f;
 				types.source = custom_fields_by_parent_field_type(f.field_type, AppModel.getInstance().master_config);
 				
 				
@@ -75,6 +83,12 @@
 				
 			}
 			
+
+			protected function ti_nested_schema_name_changeHandler(event:TextOperationEvent):void
+			{
+				field.nested_schema_name = ti_nested_schema_name.text;
+			}
+
 		]]>
 	</fx:Script>
 	<fx:Declarations>
@@ -87,6 +101,12 @@
 		<s:DropDownList id="dd_types" dataProvider="{types}" change="dd_types_changeHandler(event)" prompt="Select Type"/>
 		<s:Button id="btn_clear" click="btn_clear_clickHandler(event)" label="Clear"/>
 		<s:Button id="btn_save" enabled="{dd_types.selectedIndex>-1}" click="btn_save_clickHandler(event)" label="Set"/>
+		<s:Label text="Schema Name">
+			
+		</s:Label>
+		<s:TextInput change="ti_nested_schema_name_changeHandler(event)" maxChars="20" restrict="A-z _" text="{field.nested_schema_name}" id="ti_nested_schema_name" enabled="{!field.is_nc}">
+			
+		</s:TextInput> 
 	</s:HGroup>
 	
 	

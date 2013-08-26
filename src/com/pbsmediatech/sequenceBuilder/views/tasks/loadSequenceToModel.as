@@ -16,13 +16,13 @@ package com.pbsmediatech.sequenceBuilder.views.tasks
 		AppModel.getInstance().data_views.removeAll();
 		
 		var loaded_sequence:ControllerSequence = seq;
-		var fields_array:Array = JSON.decode(loaded_sequence.sequence_fields);
+		//var fields_array:Array = JSON.decode(loaded_sequence.sequence_fields);
+		var fields_array:Array = loaded_sequence.sequence_fields;
 		var data_views_array:Array = [];
 		
-		if(loaded_sequence.sequence_views!=null && loaded_sequence.sequence_views!="")
-		{
-			data_views_array = JSON.decode(loaded_sequence.sequence_views);
-		}
+		
+			data_views_array = loaded_sequence.sequence_views || [];
+		trace(data_views_array)
 		
 		
 		for each (var obj:Object in fields_array)
@@ -35,14 +35,17 @@ package com.pbsmediatech.sequenceBuilder.views.tasks
 		{
 			trace("dwJson "+dwJson)
 			var dw:db.dataview.DataView = new DataView(dwJson);
+			trace(dw.name);	
+			if(dw.name !=""){
 			AppModel.getInstance().data_views.addItem(dw);
+			}
 		}
 		
 		
 		//fill generated method info
 		if(loaded_sequence.generated_method_info !=null && loaded_sequence.generated_method_info != "")
 		{
-			var generated_method_info:Object = JSON.decode(loaded_sequence.generated_method_info);
+			var generated_method_info:Object = loaded_sequence.generated_method_info;
 			if(generated_method_info.hasOwnProperty("excludes"))
 			{
 				AppModel.getInstance().excludes = generated_method_info.excludes;

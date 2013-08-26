@@ -12,7 +12,7 @@
 	
 		<![CDATA[
 			import com.adobe.serialization.json.JSON;
-			import com.maccherone.json.JSON;
+			import com.maccherone.json.MJSON;
 			import com.pbsmediatech.json.utils.JSONResultHelper2;
 			import com.pbsmediatech.json.utils.extractResult;
 			import com.pbsmediatech.sequenceBuilder.AppModel;
@@ -163,7 +163,7 @@
 			//------------------------
 			protected function trash_field_clickHandler(event:MouseEvent):void
 			{
-				if(field.is_nc){return}
+				//if(field.is_nc){return}
 				dispatchEvent(new Event("TRASH_FIELD", true));
 			}
 

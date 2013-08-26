@@ -31,7 +31,6 @@
 				//load first tiime
 				var fc:FreezeConfig = new FreezeConfig();
 				fc.load_freeze_config(function(cfg:Object):void{
-					trace("Ready to go")
 					var model:AppModel = AppModel.getInstance();
 					model.master_config = cfg;
 					model.available_fields_types = new ArrayList(get_base_type_names(cfg));

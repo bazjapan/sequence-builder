@@ -5,7 +5,7 @@
 
 	<fx:Script>
 		<![CDATA[
-			import com.adobe.serialization.json.JSON;
+			
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			
 			import mx.collections.ArrayCollection;
@@ -46,7 +46,7 @@
 			{
 				try{
 				if(jsonA == ""){jsonA = "[]"};
-				ac.source = JSON.decode(jsonA);
+				ac.source = JSON.stringify(jsonA) as Array;
 				}
 				catch(e:Error){
 					AppModel.getInstance().session_log_text += e+newLine();
@@ -55,7 +55,7 @@
 			}
 			public function get jsonArray():String{
 				var array:Array = removeEmpties(ac.source);
-				return JSON.encode(array);
+				return JSON.stringify(array);
 			}
 			public function addObject(obj:Object):void
 			{

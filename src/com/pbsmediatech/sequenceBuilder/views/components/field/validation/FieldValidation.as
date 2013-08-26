@@ -1,6 +1,8 @@
 package com.pbsmediatech.sequenceBuilder.views.components.field.validation
 {
-	import com.adobe.serialization.json.JSON;
+
+	
+	import com.maccherone.json.JSONEncoder;
 	
 	import flash.events.Event;
 	import flash.net.URLLoader;
@@ -15,7 +17,8 @@ package com.pbsmediatech.sequenceBuilder.views.components.field.validation
 			loader.load(request);
 			loader.addEventListener(Event.COMPLETE, function(e:Event):void
 			{
-				validationConfig = JSON.decode(String(loader.data));
+				validationConfig = JSON.stringify(String(loader.data));
+				
 			
 					if(ready != null){ready()}
 			})

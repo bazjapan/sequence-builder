@@ -93,7 +93,11 @@
 			{
 				if(saveFunc != null){
 					parent_field.custom = isEmpty(custom_type_set)?"":custom_type_set;
+					if(isEmpty(custom_type_set) && parent_field.nested_schema_name.length<1){
+						Alert.show("Please name nested schema.");	
+					}else{
 					saveFunc(fields)
+					}
 				}
 			}
 		

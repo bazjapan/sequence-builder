@@ -465,9 +465,7 @@
 				}
 				
 				fosWindow.title = "Options for  "+field.field_name;
-				
-				
-				fos.set_field(field)
+				fos.set_field(field);
 				PopUpManager.addPopUp(fosWindow,Application.application as DisplayObject,true);
 				PopUpManager.centerPopUp(fosWindow);
 				

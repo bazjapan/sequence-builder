@@ -23,7 +23,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
-			import com.adobe.serialization.json.JSON;
+			
 			import com.pbsmediatech.dto.ControllerSequence;
 			import com.pbsmediatech.dto.Domain;
 			import com.pbsmediatech.json.utils.JSONResultHelper2;
@@ -88,7 +88,7 @@
 				}
 				
 				//object and class names
-				var infoObject:Object = JSON.decode(loaded_sequence.sequence_info);
+				var infoObject:Object = loaded_sequence.sequence_info;
 				object_name.text = infoObject.object_name;
 				class_name.text = infoObject.class_name; 
 				id_field.text = infoObject.id_field?infoObject.id_field:"";
@@ -100,7 +100,7 @@
 					
 					fillDomainStores();
 					if(loaded_sequence.sequence_store_info != ""){
-						_loaded_sequence_store_info = JSON.decode(loaded_sequence.sequence_store_info);
+						_loaded_sequence_store_info = loaded_sequence.sequence_store_info;
 						for(var j:int = 0; j<domain_stores.length; j++){
 							var store:Object = domain_stores[j];
 							if(store['name'] === _loaded_sequence_store_info['name']){
@@ -138,7 +138,7 @@
 				infoObject.object_name = object_name.text;
 				infoObject.class_name = class_name.text;
 				infoObject.id_field = id_field.text;
-				loaded_sequence.sequence_info = JSON.encode(infoObject);
+				loaded_sequence.sequence_info = infoObject;
 			
 				
 			}
@@ -152,7 +152,7 @@
 			private function fillDomainStores():void{
 				
 				try{
-				domain_stores.source = selected_domain.domain_stores==''?[]:JSON.decode(selected_domain['domain_stores'])
+				domain_stores.source = selected_domain.domain_stores==''?[]:JSON.parse(selected_domain['domain_stores']) as Array;
 				}
 				catch(e:Error){
 					trace(e);
@@ -169,7 +169,7 @@
 					loaded_sequence.sequence_store_info = "";
 				}else{
 					if(dd_domain_stores.selectedItem != null){
-						loaded_sequence.sequence_store_info = JSON.encode(dd_domain_stores.selectedItem);
+						loaded_sequence.sequence_store_info = dd_domain_stores.selectedItem;
 					}
 				}
 			
@@ -180,7 +180,7 @@
 			protected function dd_domain_stores_changeHandler(event:IndexChangeEvent):void
 			{
 				if(dd_domain_stores.selectedItem != null){
-					loaded_sequence.sequence_store_info = JSON.encode(dd_domain_stores.selectedItem);
+					loaded_sequence.sequence_store_info = dd_domain_stores.selectedItem;
 				}
 			}
 			

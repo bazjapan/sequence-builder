@@ -8,7 +8,7 @@
 
 	<fx:Script>
 		<![CDATA[
-			import com.maccherone.json.JSON;
+			import com.maccherone.json.MJSON;
 			import com.pbsmediatech.sequenceBuilder.AppModel;
 			import com.pbsmediatech.sequenceBuilder.assets.IconLib;
 			import com.pbsmediatech.sequenceBuilder.views.components.field.shared_actions.show_field_json;
@@ -190,6 +190,7 @@
 
 			private function onTRASH_FIELD(event:Event):void
 			{
+				//this is where we verify whether we can remove this - check is NC etc
 				var renderer:TableColumnRenderer = TableColumnRenderer(event.target);
 				var field_to_remove:Field = renderer.field;
 				if(field_to_remove.field_type == Field.CONNECTION){
@@ -360,7 +361,7 @@
 			{
 				//AppModel.getInstance().loaded_sequence.sequence_table_name = table_name.text;
 				//AppModel.getInstance().loaded_sequence.sequence_table_version = table_version.value;
-				AppModel.getInstance().loaded_sequence.sequence_fields = JSON.encode(AppModel.getInstance().fields.source);
+				AppModel.getInstance().loaded_sequence.sequence_fields = AppModel.getInstance().fields.source;
 			}
 
 
@@ -442,7 +443,7 @@
 				show_text_window("Paste Field JSON here", this, function(json:String):void{
 					if(isEmpty(json))return;
 					if(!fields)return
-					var fields_array:Array = [JSON.decode(json)];
+					var fields_array:Array = [MJSON.decode(json)];
 					for each (var obj:Object in fields_array)
 					{
 						fields.addItem(new Field(obj));

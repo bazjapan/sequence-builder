@@ -8,7 +8,7 @@
 
 	<fx:Script>
 		<![CDATA[
-			import com.adobe.serialization.json.JSON;
+			
 			import com.pbsmediatech.DomainSettings;
 			import com.pbsmediatech.json.controllers.TestVOController;
 			import com.pbsmediatech.json.utils.extractResult;
@@ -23,7 +23,7 @@
 				var params:Object = new Object;
 				var conditions:Array = [{ID:22}];
 				var fields:Array = ["field_two", "test_ID" ];
-				params.fields = JSON.encode(fields);
+				params.fields = JSON.stringify(fields);
 				//params.conditions = JSON.encode(conditions);
 				controller.get_fields(params, function(evt:ResultEvent):void
 				{
@@ -48,7 +48,7 @@
 				var params:Object = new Object;
 				params.test_ID = 1;
 				var fields:Array = ["field_two", "test_ID" ];
-				params.fields = JSON.encode(fields);
+				params.fields = JSON.stringify(fields);
 				//params.conditions = JSON.encode(conditions);
 				controller.get_fields_by_ID(params, function(evt:ResultEvent):void
 				{

@@ -1,6 +1,6 @@
 package com.pbsmediatech.sequenceBuilder.views.tasks.field
 {
-	import com.maccherone.json.JSON;
+	import com.maccherone.json.MJSON;
 	import com.pbsmediatech.sequenceBuilder.AppModel;
 	import com.pbsmediatech.sequenceBuilder.views.components.field.validation.FieldValidation;
 	import com.pbsmediatech.sequenceBuilder.views.components.field.validation.ValidationSetter;
@@ -27,7 +27,7 @@ package com.pbsmediatech.sequenceBuilder.views.tasks.field
 		vs.validationConfig = fv;
 		vs.setFieldType(f.field_type);
 		vs.saveFunc = function(validators:Object):void{
-					trace(JSON.encode(validators,true));
+					trace(MJSON.encode(validators,true));
 					f.validation = validators;
 					removePop();
 					complete(f);

@@ -11,7 +11,7 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.maccherone.json.JSON;
+			import com.maccherone.json.MJSON;
 			import com.pbsmediatech.dto.ControllerSequence;
 			import com.pbsmediatech.dto.Domain;
 			import com.pbsmediatech.json.controllers.ControllerSequenceController;
@@ -81,7 +81,7 @@
 					//0.962 Cookie added to user_login
 					
 					
-					dev_history.addItem({ver:0.95, summary : "Validation and Default Value to Field Adders"});
+				/* dev_history.addItem({ver:0.95, summary : "Validation and Default Value to Field Adders"});
 				dev_history.addItem({ver:0.96, summary : "Added Login Component"});
 				dev_history.addItem({ver:0.961, summary : "Improved Login Panel"});
 				dev_history.addItem({ver:0.962, summary : "Cookie added to user_login"});
@@ -131,7 +131,20 @@
 				dev_history.addItem({ver:"0.7.83", summary : "Utils target changed to pbsmediatech port 4000"});
 				dev_history.addItem({ver:"0.7.9", summary : "Adding code generation for js objects"});
 				dev_history.addItem({ver:"0.7.91", summary : "Fixed Object Literal Generation"});
+				dev_history.addItem({ver:"0.7.92", summary : "Added field notes to JS Class"});
+				dev_history.addItem({ver:"0.7.93", summary : "Disabled call to service controller"});
+				 */
+				dev_history.addItem({ver:"0.8.0", summary : "Converted Sequence Controller Fields from strings to their real types"});
+				dev_history.addItem({ver:"0.8.1", summary : "Wasn't saving correctly"});
+				dev_history.addItem({ver:"0.8.2", summary : "Wasn't saving correctly again"});
+				dev_history.addItem({ver:"0.8.4", summary : "field.nested_schema_name added"});
+				dev_history.addItem({ver:"0.8.5", summary : "Fixed DataViews"});
+				dev_history.addItem({ver:"0.8.6", summary : "Deployment to Freeze Server Added"});
+				dev_history.addItem({ver:"0.8.7", summary : "Updated Freeze Endpoint URL"});
+				dev_history.addItem({ver:"0.8.8", summary : "See TableRows - line 193 - removed trash locking for isNC field in TableColumnRenderer.mxml"});
 				
+				//build path 
+				//S:\dropbox\Dropbox\sites\jp.unchained\partner\freeze\public\js\freeze\builder
 				
 				
 				to_dos.addItem({level:3,title:"Set Default value on column", summary : "Add Coloumn Default Value when adding columns  - see makeSQLAddColumnToTable.as"});
@@ -156,6 +169,11 @@
 			
 			
 			[Bindable]private var last_saved:String;
+			/* addEventListener("Sequence:Deployed", function(evt):void{
+			if(AppModel.getInstance().loaded_sequence != null){
+				//AppModel.getInstance().loaded_sequence.deployment_info = 
+			}
+			}); */
 			
 			private var sequence_controller:ControllerSequenceController = new ControllerSequenceController(AppModel.getInstance().service_base_url);
 			
@@ -172,9 +190,9 @@
 				var distinct:Array = distinctByParam(AppModel.getInstance().saved_sequences.source, 'sequence_controller_name');	
 				for each (var seq:ControllerSequence in distinct)
 				{
-					var fields:Array = JSON.decode(seq.sequence_fields);
+					var fields:Array = seq.sequence_fields;
 					
-					var info:Object = JSON.decode(seq.sequence_info);
+					var info:Object = seq.sequence_info;
 					var table_name:String = "Unknown";
 					if(info.hasOwnProperty("table_name")){table_name = info["table_name"]};
 					if(table_name != loaded_sequence_table_name)
@@ -226,8 +244,13 @@
 				var loaded_sequence:ControllerSequence = loadSequenceToModel(seq);
 				if(go_to_info){vs.selectedIndex = 2};
 				//get datastore info
+				
+					//disabling this for now - beej Oct 17th 2012 ver 0.7.93
+				if(false){
 				getDataStoreServiceController(seq.sequence_domain, AppModel.getInstance().dev).get_table_info({table_name:loaded_sequence.sequence_table_name}, function(evt:ResultEvent):void
 				{
+					
+					
 					try{
 						AppModel.getInstance().datastore.fields = new ArrayCollection;
 						var results:Array = new JSONResultHelper2().resultToArray(String(evt.result));
@@ -242,8 +265,8 @@
 						Alert.show("Unable to parse DataStore response");
 						
 					}
+				});
 				}
-				);
 			}
 			
 			
@@ -258,10 +281,10 @@
 				{
 					event.target["enabled"] = false;
 					fillSequence();
-					sequence_controller.add_controller_sequence(AppModel.getInstance().loaded_sequence, function(evt:ResultEvent):void
+					sequence_controller.add_controller_sequence(AppModel.getInstance().loaded_sequence.toVO(), function(evt:ResultEvent):void
 					{
 						event.target["enabled"] = true;
-						var returnedID:Number = Number(JSON.decode(extractResult(evt)).result);
+						var returnedID:Number = Number(MJSON.decode(extractResult(evt)).result);
 						if(returnedID == 0)
 						{
 							//fail
@@ -280,7 +303,8 @@
 				else
 				{
 					fillSequence();
-					sequence_controller.update_controller_sequences_by_sequence_ID(AppModel.getInstance().loaded_sequence, function(evt:ResultEvent):void
+					
+					sequence_controller.update_controller_sequences_by_sequence_ID(AppModel.getInstance().loaded_sequence.toVO(), function(evt:ResultEvent):void
 					{
 						saved_ok = new JSONResultHelper2().resultIsGood(extractResult(evt));
 						for each (var saved:ControllerSequence in AppModel.getInstance().saved_sequences)
@@ -304,7 +328,7 @@
 			{
 				sequence_details_editor.save();
 				sequence_row_editor.save();
-				AppModel.getInstance().loaded_sequence.sequence_views = JSON.encode(AppModel.getInstance().data_views.source);
+				AppModel.getInstance().loaded_sequence.sequence_views = AppModel.getInstance().data_views.source;
 				trace(AppModel.getInstance().loaded_sequence.sequence_views)
 				code_admin.save();
 				
@@ -358,6 +382,7 @@
 			
 			protected function new_controller_sequence_clickHandler(event:MouseEvent):void
 			{
+				//var new_controller = ControllerSequence
 				AppModel.getInstance().loaded_sequence = new ControllerSequence;
 				AppModel.getInstance().fields.removeAll();
 				sequence_details_editor.controller_description.text = "";
@@ -491,12 +516,12 @@
 						c.fields.push(fc);
 						
 					}
-					var infoObject:Object = JSON.decode(s.sequence_info);
+					var infoObject:Object = s.sequence_info;
 					c.name = infoObject.class_name; 
 					c.version = s.sequence_version;
 				}
 				
-				var output:String = JSON.encode(c,true);
+				var output:String = MJSON.encode(c,true);
 				
 				show_copy_window_pop("Config for "+s.sequence_controller_name, output, this);
 				
@@ -548,7 +573,11 @@
 				var name:String = AppModel.getInstance().loaded_sequence.sequence_controller_name;
 				var sequence_domain:String = AppModel.getInstance().loaded_sequence.sequence_domain;
 				var config:Object = generateSequenceConfig(AppModel.getInstance().loaded_sequence);
-				var vo:Object = {name:name,sequence_domain:sequence_domain, config:JSON.encode(config)};
+				var req:Object = {};
+				var vo:Object = {name:name, sequence_domain:sequence_domain, config:config};
+				req.m = "ds";
+				req.vo = MJSON.encode(vo);
+				
 				var service:HTTPService
 				service = new HTTPService();
 				service.useProxy = false;
@@ -557,21 +586,27 @@
 				service.addEventListener(FaultEvent.FAULT, function(fe:FaultEvent):void{
 					Alert.show("Unable to Deploy Sequence Config");
 				});
-				service.url = "http://www.pbsmediatech.com:4000/deploysequence/";
+				
+				var current_url:String = ExternalInterface.call("window.location.href.toString");
+				var base_url:String = "http://freeze.pbsmediatech.com";
+				if(current_url.indexOf("temp")>-1 || current_url.indexOf("lfreeze")>-1 ){
+					base_url = "http://lfreeze.pbsmediatech.com";
+				}
+				service.url = base_url+"/js/freeze/services/sequence_builder_deploy";
+				
 				service.addEventListener(ResultEvent.RESULT,function(re:ResultEvent):void{
-					var alrt:Alert = Alert.show(name+" Sequence Config Deployed");
+					dispatchEvent(new Event("Sequence:Deployed"));
+					
+					var alrt:Alert = Alert.show(name+re.message);
 					var alrtTimer:Timer = new Timer(2000, 1);
 					alrtTimer.addEventListener(TimerEvent.TIMER_COMPLETE, function(te:TimerEvent):void{
 						PopUpManager.removePopUp(alrt);
 					});
 					alrtTimer.start();
-					
 				});
 				
-				trace(vo)
-				service.send(vo);
+				service.send(req);
 				
-				// TODO Auto-generated method stub
 			}
 			
 			

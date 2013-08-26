@@ -10,7 +10,7 @@
 		<![CDATA[
 			import app.popMessage;
 			
-			import com.maccherone.json.JSON;
+			import com.maccherone.json.MJSON;
 			import com.pbsmediatech.DomainSettings;
 			import com.pbsmediatech.dto.Domain;
 			import com.pbsmediatech.json.controllers.DomainController;
@@ -132,7 +132,7 @@
 				for each (var d:Domain in domains)
 				{
 					if(!isEmpty(d.domain_stores)){
-					var ss:Array = JSON.decode(d.domain_stores);
+					var ss:Array = MJSON.decode(d.domain_stores);
 					for (var i:int = 0; i < ss.length; i++)
 						{
 							stores.push(ss[i]);
@@ -145,7 +145,7 @@
 					config[store.name] = store;
 				}
 				
-				var ready:String = JSON.encode(config,true);
+				var ready:String = MJSON.encode(config,true);
 				var pop:TitleWindow = new TitleWindow();
 				var vg:VGroup = new VGroup();
 				pop.addElement(vg)

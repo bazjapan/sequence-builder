@@ -10,7 +10,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
-			import com.adobe.serialization.json.JSON;
+		
 			import com.pbsmediatech.json.utils.extractResult;
 			import com.pbsmediatech.json.utils.extractResultMessage;
 			import com.pbsmediatech.json.utils.extractResultResult;
@@ -156,7 +156,7 @@
 				var http:HTTPService = new HTTPService();
 				var result = http.addEventListener(ResultEvent.RESULT,function(evt:ResultEvent):void{
 					
-					ta_result.text = JSON.decode(extractResult(evt))["compiledCode"];
+					ta_result.text = JSON.parse(extractResult(evt))["compiledCode"];
 					
 				});
 				

@@ -91,7 +91,7 @@
 					{
 						if(new JSONResultHelper2().resultIsGood(extractResult(evt)))
 						{
-							var resultObj:Object = JSON.decode(extractResult(evt));
+							var resultObj:Object = JSON.parse(extractResult(evt));
 							num_records = resultObj["result"];
 						}
 					});
@@ -103,7 +103,7 @@
 				{
 					if(new JSONResultHelper2().resultIsGood(extractResult(evt)))
 					{
-						var resultObj:Object = JSON.decode(extractResult(evt));
+						var resultObj:Object = JSON.parse(extractResult(evt));
 						table_version_value = resultObj["result"];
 					}
 					
@@ -117,7 +117,7 @@
 				{
 					if(new JSONResultHelper2().resultIsGood(extractResult(evt)))
 					{
-						var resultObj:Object = JSON.decode(extractResult(evt));
+						var resultObj:Object = JSON.parse(extractResult(evt));
 						status_text = resultObj["message"];
 						table_version_value = table_version.value;
 					}
@@ -347,7 +347,6 @@
 	<fx:Script>
 		<![CDATA[
 			import com.pbsmediatech.sequenceBuilder.views.components.table.AddNewTable;
-			import com.adobe.serialization.json.JSON;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLAddColumnToTable;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLRemoveColumnFromTableScript;
 			import com.pbsmediatech.code.method_builders.sql.makeSQLUpdateColumnScript;

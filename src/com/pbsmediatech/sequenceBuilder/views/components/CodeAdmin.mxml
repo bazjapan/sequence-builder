@@ -12,7 +12,7 @@
 
 	<fx:Script>
 		<![CDATA[
-			import com.maccherone.json.JSON;
+			import com.maccherone.json.MJSON;
 			import com.pbsmediatech.code.method_builders.CustomMethod;
 			import com.pbsmediatech.code.method_builders.LangCodePair;
 			import com.pbsmediatech.code.method_builders.as3.makeAS3Class;
@@ -78,7 +78,7 @@
 				}
 				
 				var mis:Object = makeMethodInfos(sequence_details_editor.object_name.text, AppModel.getInstance().fields.source,getCustomLangPairs(), AppModel.getInstance().excludes, dvs)
-				ta_build_info.text = com.maccherone.json.JSON.encode(mis,true);
+				ta_build_info.text = com.maccherone.json.MJSON.encode(mis,true);
 				prepareSQL();
 				preparePHPController(mis, dvs);
 				prepareAS3Controller(mis);
@@ -154,7 +154,7 @@
 					AppModel.getInstance().fields.source,getCustomLangPairs(), AppModel.getInstance().excludes, mis);
 			}
 			private function prepareJSController(mis:Object):void{
-				trace(JSON.encode(mis, true))
+				trace(MJSON.encode(mis, true))
 				AppModel.getInstance().js_controller_text = makeJSController(
 					Domain(get_domains_by_domain_label(AppModel.getInstance().loaded_sequence.sequence_domain)[0]).domain_api_url,
 					AppModel.getInstance().loaded_sequence.sequence_ID,
@@ -417,7 +417,7 @@
 				theWholeThing.excludes = excludes;
 				theWholeThing.user_built = user_built;
 				
-				AppModel.getInstance().loaded_sequence.generated_method_info = JSON.encode(theWholeThing);
+				AppModel.getInstance().loaded_sequence.generated_method_info = theWholeThing;
 				
 				
 			}
@@ -442,7 +442,7 @@
 						d = domain;
 						break;
 					}}
-					AppModel.getInstance().json_text = JSON.encode(SequenceToConfigJSON(seq,AppModel.getInstance().fields.source,d),true);
+					AppModel.getInstance().json_text = MJSON.encode(SequenceToConfigJSON(seq,AppModel.getInstance().fields.source,d),true);
 						//encoded;
 				}
 					//makeSQLScript(AppModel.getInstance().loaded_sequence.sequence_version, getIDField(),
@@ -460,7 +460,7 @@
 				php_controller_deployed = false;
 				var content:String = AppModel.getInstance().php_controller_text;
 				//var escaped:String = encodePluses(escape(content));//updated to send json mar 23 2012
-				var escaped:String = JSON.encode(content);
+				var escaped:String = MJSON.encode(content);
 					
 					
 				getDataStoreServiceController(Domain(ddlt_domains.selectedItem).domain_label,
@@ -493,7 +493,7 @@
 				var controller_name:String = sequence_details_editor.controller_name.text.toLowerCase()+"_controller";
 				var domain_code_root:String = selected_domain.domain_code_root+controller_folder;
 				
-				var escaped:String = JSON.encode(content);
+				var escaped:String = MJSON.encode(content);
 				
 				getDataStoreServiceController(domain_label,
 					AppModel.getInstance().dev).deploy_js_controller({controller_name:controller_name,

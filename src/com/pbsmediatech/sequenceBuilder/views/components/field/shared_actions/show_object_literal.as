@@ -1,5 +1,5 @@
 package com.pbsmediatech.sequenceBuilder.views.components.field.shared_actions
-{import com.maccherone.json.JSON;
+{import com.maccherone.json.MJSON;
 import com.pbsmediatech.sequenceBuilder.views.tasks.show_copy_window_pop;
 
 import db.field.Field;
